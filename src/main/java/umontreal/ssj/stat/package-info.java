@@ -18,20 +18,29 @@
  * `DoubleArrayList`, a type of extensible array imported from the COLT library.
  * This permits one to compute more quantities and to use the methods
  * provided by COLT for computing descriptive statistics.
+ * 
  * Data can also be collected directly in aggregated form in *histograms*
- * via `TallyHistogram` or `HistogramOnly`.
- * The class `ScaledHistogram` permits one rescale histograms to view them as density estimators,
- * to construct averaged-shifted histograms, and polygonal interpolations of histograms.
- *
- * The class  @ref umontreal.ssj.simevents.Accumulate,
- * in package `simevents`,
+ * via the two types of statistical probes `TallyHistogram`,
+ * which acts as a `Tally` and also constructs a histogram at the same time,
+ * and its subclass `HistogramOnly`, which constructs a histogram from the observations
+ * it collects and does nothing else.
+ * 
+ * The class `ScaledHistogram` represents a histogram object that can be rescaled
+ * (e.g., to be viewed as a density estimator), transformed to construct 
+ * averaged-shifted histograms and polygonal interpolations of histograms,
+ * and printed in a document (via LaTeX and Tikz).  
+ * A `ScaledHistogram` is not a statistical probe.
+ * 
+ * `DataTable` provides tools to construct tables of observations (rows)
+ * in which each observation has many fields (columns).
+ * These tables are in an appropriate format for common statistical software,
+ * and also for visualization using tools such as the `pgfplot` LaTeX package
+ * for example.
+ * 
+ * The class  @ref umontreal.ssj.simevents.Accumulate, in package `simevents`,
+ * is a type of statistical collector that 
  *  computes integrals and averages with respect to time. This class is in
  * package `simevents` because its operation depends on the simulation clock.
- * 
- * `PgfDataTable` provides tools to construct tables of observations (rows)
- * in which each observation has many fields (columns).
- * These tables are in a appropriate format for the  pgfplot LaTeX package.
- * They can also be forwarded to other software for visualization, etc.
  * 
  * Subpackages of the package `stat` offer additional tools.
  * For example, the packages `stat.list` and `stat.matrix` provide lists and matrices of 

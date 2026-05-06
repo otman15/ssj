@@ -26,7 +26,7 @@ package umontreal.ssj.mcqmctools;
 
 import umontreal.ssj.functionfit.LeastSquares;
 import umontreal.ssj.hups.*;
-import umontreal.ssj.stat.PgfDataTable;
+import umontreal.ssj.stat.DataTable;
 import umontreal.ssj.stat.Tally;
 import umontreal.ssj.stat.list.lincv.ListOfTalliesWithCV;
 import umontreal.ssj.util.Chrono;
@@ -309,12 +309,12 @@ public class RQMCExperimentSeries {
 
    /**
     * Takes the data from the most recent experiment and returns it in a @ref
-    * PgfDataTable. This will typically be used to plot the data.
+    * DataTable. This will typically be used to plot the data.
     * 
     * @param tableName Name (short identifier) of the table.
     * @return Report as a string.
     */
-   public PgfDataTable toPgfDataTable(String tableName, String tableLabel) {
+   public DataTable toPgfDataTable(String tableName, String tableLabel) {
       double[][] data = new double[numSets][5];
       for (int s = 0; s < numSets; s++) { // For each cardinality n
          data[s][0] = size[s];
@@ -323,10 +323,10 @@ public class RQMCExperimentSeries {
          data[s][3] = logn[s];
          data[s][4] = logVar[s];
       }
-      return new PgfDataTable(tableName, tableLabel, tableFields, data);
+      return new DataTable(tableName, tableLabel, tableFields, data);
    }
 
-   public PgfDataTable toPgfDataTable(String tableLabel) {
+   public DataTable toPgfDataTable(String tableLabel) {
       return toPgfDataTable(title, tableLabel);
    }
 
@@ -382,10 +382,10 @@ public class RQMCExperimentSeries {
     * @return a report on the experiment.
     */
    public String testVarianceRateManyPointTypes(MonteCarloModelDouble model, ArrayList<RQMCPointSet[]> list, int m,
-         int numSkip, boolean makePgfTable, boolean printReport, boolean details, ArrayList<PgfDataTable> listCurves) {
+         int numSkip, boolean makePgfTable, boolean printReport, boolean details, ArrayList<DataTable> listCurves) {
       StringBuffer sb = new StringBuffer("");
       // if (makePgfTable)
-      // listCurves = new ArrayList<PgfDataTable>();
+      // listCurves = new ArrayList<DataTable>();
       for (RQMCPointSet[] ptSeries : list) {
          init(ptSeries, base);
          testVarianceRate(model, m);

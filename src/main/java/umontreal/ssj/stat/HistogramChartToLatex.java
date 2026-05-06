@@ -17,13 +17,31 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Formatter;
 
+/**
+ * This material should be MOVED into ScaledHistogram.   **********
+ */
+
+
 public class HistogramChartToLatex {
+
+   /*
+    * Return the min and max of values in array height.
+    */
+   public static void getMinMaxY(double[] height, double min, double max) {
+      min = max = height[0];
+      for (int i = 1; i < height.length; i++) {
+         if (height[i] > max)
+            max = height[i];
+         if (height[i] < min)
+            min = height[i];
+      }
+   }
 
    /*
     * return the min of the array of height
     * 
-    */
-   public double getMinY(double[] height) {
+    *
+   public static double getMinY(double[] height) {
       double min = height[0];
       for (int i = 1; i < height.length; i++) {
          if (height[i] < min)
@@ -32,11 +50,7 @@ public class HistogramChartToLatex {
       return min;
    }
 
-   /*
-    * 
-    * Return the max of array
-    */
-   public double getMaxY(double[] height) {
+   public static double getMaxY(double[] height) {
       double max = height[0];
       for (int i = 1; i < height.length; i++) {
          if (height[i] > max)
@@ -44,24 +58,25 @@ public class HistogramChartToLatex {
       }
       return max;
    }
+   */
 
    /*
     * 
-    * return a array that contain the bound of the histogram with an TallyHistogram
+    * return a array that contain the bounds of the histogram with an TallyHistogram
     * object
     * 
     * @param scaledH Scaledhistogram
     */
-   public double[] getHistogramBound(ScaledHistogram scaledH) {
+   public static double[] getHistogrambounds(ScaledHistogram scaledH) {
       double a = scaledH.getA();
       double b = scaledH.getB();
       int nBin = scaledH.getNumBins();
       double h = (b - a) / nBin;
-      double bound[] = new double[nBin + 1];
-      bound[0] = a;
+      double bounds[] = new double[nBin + 1];
+      bounds[0] = a;
       for (int i = 1; i <= nBin; i++)
-         bound[i] = bound[i - 1] + h;
-      return bound;
+         bounds[i] = bounds[i - 1] + h;
+      return bounds;
    }
 
    /*
@@ -84,22 +99,19 @@ public class HistogramChartToLatex {
     * 
     * 
     */
-
-   public String toLatex(ScaledHistogram scaledH, boolean poly, boolean hist) {
-
+   public static String toLatex(ScaledHistogram scaledH, boolean poly, boolean hist) {
       double height[] = scaledH.getHeights();
-      double bound[] = getHistogramBound(scaledH);
-      return toLatex(bound, height, poly, hist);
-
+      double bounds[] = getHistogrambounds(scaledH);
+      return toLatex(bounds, height, poly, hist);
    }
 
    /*
     * 
     * 
-    * return tex file for an histogram by using the array of bound and the array of
+    * return tex file for an histogram by using the array of bounds and the array of
     * height of the histogram
     * 
-    * @param bound The array that contain the bound of the histogram
+    * @param bounds The array that contain the bounds of the histogram
     * 
     * @param height The array of rescaled counters: height[j] is the height of bin
     * j.
@@ -118,14 +130,15 @@ public class HistogramChartToLatex {
     * 
     * 
     */
-   public String toLatex(double[] bound, double[] height, boolean poly, boolean hist) {
+   public static String toLatex(double[] bounds, double[] height, boolean poly, boolean hist) {
       if (poly == false && hist == false) {
          hist = true;
       }
-
-      double h = (bound[1] - bound[0]) / 2;
-      double yMin = getMinY(height);
-      double yMax = getMaxY(height) + 0.2 * getMaxY(height);
+      double h = (bounds[1] - bounds[0]) / 2;
+      double ymin = 0.0;
+      double ymax = 0.0;
+      HistogramChartToLatex.getMinMaxY(height, ymin, ymax);
+      ymax = 1.2 * ymax;
       Formatter formatter = new Formatter(Locale.US);
       formatter.format("\\documentclass[border=3mm, %n");
       formatter.format("           tikz, %n");
@@ -137,22 +150,22 @@ public class HistogramChartToLatex {
       formatter.format("%%---------------------------------------------------------------%%%n");
       formatter.format("\\begin{tikzpicture} %n%n");
       formatter.format("\\begin{axis}[ %n");
-      formatter.format("        ymin=%s, ymax=%s,%n", yMin, yMax);
+      formatter.format("        ymin=%s, ymax=%s,%n", ymin, ymax);
       formatter.format("        minor y tick num = 3, %n");
       formatter.format("        %%area style, %n");
       formatter.format("        ] %n");
       if (hist) {
          formatter.format("\\addplot+[ybar interval,mark=no] plot coordinates { ");
          for (int i = 0; i < height.length; i++)
-            formatter.format("\n (%s,%s) ", bound[i], height[i]);
+            formatter.format("\n (%s,%s) ", bounds[i], height[i]);
          formatter.format("};%n%n");
       }
       if (poly) {
          formatter.format("\\addplot+[sharp plot] plot coordinates { ");
-         formatter.format("(%s,%s) ", bound[0], height[0]);
+         formatter.format("(%s,%s) ", bounds[0], height[0]);
          for (int i = 0; i < height.length; i++)
-            formatter.format("\n (%s,%s) ", bound[i] + h, height[i]);
-         formatter.format("(%s,%s) ", bound[bound.length - 1], height[height.length - 1]);
+            formatter.format("\n (%s,%s) ", bounds[i] + h, height[i]);
+         formatter.format("(%s,%s) ", bounds[bounds.length - 1], height[height.length - 1]);
          formatter.format("};%n%n");
       }
       formatter.format("\\end{axis} %n%n");
@@ -165,7 +178,7 @@ public class HistogramChartToLatex {
    }
 
    /*
-    * 
+    *  THIS GENERAL METHOD DOES NOT BELONG HERE!!!    *************
     * 
     * write a string in a file
     * 

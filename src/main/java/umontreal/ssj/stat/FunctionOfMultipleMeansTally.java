@@ -33,8 +33,9 @@ import java.util.logging.Logger;
 /**
  * Represents a statistical collector for estimating a function of multiple
  * means with a confidence interval based on the delta theorem
+ * @cite tSER80a&thinsp;. 
  * 
- * @cite tSER80a&thinsp;. Let @f$\bar{\mathbf{X}}_n=(\bar{X}_{n, 0}, …,
+ * Let @f$\bar{\mathbf{X}}_n=(\bar{X}_{n, 0}, …,
  *       \bar{X}_{n, d-1})@f$ be a random vector computed by averaging vectors
  *       of observations: @f[
  *       \bar{\mathbf{X}}_n=(1/n)\sum_{i=0}^{n-1}\mathbf{X}_i. @f] Then
@@ -43,7 +44,7 @@ import java.util.logging.Logger;
  *       Then, if @f$g(\bar{\mathbf{X}}_n)@f$ is a continuous function, it
  *       converges to @f$g(\boldsymbol{\mu})@f$ as @f$n\to\infty@f$.
  *
- *       This class collects @f$\mathbf{X}@f$ vectors in order to compute
+ * This class collects @f$\mathbf{X}@f$ vectors in order to compute
  * @f$g(\bar{\mathbf{X}}_n)@f$, to estimate @f$\nu=g(\boldsymbol{\mu})@f$ with a
  *                              confidence interval. The
  *                              function @f$g(\boldsymbol{\mu})@f$ as well as

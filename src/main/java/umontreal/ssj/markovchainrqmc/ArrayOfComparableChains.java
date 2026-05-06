@@ -1,6 +1,6 @@
 package umontreal.ssj.markovchainrqmc;
 
-import umontreal.ssj.stat.PgfDataTable;
+import umontreal.ssj.stat.DataTable;
 import umontreal.ssj.stat.Tally;
 import umontreal.ssj.util.*;
 import umontreal.ssj.util.multidimsort.*;
@@ -506,9 +506,9 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
       if (filenamePlot != null)
          try {
 
-            PgfDataTable pgf = new PgfDataTable(filenamePlot, rqmcPts[0].getLabel(), tableField, data);
+            DataTable pgf = new DataTable(filenamePlot, rqmcPts[0].getLabel(), tableField, data);
             String pVar = pgf.drawPgfPlotSingleCurve(filenamePlot, "axis", 0, 1, 2, "", "");
-            String plotIV = (PgfDataTable.pgfplotFileHeader() + pVar + PgfDataTable.pgfplotEndDocument());
+            String plotIV = (DataTable.pgfplotFileHeader() + pVar + DataTable.pgfplotEndDocument());
 
             FileWriter fileIV = new FileWriter(filenamePlot + "_" + "VAr.tex");
             fileIV.write(plotIV);
@@ -528,12 +528,12 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
       if (filenamePlot != null)
          try {
 
-            PgfDataTable pgf = new PgfDataTable(filenamePlot, rqmcPts[0].getLabel(), tableField, data);
+            DataTable pgf = new DataTable(filenamePlot, rqmcPts[0].getLabel(), tableField, data);
             String pMean = pgf.drawPgfPlotSingleCurve(filenamePlot, "axis", 0, 1, 2, "", "");
             String pVar = pgf.drawPgfPlotSingleCurve(filenamePlot, "axis", 0, 2, 2, "", "");
 
-            String plotMean = (PgfDataTable.pgfplotFileHeader() + pMean + PgfDataTable.pgfplotEndDocument());
-            String plotVar = (PgfDataTable.pgfplotFileHeader() + pVar + PgfDataTable.pgfplotEndDocument());
+            String plotMean = (DataTable.pgfplotFileHeader() + pMean + DataTable.pgfplotEndDocument());
+            String plotVar = (DataTable.pgfplotFileHeader() + pVar + DataTable.pgfplotEndDocument());
 
             FileWriter fileIV = new FileWriter(filenamePlot + "_" + "MeanPerStep.tex");
             fileIV.write(plotMean);

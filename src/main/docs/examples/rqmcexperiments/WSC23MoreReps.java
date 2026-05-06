@@ -44,10 +44,10 @@ public class WSC23MoreReps extends RQMCExperiment64 {
          //  RQMCSamples23.redirectToFile((model.getTag() + "-" + s));
          // WSC26RQMCSamples64.simulAllSizes(model, s, 8, 18, 1000);
          
-         int m = 1000000; // Number of RQMC randomizations.
+         int m = 10000; // Number of RQMC randomizations.
          int mink = 16;
          int maxk = 16;
-         //WSC23MoreSamples.simulRepsAllSizes(new SmoothPerB4(s, 1.0), s, mink, maxk, m);
+         WSC23MoreSamples.simulRepsAllSizes(new SmoothPerB4(s, 1.0), s, mink, maxk, m);
          //WSC23MoreSamples.simulRepsAllSizes(new SumUeU(s), s, mink, maxk, m);
          WSC23MoreSamples.simulRepsAllSizes(new MC2(s), s, mink, maxk, m);
          //WSC23MoreSamples.simulRepsAllSizes(new Polynomial(s), s, mink, maxk, m);

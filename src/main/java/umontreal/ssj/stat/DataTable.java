@@ -13,7 +13,7 @@ import java.util.ArrayList;
  * software to perform further operations.
  */
 
-public class PgfDataTable {
+public class DataTable {
 
    String tableName; // The name of the table, as a character string.
    String tableLabel; // A label (short name) that might be used to identify the curve in plots.
@@ -33,7 +33,7 @@ public class PgfDataTable {
     * @param data       The data points; the entry `data[s]` contains observation
     *                   s.
     */
-   public PgfDataTable(String tableName, String tableLabel, String[] fields, double[][] data) {
+   public DataTable(String tableName, String tableLabel, String[] fields, double[][] data) {
       super();
       this.tableName = tableName;
       this.tableLabel = tableLabel;
@@ -177,7 +177,7 @@ public class PgfDataTable {
     * @return LaTeX code as a string.
     */
    public static String drawPgfPlotManyCurves(String title, String axistype, int j1, int j2,
-         ArrayList<PgfDataTable> listCurves, int logbasis, String axisoptions, String plotoptions) {
+         ArrayList<DataTable> listCurves, int logbasis, String axisoptions, String plotoptions) {
       StringBuffer sb = new StringBuffer("");
       sb.append("  \\begin{tikzpicture} \n");
       sb.append("    \\begin{" + axistype + "}[ \n");
@@ -190,7 +190,7 @@ public class PgfDataTable {
       sb.append(axisoptions + ",\n");
       // sb.append(" legend style={xshift=-3em,yshift=-2em}\n");
       sb.append("      ] \n");
-      for (PgfDataTable curve : listCurves) {
+      for (DataTable curve : listCurves) {
          sb.append(curve.formatPgfCurveAddPlot(j1, j2, plotoptions));
       }
       sb.append("    \\end{" + axistype + "}\n");

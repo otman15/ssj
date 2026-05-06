@@ -7,7 +7,7 @@ import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
 import umontreal.ssj.mcqmctools.RQMCExperimentSeries;
 import umontreal.ssj.rng.LFSR113;
 import umontreal.ssj.rng.RandomStream;
-import umontreal.ssj.stat.PgfDataTable;
+import umontreal.ssj.stat.DataTable;
 
 // Generate and store RQMC replicates for various models, for WSC 2023 paper
 
@@ -58,20 +58,20 @@ public class TestNUS1dim {
       // 2, "", "marks=*"));
 
       // Perform an experiment with a list of series of RQMC point sets.
-      ArrayList<PgfDataTable> listCurves = new ArrayList<PgfDataTable>();
+      ArrayList<DataTable> listCurves = new ArrayList<DataTable>();
       System.out.println(experSeries.testVarianceRateManyPointTypes(model, listOfSeries, m, numSkipReg, true, true,
             true, listCurves));
       System.out.println("\n Now printing data table for the two curves  *****  \n\n\n");
       // Prints the data of each curve as a table.
-      for (PgfDataTable curve : listCurves)
+      for (DataTable curve : listCurves)
          System.out.println(curve.formatTable());
       // Produces LaTeX code to draw these curves with pgfplot.
-      String plot = PgfDataTable.drawPgfPlotManyCurves("Sobol with LMS vs NUS", "loglogaxis", 0, 2, listCurves, 2, "",
+      String plot = DataTable.drawPgfPlotManyCurves("Sobol with LMS vs NUS", "loglogaxis", 0, 2, listCurves, 2, "",
             " ");
       System.out.println(plot);
 
       // Produces a complete LaTeX file with the plots.
-      String pfile = (PgfDataTable.pgfplotFileHeader() + plot + PgfDataTable.pgfplotEndDocument());
+      String pfile = (DataTable.pgfplotFileHeader() + plot + DataTable.pgfplotEndDocument());
       Writer file = new FileWriter(directory + "TestNUS1dim100000.tex");
       file.write(pfile);
       file.close();

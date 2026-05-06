@@ -26,15 +26,19 @@ package umontreal.ssj.stat;
  */
 
 import umontreal.ssj.util.PrintfFormat;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 /**
  * This class extends @ref Tally. It does not store individual observations, but
  * in addition to maintaining the counters as in @ref Tally, it also constructs
  * a histogram for the observations. The histogram is over a bounded
- * interval @f$[a,b]@f$ and has a fixed number of bins of equal width, both
- * specified by the user. The number of observations falling into each of the
+ * interval @f$[a,b]@f$ and has a fixed number of bins  @f$n_b@f$ of equal width 
+ * @f$h = (b-a)/n_b@f$, where @f$a,b,n_b@f$ are specified by the user.
+ * The number of observations falling into each of the
  * bins is kept in an array of counters. This array can be accessed directly by
- * the user. Note that one should never add or remove observations *directly* on
+ * the user.  One should never add or remove observations *directly* on
  * this array of bin counters because this would put the @ref Tally counters in
  * an inconsistent state. Additional variables count the number of observations
  * falling outside the interval @f$[a,b]@f$.
@@ -92,7 +96,6 @@ public class TallyHistogram extends Tally {
        * falling in the interval [a, b]. leftCount is the number of observations < a,
        * and rightCount is the number of observations > b.
        */
-      super.init();
       if (b <= a)
          throw new IllegalArgumentException("   b <= a");
       count = new int[numBins];
@@ -100,9 +103,7 @@ public class TallyHistogram extends Tally {
       m_h = (b - a) / (double) numBins;
       m_a = a;
       m_b = b;
-      leftCount = rightCount = 0;
-      for (int i = 0; i < numBins; i++)
-         count[i] = 0;
+      init();
    }
 
    /**
@@ -139,6 +140,24 @@ public class TallyHistogram extends Tally {
    public void fillFromTallyStore(TallyStore ts) {
       fillFromArray(ts.getArray(), ts.numberObs());
    }
+
+   /**
+    * Fills this object by reading the observations from the file `filename`.
+    * This file should contain only a set of real numbers separated by a white space
+    * or a new line. Each one will be one observation.
+    */
+   public void fillFromFile(String filename) {
+      init();
+      try {
+         File file = new File(filename);
+         Scanner scanner = new Scanner(file);
+         while (scanner.hasNextDouble())
+             add(scanner.nextDouble());
+         scanner.close();
+      } catch (FileNotFoundException e) {
+         System.out.println("fillFromFile: File not found");
+      }
+   } 
 
    /**
     * Gives a new observation @f$x@f$ to the statistical probe. Updates are made as

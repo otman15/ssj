@@ -6,7 +6,7 @@ import umontreal.ssj.rng.*;
 import umontreal.ssj.hups.*;
 import umontreal.ssj.mcqmctools.*;
 import umontreal.ssj.stat.Tally;
-import umontreal.ssj.stat.PgfDataTable;
+import umontreal.ssj.stat.DataTable;
 
 public class TestAsianRQMCSeries extends AsianGBM implements MonteCarloModelDouble {
 
@@ -95,19 +95,19 @@ public class TestAsianRQMCSeries extends AsianGBM implements MonteCarloModelDoub
             3, 4, 2, "", "marks=*"));
 
       // Perform an experiment with a list of series of RQMC point sets.
-      ArrayList<PgfDataTable> listCurves = new ArrayList<PgfDataTable>();
+      ArrayList<DataTable> listCurves = new ArrayList<DataTable>();
       System.out.println(experSeries.testVarianceRateManyPointTypes(model, listOfSeries, m, numSkipReg, true, true,
             true, listCurves));
       System.out.println("\n Now printing data table for the two curves  *****  \n\n\n");
       // Prints the data of each curve as a table.
-      for (PgfDataTable curve : listCurves)
+      for (DataTable curve : listCurves)
          System.out.println(curve.formatTable());
       // Produces LaTeX code to draw these curves with pgfplot.
-      String plot = PgfDataTable.drawPgfPlotManyCurves("Korobov and Sobol", "loglogaxis", 0, 2, listCurves, 2, "", " ");
+      String plot = DataTable.drawPgfPlotManyCurves("Korobov and Sobol", "loglogaxis", 0, 2, listCurves, 2, "", " ");
       System.out.println(plot);
 
       // Produces a complete LaTeX file with the plots.
-      String pfile = (PgfDataTable.pgfplotFileHeader() + plot + PgfDataTable.pgfplotEndDocument());
+      String pfile = (DataTable.pgfplotFileHeader() + plot + DataTable.pgfplotEndDocument());
       Writer file = new FileWriter("testPlotAsianRQMC.tex");
       file.write(pfile);
       file.close();

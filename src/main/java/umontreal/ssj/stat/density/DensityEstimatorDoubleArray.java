@@ -3,7 +3,7 @@ package umontreal.ssj.stat.density;
 import java.util.ArrayList;
 
 import umontreal.ssj.probdist.ContinuousDistribution;
-import umontreal.ssj.stat.PgfDataTable;
+import umontreal.ssj.stat.DataTable;
 
 /**
  * Same as @ref DensityEstimator but here the observations of the underlying

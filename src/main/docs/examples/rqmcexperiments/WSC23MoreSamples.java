@@ -119,7 +119,6 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       Rank1Lattice pLat = new Rank1Lattice(n, a18, s);
       RandomShift randShift = new RandomShift(stream);
       BakerTransformedPointSet ptent = new BakerTransformedPointSet(pLat);
-/*
 
       // Lat-RS
       System.out.println("*   Lattice points with RS");
@@ -135,14 +134,12 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       //System.out.println("*   Lattice points with random gen vector a and RS");
       //statReps.setName(modelTag + "-" + s + "-Lat-RS-" + k + "-" + m);      
       //simulRepsRQMCSort(model, pLat, randShift, m, statReps);
-
-      
+     
       // Lat-RvRSB, random a
       //System.out.println("*   Lattice points with random gen vector a and RS + tent");
       //statReps.setName(modelTag + "-" + s + "-Lat-RS-" + k + "-" + m);      
       //simulRepsRQMCSort(model, pLat, randShift, m, statReps);
-*/
-      
+
       // -------------      
       // Sobol' points
       System.out.println("*** Sobol points ");
@@ -153,7 +150,6 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       PointSetRandomization lms = new LMScramble(stream);
       PointSetRandomization lmsrds = new LMScrambleShift(stream);
 
-      /*
       // Sob-RDS
       System.out.println("*   Sobol with RDS alone");
       statReps.setName(modelTag + "-" + s + "-Sob-RDS-" + k + "-" + m);      
@@ -168,14 +164,12 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("*   Sobol with LMS alone, no shift");
       statReps.setName(modelTag + "-" + s + "-Sob-LMS-" + k + "-" + m);      
       simulRepsRQMCSort(model, p, lms, m, statReps);
-      */
       
       // Sob-LMS-RDS
       System.out.println("*   Sobol with LMS+RDS");
       statReps.setName(modelTag + "-" + s + "-Sob-LMS-RDS-" + k + "-" + m);      
       simulRepsRQMCSort(model, p, lmsrds, m, statReps);
 
-      /*
       // Sob-LMS-RDS-IRB after k
       System.out.println("*   Sobol with LMS+RDS+IRB  (indep random bits after k)");
       statReps.setName(modelTag + "-" + s + "-Sob-LMS-RDS-IRB-" + k + "-" + m);      
@@ -190,7 +184,6 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       PointSetRandomization nus = new NestedUniformScrambling (stream, 53);
       simulRepsRQMCSort(model, cp, nus, m, statReps);
 
-      */
       
 /*
       // Sob-Int2    Sob-interlaced-order2

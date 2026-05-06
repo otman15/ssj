@@ -3,7 +3,7 @@ package umontreal.ssj.stat.density;
 
 import java.util.ArrayList;
 import umontreal.ssj.probdist.ContinuousDistribution;
-import umontreal.ssj.stat.PgfDataTable;
+import umontreal.ssj.stat.DataTable;
 
 /**
  * This abstract class represents a univariate density estimator (DE).
@@ -475,7 +475,7 @@ public abstract class DensityEstimator {
     * (including necessary headers) implementing a tikZ picture.
     * 
     * This function merely tailors and simplifies the methods provided by \ref
-    * umontreal.ssj.stat.PgfDataTable for the purpose of plotting a univariate
+    * umontreal.ssj.stat.DataTable for the purpose of plotting a univariate
     * function. If the user seeks to produce more sophisticated plots, please refer
     * to the aforementioned class.
     * 
@@ -492,11 +492,11 @@ public abstract class DensityEstimator {
          plotData[i][0] = evalPoints[i];
          plotData[i][1] = density[i];
       }
-      PgfDataTable table = new PgfDataTable(plotTitle, "", axisTitles, plotData);
+      DataTable table = new DataTable(plotTitle, "", axisTitles, plotData);
       StringBuffer sb = new StringBuffer("");
-      sb.append(PgfDataTable.pgfplotFileHeader());
+      sb.append(DataTable.pgfplotFileHeader());
       sb.append(table.drawPgfPlotSingleCurve(plotTitle, "axis", 0, 1, 2, "", ""));
-      sb.append(PgfDataTable.pgfplotEndDocument());
+      sb.append(DataTable.pgfplotEndDocument());
       return sb.toString();
    }
 

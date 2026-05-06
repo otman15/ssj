@@ -17,8 +17,8 @@ public class WSC23RepsRQMC extends RQMCExperiment {
       System.out.println("WSC23RepsRQMC, old code, 32-bit hups \n");
       // Edit here to select the range for s and k.
       // for (int s = 4; s <= 32; s *= 2) {
-      for (int s = 8; s <= 8; s *= 2) {
-         for (int k = 16; k <= 16; k = k + 2) {
+      for (int s = 1; s <= 32; s *= 2) {
+         for (int k = 8; k <= 16; k = k + 2) {
             System.out.println("WSC23RepsRQMC, run with s = " + s + ", k = " + k);
             // Uncomment the model you want below. ***
             // model = new SmoothPerBeta52(s, 1.0);
@@ -32,10 +32,10 @@ public class WSC23RepsRQMC extends RQMCExperiment {
             // model = new MC2(s);
             // model = new RidgeJohnsonSU(s);
 
-            //WSC23RQMCSamples.simulRepsAllTypes(model, s, k, m);
+            WSC23RQMCSamples.simulRepsAllTypes(model, s, k, m);
             // RQMCSamples.simulRepsNUS (model, s, k, m);
-            WSC23RQMCSamples.simulRepsLMS(model, s, k, m);
-            WSC23RQMCSamples.simulRepsLMS(model, s, k, m);
+            //WSC23RQMCSamples.simulRepsLMS(model, s, k, m);
+            //WSC23RQMCSamples.simulRepsLMS(model, s, k, m);
             // WSC23RQMCSamples.simulRepsLMS(model, s, k, m);
             // RQMCSamples.simulRepsDS(model, s, k, m);
          }

@@ -17,8 +17,8 @@ import umontreal.ssj.util.Num;
 public class WSC23RQMCSamples extends RQMCExperiment {
 
    // static String directory = "src/main/resources/";
-   static String directory = "C:/Users/Lecuyer/Documents/conf/samo25/mydata/";
-   // static String directory = "C:/Users/Lecuyer/Dropbox/wsc23/RepsRQMC/";
+   // static String directory = "C:/Users/Lecuyer/Documents/conf/samo25/mydata/";
+   static String directory = "C:/Users/Lecuyer/Dropbox/wsc23/RepsRQMC/";
 
    // Lattice generating vector for n=2^{14} found with gamma_j = 2/(2+j), used for the WSC23 paper.
    static int a14[] = { 1, 6229, 2691, 3349, 5893, 7643, 7921, 7055, 4829, 5177, 5459, 4863, 4901, 2833, 2385, 3729,
