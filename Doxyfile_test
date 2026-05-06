@@ -1,0 +1,125 @@
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "SSJ API Documentation"
+PROJECT_BRIEF          = "Stochastic Simulation in Java"
+OUTPUT_DIRECTORY       = build/docs
+OUTPUT_LANGUAGE        = English
+
+OPTIMIZE_OUTPUT_JAVA   = YES
+JAVADOC_AUTOBRIEF      = YES
+MARKDOWN_SUPPORT       = YES
+TOC_INCLUDE_HEADINGS   = 6
+AUTOLINK_SUPPORT       = YES
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_PACKAGE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = NO
+HIDE_UNDOC_NAMESPACES  = NO
+
+SHOW_NAMESPACES        = YES
+SHOW_FILES             = NO
+SHOW_USED_FILES        = YES
+SHOW_INCLUDE_FILES     = YES
+SHOW_HEADERFILE        = YES
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = NO
+SORT_BY_SCOPE_NAME     = YES
+ALPHABETICAL_INDEX     = YES
+
+INPUT                  = src/main/java src/main/docs
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          = *.java *.dox *.md
+RECURSIVE              = YES
+
+EXCLUDE                = */src/main/docs/examples/*
+EXCLUDE_SYMLINKS       = YES
+EXCLUDE_PATTERNS       = */test/* */ift6561examples/* */examples/randvar/* */examples/charts/* */examples/latnetbuilder/* */examples/probdistmulti*/* */examples/markovchain*/* */examples/rqmcexperiments/* */examples/tutorial/*
+
+EXAMPLE_PATH           = src/main/docs/examples
+EXAMPLE_PATTERNS       = *.java
+EXAMPLE_RECURSIVE      = YES
+IMAGE_PATH             = src/main/docs/images
+CITE_BIB_FILES         = src/main/docs/bib/random.bib
+
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_IF_INCOMPLETE_DOC = YES
+WARN_NO_PARAMDOC       = NO
+WARN_LOGFILE           = build/docs/doxygen-warnings.log
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_EXTRA_STYLESHEET  = src/main/docs/ssj.css
+HTML_COLORSTYLE        = AUTO_LIGHT
+HTML_DYNAMIC_MENUS     = YES
+HTML_DYNAMIC_SECTIONS  = NO
+HTML_CODE_FOLDING      = YES
+HTML_COPY_CLIPBOARD    = YES
+
+DISABLE_INDEX          = NO
+GENERATE_TREEVIEW      = YES
+FULL_SIDEBAR           = YES
+TREEVIEW_WIDTH         = 250
+SEARCHENGINE           = YES
+
+USE_MATHJAX            = YES
+MATHJAX_VERSION        = MathJax_2
+MATHJAX_FORMAT         = HTML-CSS
+MATHJAX_EXTENSIONS     = TeX/AMSmath
+MATHJAX_CODEFILE       = src/main/docs/mathjax_config.js
+
+GENERATE_LATEX         = NO
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO
+GENERATE_DOCBOOK       = NO
+GENERATE_AUTOGEN_DEF   = NO
+GENERATE_SQLITE3       = NO
+GENERATE_PERLMOD       = NO
+GENERATE_ECLIPSEHELP   = NO
+GENERATE_HTMLHELP      = NO
+GENERATE_QHP           = NO
+GENERATE_DOCSET        = NO
+
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = NO
+SEARCH_INCLUDES        = YES
+SKIP_FUNCTION_MACROS   = YES
+
+HAVE_DOT               = NO
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+DIR_GRAPH_MAX_DEPTH    = 1
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+DOT_GRAPH_MAX_NODES    = 50
+DOT_CLEANUP            = YES
+
+LAYOUT_FILE = DoxygenLayout.xml
+
+BRIEF_MEMBER_DESC      = YES
+REPEAT_BRIEF           = YES
+ALWAYS_DETAILED_SEC    = YES
+INLINE_INHERITED_MEMB  = NO
+INHERIT_DOCS           = YES
+SEPARATE_MEMBER_PAGES  = NO
+TAB_SIZE               = 4
+TIMESTAMP              = NO
+CASE_SENSE_NAMES       = YES
+HIDE_SCOPE_NAMES       = NO
+INLINE_INFO            = YES
+GENERATE_TODOLIST      = YES
+GENERATE_BUGLIST       = YES
+GENERATE_DEPRECATEDLIST= YES
