@@ -23,7 +23,7 @@ public class WSC23MoreReps extends RQMCExperiment64 {
       Chrono timerTotal = new Chrono();
       RandomStream noise = new LFSR258();
 
-      for (int s = 8; s <= 8; s *= 2) {
+      for (int s = 4; s <= 4; s *= 2) {
       // for (int s = 4; s <= 32; s *= 2) {
          System.out.println("WSC23MoreReps, run with s = " + s);
          // Uncomment the model you want below. ***
@@ -45,6 +45,7 @@ public class WSC23MoreReps extends RQMCExperiment64 {
          // WSC26RQMCSamples64.simulAllSizes(model, s, 8, 18, 1000);
          
          int m = 10000; // Number of RQMC randomizations.
+         // int m = 10; // Number of RQMC randomizations.
          int mink = 16;
          int maxk = 16;
          WSC23MoreSamples.simulRepsAllSizes(new SmoothPerB4(s, 1.0), s, mink, maxk, m);

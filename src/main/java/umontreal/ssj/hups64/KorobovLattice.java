@@ -24,6 +24,8 @@
  */
 package umontreal.ssj.hups64;
 
+import umontreal.ssj.rng.RandomPrime;
+import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.util.PrintfFormat;
 
 /**
@@ -107,6 +109,39 @@ public class KorobovLattice extends Rank1Lattice {
     */
    public int getA() {
       return genA;
+   }
+
+   /**
+    * Selects the generating vector @f$\bm a@f$ at random, under the 
+    * assumption that @f$n@f$ is prime.
+    * The dimension @f$s@f$ and the number of points @f$n@f$ remain unchanged.
+    */
+   public void setRandomAforPrimen(RandomStream stream) {
+      genA = stream.nextInt(1, numPoints-1);
+      initN(numPoints, dim);      
+   }
+
+   /**
+    * Selects the generating vector @f$\bm a@f$ at random, under the 
+    * assumption that @f$n@f$ is a power of 2.
+    * The @f$a_j@f$ are selected at random among the odd numbers less than @f$n@f$.
+    * The dimension @f$s@f$ and the number of points @f$n@f$ remain unchanged.
+    */
+   public void setRandomAforPow2n(RandomStream stream) {
+      genA = 2 * stream.nextInt(1, (numPoints-1)/2) - 1;
+      initN(numPoints, dim);      
+   }
+   
+   /**
+    * Selects both the number of points (the modulus) @f$n@f$ and the 
+    * generating vector @f$\bm a@f$ at random, as follows.
+    * For @f$n@f$, we generate a prime number uniformly between `nmin` and `nmax`.
+    * Then the generating vector is generated randomly exactly as in 
+    * `setRandomAforPrimen`.
+    */
+   public void setRandomAandn(int nmin, int nmax, RandomStream stream) {
+      numPoints = RandomPrime.randomPrime24 (nmin+1, nmax-1, stream); 
+      setRandomAforPrimen(stream);
    }
 
    public String toString() {

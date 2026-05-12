@@ -23,7 +23,10 @@ public class WSC23RQMCSamples extends RQMCExperiment {
    // Lattice generating vector for n=2^{14} found with gamma_j = 2/(2+j), used for the WSC23 paper.
    static int a14[] = { 1, 6229, 2691, 3349, 5893, 7643, 7921, 7055, 4829, 5177, 5459, 4863, 4901, 2833, 2385, 3729,
          981, 957, 4047, 1013, 1635, 2327, 7879, 2805, 2353, 1081, 3999, 879, 5337, 7725, 4889, 5103 };
-
+   static int a18[] = { 1, 103259, 73357, 46713, 58781, 112041, 32459, 50551, 40125, 128245, 
+         18285, 124265, 98539, 130087, 113373, 22191, 120679, 98411, 94845, 33103, 47891, 15941, 
+         30147, 43921, 81129, 3289, 50935, 63965, 55749, 38101, 70631, 116243 };
+   
    /**
     * Redirect the output to a .res file with the given name, in `directory`.
     */

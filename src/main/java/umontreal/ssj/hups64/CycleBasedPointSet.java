@@ -53,7 +53,7 @@ public abstract class CycleBasedPointSet extends PointSet {
    protected int numCycles = 0; // Total number of cycles.
    int dim = Integer.MAX_VALUE; // Dimension is infinite.
    private double[] shift; // Random shift, initially null.
-                           // Entry j is for dimension j.
+                            // Entry j is for dimension j.
    protected ObjectArrayList cycles = new ObjectArrayList(); // List of cycles.
 
    public double getCoordinate(int i, int j) {

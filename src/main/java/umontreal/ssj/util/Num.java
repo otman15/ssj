@@ -25,6 +25,7 @@
 package umontreal.ssj.util;
 
 import cern.jet.math.Bessel;
+import java.math.BigInteger;
 
 /**
  * This class provides various constants and methods to compute numerical
@@ -164,8 +165,8 @@ public class Num {
    public static final double MAXTWOEXP = 64;
 
    /**
-    * Contains the precomputed positive powers of 2. One has <tt>TWOEXP[j]</tt>@f$
-    * = 2^j@f$, for @f$j=0,…,64@f$.
+    * Contains the precomputed positive powers of 2. 
+    * One has <tt>TWOEXP[j]</tt>@f$=2^j@f$ for @f$j=0,\dots,64@f$.
     */
    public static final double TWOEXP[] = { 1.0, 2.0, 4.0, 8.0, 1.6e1, 3.2e1, 6.4e1, 1.28e2, 2.56e2, 5.12e2, 1.024e3,
          2.048e3, 4.096e3, 8.192e3, 1.6384e4, 3.2768e4, 6.5536e4, 1.31072e5, 2.62144e5, 5.24288e5, 1.048576e6,
@@ -178,6 +179,36 @@ public class Num {
          7.2057594037927936e16, 1.44115188075855872e17, 2.88230376151711744e17, 5.76460752303423488e17,
          1.152921504606846976e18, 2.305843009213693952e18, 4.611686018427387904e18, 9.223372036854775808e18,
          1.8446744073709551616e19 };
+      
+   /**
+    * Contains the largest prime numbers strictly smaller than the positive powers of 2. 
+    * One has <tt>PRIME_LESS_THAN_TWOEXP[j]</tt> @f$=\max\{p \text{ prime} : p < 2^j\}@f$, 
+    * for @f$j=2,\ldots,63@f$.
+    * For @f$j=0@f$ and @f$j=1@f$, the value is <tt>0</tt>, since no prime
+    * number is strictly smaller than @f$2^0 = 1@f$ or @f$2^1 = 2@f$.
+    */
+   // The largest prime less than 2^63 is 9223372036854775783.
+   // BigInteger.isProbablePrime(100) was used to find these primes. Which has an error probability of 2^-100.
+   public static final long[] PRIME_LESS_THAN_TWOEXP = {
+       0L,                  0L,                  3L,                  7L,
+       13L,                 31L,                 61L,                 127L,
+       251L,                509L,                1021L,               2039L,
+       4093L,               8191L,               16381L,              32749L,
+       65521L,              131071L,             262139L,             524287L,
+       1048573L,            2097143L,            4194301L,            8388593L,
+       16777213L,           33554393L,           67108859L,           134217689L,
+       268435399L,          536870909L,          1073741789L,         2147483647L,
+       4294967291L,         8589934583L,         17179869143L,        34359738337L,
+       68719476731L,        137438953447L,       274877906899L,       549755813881L,
+       1099511627689L,      2199023255531L,      4398046511093L,      8796093022151L,
+       17592186044399L,     35184372088777L,     70368744177643L,     140737488355213L,
+       281474976710597L,    562949953421231L,    1125899906842597L,   2251799813685119L,
+       4503599627370449L,   9007199254740881L,   18014398509481951L,  36028797018963913L,
+       72057594037927931L,  144115188075855859L, 288230376151711717L, 576460752303423433L,
+       1152921504606846883L, 2305843009213693951L,
+       4611686018427387847L, 9223372036854775783L
+   };
+   
 
    /**
     * Contains the precomputed negative powers of 10. One has

@@ -21,26 +21,62 @@ public class HistLatex {
       
       // double xmin = -5.2E-12;
       // double xmax =  5.2E-12;
-      double xmin = -1.4E-4;
-      double xmax =  1.4E-4;
+      double xmin = - 1.1E-2;
+      double xmax =  -xmin;
       int numBins = 40;
+
       // int numObs  = 1000000;
      
-      xmax = 1.1E-4;
-      xmin = -xmax;
       TallyHistogram hist = new TallyHistogram(xmin, xmax, numBins);
       // hist.fillFromFile(directory + "SmoothPerB4-8-Lat-RS-16.dat");
-      hist.fillFromFile(directory + "SmoothPerB4-8-Sob-LMS-RDS-16-1000000.dat");
+      hist.fillFromFile(directory + "SumUeU-16-Lat-RvRS-10-10000.dat");
       // ScaledHistogram histScaled = new ScaledHistogram(hist, 1.0);
       // String histStr = histScaled.toLatex(false, true);
-      System.out.println((new ScaledHistogram(hist, 1.0)).toLatex(true, false));
+      ScaledHistogram scHist = new ScaledHistogram(hist, 1.0);
+      scHist.setAxisOptions(
+    		   "title={SumUeU-16-Lat-RvRS-10-10000}, " +
+    		   "title style={font=\\fontsize{5}{5.5}\\selectfont}, " +
+    		   "width=8cm, height=5cm, " +
+    		   "xlabel={}, ylabel={}, " +
+    		   "scaled x ticks=true, " +
+    		   "scaled y ticks=false, " +
+    		   "tick label style={font=\\fontsize{6}{6.5}\\selectfont}, " +
+    		   "every x tick scale label/.append style={font=\\fontsize{5}{5.5}\\selectfont\\bfseries\\boldmath, yshift=5pt}, " +
+    		   "legend entries={{$\\mathrm{Var}=" 
+    		   + String.format(java.util.Locale.US, "%.2e", hist.variance()) 
+    		   + "$}}, " +
+    		   "legend image code/.code={}, " +
+    		   "legend style={draw=none, fill=none, font=\\scriptsize, cells={anchor=west}, inner xsep=0pt, inner ysep=0pt}, " +
+    		   "legend pos=north east"
+    		);
+      scHist.setAddPlotOptions("fill=red!30, draw=black");
+      System.out.println(scHist.toLatex(true, false));
       
-      xmax = 1.25E-6;
+      xmax = 1.25E-2;
       xmin = -xmax;
       hist = new TallyHistogram(xmin, xmax, numBins);
-      hist.fillFromFile(directory + "MC2-8-Sob-LMS-RDS-16-1000000.dat");
+      hist.fillFromFile(directory + "SumUeU-16-Lat-RvRS-10-10000.dat");
       // histScaled = new ScaledHistogram(hist, 1.0);
       // histStr = histScaled.toLatex(false, true);
-      System.out.println((new ScaledHistogram(hist, 1.0)).toLatex(true, true));
+      scHist = new ScaledHistogram(hist, 1.0);
+
+      scHist.setAxisOptions(
+    		   "title={SumUeU-16-Lat-RvRS-10-10000}, " +
+    		   "title style={font=\\fontsize{5}{5.5}\\selectfont}, " +
+    		   "width=8cm, height=5cm, " +
+    		   "xlabel={}, ylabel={}, " +
+    		   "scaled x ticks=true, " +
+    		   "scaled y ticks=false, " +
+    		   "tick label style={font=\\fontsize{6}{6.5}\\selectfont}, " +
+    		   "every x tick scale label/.append style={font=\\fontsize{5}{5.5}\\selectfont\\bfseries\\boldmath, yshift=5pt}, " +
+    		   "legend entries={{$\\mathrm{Var}=" 
+    		   + String.format(java.util.Locale.US, "%.2e", hist.variance()) 
+    		   + "$}}, " +
+    		   "legend image code/.code={}, " +
+    		   "legend style={draw=none, fill=none, font=\\scriptsize, cells={anchor=west}, inner xsep=0pt, inner ysep=0pt}, " +
+    		   "legend pos=north east"
+    		);
+      scHist.setAddPlotOptions("fill=blue!30, thick");
+      System.out.println(scHist.toLatex(false, true));
    }
 }

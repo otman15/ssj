@@ -160,6 +160,7 @@ public class TallyStore extends Tally {
 
    /**
     * Recomputes and returns the variance from the observations contained in this tally.
+    * This uses the function @ref cern.jet.stat.Descriptive.variance.
     */
    public double variance2() {
       return cern.jet.stat.Descriptive.sampleVariance(getDoubleArrayList(), average());
@@ -167,19 +168,132 @@ public class TallyStore extends Tally {
   
    /**
     * Returns the sample skewness of the observations contained in this tally.
+    * This uses the function @ref cern.jet.stat.Descriptive.skew, which makes the standard 
+    * bias correction for the variance, but no bias correction for the skewness estimator.
     */
-   public double skewness() {
-      return cern.jet.stat.Descriptive.sampleSkew(getDoubleArrayList(), average(), standardDeviation());
+   public double skewness2() {
+      return cern.jet.stat.Descriptive.skew(getDoubleArrayList(), average(), standardDeviation());
    }
-  
-
+    
    /**
-    * Returns the sample excess kurtosis of the observations contained in this tally.
+    * Returns the sample skewness of the observations contained in this tally.
+    * Computes an unbiased estimator if `unbiased = true`, otherwise computes the 
+    * simpler direct biased estimator.  
+    * With @f$n@f$ observations with mean @f$\bar X_n@f$ and variance @f$S_n^2@f$,
+    * the direct estimator is
+    * @f[
+    *   \frac{1}{n S_n^3} sum_{i=1}^n (X_i - \bar X_n)^3.   \tag{sample-skew}
+    * @f]
+    * and the bias-corrected estimator is
+    * @f[
+    *   \frac{n}{(n-1)(n-2) S_n^3} sum_{i=1}^n (X_i - \bar X_n)^3.   \tag{sample-skew-correct}
+    * @f]
+    * Returns `Double.NaN` if the tally contains less than three observations.
     */
-   public double kurtosis() {
-      return cern.jet.stat.Descriptive.kurtosis(getDoubleArrayList(), average(), standardDeviation());
+   public double skewness(boolean biasCorrection) {
+      if (numberObs() < 3) {
+         log.logp(Level.WARNING, "TallyStore", "skewness", 
+             "Tally " + name + ":  computing skewness() with only " + numObs + " observations");
+         return Double.NaN;
+      }
+      double n = numberObs();  // We want all computations to be made in double.
+      double avg = average();
+      double var = variance();
+      double sum = 0.0;
+      double[] obs = this.getArray();
+      double x;
+      for (int i = 0; i < n; i++) {
+         x = obs[i] - avg;
+         x = x * x * x;
+         sum += x;
+      }
+      if (biasCorrection)
+         sum = sum * n / ((n-1)*(n-2));
+      else {
+         // var *= (n-1) / n;
+         sum /= n;
+      }
+      sum /= (var * Math.sqrt(var));
+      return sum;      
    }
    
+   /**
+    * Returns the sample skewness with no bias correction.
+    */
+   public double skewness() {
+      return skewness(false);      
+   }
+   
+   /**
+    * Returns the sample excess kurtosis of the observations contained in this tally.
+    * This uses the function @ref cern.jet.stat.Descriptive.kurtosis, which makes the standard 
+    * bias correction for the variance, but no bias correction for the kurtosis estimator.
+    */
+   public double kurtosis2() {
+      return cern.jet.stat.Descriptive.kurtosis(getDoubleArrayList(), average(), standardDeviation());
+   }
+ 
+   /**
+    * Returns the sample kurtosis @f$\kappa@f$ of the observations contained in this tally.
+    * If `biasCorrection = true`, a correction is applied so the returned value is an 
+    * unbiased kurtosis estimator but only if the observations are from the normal distribution.
+    * Otherwise the function computes the simpler direct biased estimator. 
+    * If `excess = true`, it returns an estimate of the *excess kurtosis* @f$\kappa-3@f$.
+    * With @f$n@f$ observations with mean @f$\bar X_n@f$ and variance @f$S_n^2@f$,
+    * the direct estimator of the excess kurtosis is
+    * @f[
+    *   \frac{1}{n S_n^4} sum_{i=1}^n (X_i - \bar X_n)^4 -3.   \tag{sample-skew}
+    * @f]
+    * For the plain kurtosis (not excess), we remove the @f$-3@f$.
+    * The bias-corrected estimator for the excess kurtosis is
+    * @f[
+    *   \frac{n(n+1)}{(n-1)(n-2)(n-3) S_n^4} sum_{i=1}^n (X_i - \bar X_n)^4
+    *     - \frac{3 (n-1)^2}{(n-2)(n-3)}.                      \tag{sample-skew-correct}
+    * @f]
+    * Returns `Double.NaN` if the tally contains less than four observations.
+    * 
+    */
+   public double kurtosis(boolean biasCorrection, boolean excess) {
+      if (numberObs() < 4) {
+         log.logp(Level.WARNING, "TallyStore", "kurtosis", 
+             "Tally " + name + ":  computing kurtosis() with only " + numObs + " observations");
+         return Double.NaN;
+      }
+      double n = numberObs();   // We want all computations to be made in double.
+      double avg = average();
+      double var = variance();
+      double sum = 0.0;
+      double[] obs = this.getArray();
+      double x;
+      for (int i = 0; i < n; i++) {
+         x = obs[i] - avg;
+         x *= x;
+         sum += x * x;
+      }
+      sum /= (var * var);
+      // System.out.println("kurtosis2: n = " + n + ", sum = " + sum);
+      if (biasCorrection) {
+         sum = sum * n * (n+1) / ((n-1) * (n-2) * (n-3));
+         if (excess) 
+            sum -= 3.0 * (n-1) * (n-1) / ((n-2) * (n-3));
+      }
+      else {
+         // sum = sum * n / ((n-1) * (n-1));  // In case we want var *= (n-1) / n;
+         sum /= n;
+         if (excess) sum -= 3;
+      }
+      // System.out.println("  sum = " + sum);
+      return sum;
+   }
+
+   
+   /**
+    * Returns the sample excess kurtosis with no bias correction.
+    */
+   public double kurtosis() {
+      return kurtosis(false, true);      
+   }
+  
    /**
     * Returns the sample covariance of the observations contained in this tally,
     * and the other tally `t2`. Both tallies must have the same number of

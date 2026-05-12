@@ -33,8 +33,8 @@ import java.util.logging.Logger;
 
 /**
  * A subclass of @ref StatProbe. This type of statistical collector takes a
- * sequence of real-valued observations @f$X_1,X_2,X_3,…@f$ and can return the
- * average, the variance, a confidence interval for the theoretical mean, etc.
+ * sequence of real-valued observations @f$X_1,X_2,X_3,…@f$ which can be added one by one.
+ * It can return the average, the variance, a confidence interval for the theoretical mean, etc.
  * Each call to #add provides a new observation. When the broadcasting to
  * observers is activated, the method #add will also pass this new information
  * to its registered observers. This type of collector does not memorize the
@@ -47,9 +47,8 @@ import java.util.logging.Logger;
 public class Tally extends StatProbe implements Cloneable {
    protected int numObs;
    // private double sumSquares;
-   private double curAverage; // The average of the first numObs observations
-   private double curSum2; // The sum (xi - average)^2 of the first numObs
-                           // observations.
+   private double curAverage; // The current average of the first numObs observations
+   private double curSum2;    // The current sum of the (xi - curAverage)^2.
    private Logger log = Logger.getLogger("umontreal.ssj.stat");
 
    protected static enum CIType {
@@ -120,13 +119,12 @@ public class Tally extends StatProbe implements Cloneable {
          if (x > maxValue)
             maxValue = x;
          numObs++;
-         // Algorithme dans Knuth ed. 3, p. 232; voir Wikipedia
+         // Updating algorithm from Knuth ed. 3, p. 232; see
          // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#cite_note-1
          double y = x - curAverage;
          curAverage += y / numObs;
          curSum2 += y * (x - curAverage);
-         // On pourrait utiliser l'algorithme correcteur de Kahan pour une
-         // meilleure precision.
+         // On pourrait utiliser l'algorithme de Kahan pour une meilleure precision:
          // (voir http://en.wikipedia.org/wiki/Kahan_summation_algorithm)
       }
       notifyListeners(x);
@@ -157,7 +155,12 @@ public class Tally extends StatProbe implements Cloneable {
    }
 
    /**
-    * Returns the average value of the observations since the last initialization.
+    * Returns the average of the observations since the last initialization.
+    * With @f$n@f$ observations, it is
+    * @f[
+    *    \bar X_n = \frac{1}{n} sum_{i=1}^n X_i.   \tag{sample-mean}
+    * @f]
+    *  
     */
    public double average() {
       if (numObs < 1) {
@@ -172,9 +175,12 @@ public class Tally extends StatProbe implements Cloneable {
    }
 
    /**
-    * Returns the sample variance of the observations since the last
-    * initialization. This returns `Double.NaN` if the tally contains less than two
-    * observations.
+    * Returns the sample variance of the observations since the last initialization. 
+    * With @f$n@f$ observations, it is
+    * @f[
+    *   S_n^2 = \frac{1}{n-1} sum_{i=1}^n (X_i - \bar X_n)^2.   \tag{sample-var}
+    * @f]
+    * Returns `Double.NaN` if the tally contains less than two observations.
     * 
     * @return the variance of the observations
     */
@@ -186,7 +192,7 @@ public class Tally extends StatProbe implements Cloneable {
          // "******* Tally " + name + ": calling variance() with " + numObs +
          // " Observation");
          log.logp(Level.WARNING, "Tally", "variance",
-               "Tally " + name + ":   calling variance() with " + numObs + " observation");
+               "Tally " + name + ":   calling variance() with only " + numObs + " observation");
          return Double.NaN;
       }
       return curSum2 / (numObs - 1);
@@ -194,8 +200,8 @@ public class Tally extends StatProbe implements Cloneable {
 
    /**
     * Returns the sample standard deviation of the observations since the last
-    * initialization. This returns `Double.NaN` if the tally contains less than two
-    * observations.
+    * initialization. This is the square oot of `variance()`.
+    * Returns `Double.NaN` if the tally contains less than two observations.
     * 
     * @return the standard deviation of the observations
     */

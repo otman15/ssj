@@ -36,7 +36,6 @@ public class RQMCExperiment64 extends MonteCarloExperiment {
    public static void simulReplicatesRQMC(MonteCarloModelDouble model, PointSet p, PointSetIterator iter, 
          PointSetRandomization rand, int m, Tally statReps) {
       statReps.init();
-      int n = p.getNumPoints();
       // Internal collector for stats on the n outputs X, for each replication.
       Tally statValue = new Tally();
       // PointSetIterator stream = p.iterator();
@@ -45,7 +44,7 @@ public class RQMCExperiment64 extends MonteCarloExperiment {
          // System.out.println("\n***  SimulReplicatesRQMC: The point set p after randomize:");
          // System.out.println(p.formatPoints());
          iter.resetStartStream();
-         simulateRuns(model, n, iter, statValue);
+         simulateRuns(model, p.getNumPoints(), iter, statValue);
          statReps.add(statValue.average()); // For the estimator of the mean.
          // System.out.println("RQMC average = " + statValue.average() + ", n = " + statValue.numberObs());
       }
@@ -64,11 +63,12 @@ public class RQMCExperiment64 extends MonteCarloExperiment {
 
    /**
     * Same as `simulReplicatesRQMC`, except that all the `n` observations for each
-    * the `m` replications are saved and returned in a new two-dimensional array
+    * the `m` replications are saved, sorted, and returned in a new two-dimensional array
     * `data`, which is an array of `m` arrays of size `n', i.e., `double[m][n]`,
     * created inside this method. Each array of size `n` is sorted by increasing
-    * order. This is useful for density and cdf estimation, or for further
-    * processing of the data, for example.
+    * order. This may be useful for density and cdf estimation, or for further
+    * processing of the data, for example. Of course, this saving slows down the function.
+    * It is assumed here that `n` is the same for all replications, so no random `n`.
     */
    public static void simulReplicatesRQMC(MonteCarloModelDouble model, RQMCPointSet prqmc, int m, Tally statReps,
          double[][] data) {
@@ -76,23 +76,24 @@ public class RQMCExperiment64 extends MonteCarloExperiment {
    }
 
    /**
-    * Here the QMC point set `p` and its randomization `rand` are specified
-    * directly.
+    * Same as the previous function, but here the QMC point set `p` and its randomization `rand` 
+    * are specified directly. 
     */
    public static void simulReplicatesRQMC(MonteCarloModelDouble model, PointSet p, PointSetRandomization rand, int m,
          Tally statReps, double[][] data) {
+      data = new double[m][];   // The large data array is created here.
       int n = p.getNumPoints();
-      data = new double[m][]; // ????
       // Internal collector for stats on the n outputs X, for each replication.
       TallyStore statSave = new TallyStore(n);
       PointSetIterator stream = p.iterator();
       for (int rep = 0; rep < m; rep++) {
          rand.randomize(p);
+         assert ((p.getNumPoints() == n));
          stream.resetStartStream();
          simulateRuns(model, n, stream, statSave);
          statReps.add(statSave.average()); // For the estimator of the mean.
          statSave.quickSort();
-         data[rep] = statSave.getArray(); // Instead of copy, just exchange pointers! Good?
+         data[rep] = statSave.getArray(); // Instead of copy, just exchange pointers.
          statSave = new TallyStore(n);
       }
    }

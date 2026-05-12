@@ -26,6 +26,7 @@ package umontreal.ssj.hups64;
 
 import umontreal.ssj.util.PrintfFormat;
 import umontreal.ssj.rng.RandomStream;
+import umontreal.ssj.rng.RandomPrime;
 
 /**
  * This class implements point sets specified by integration lattices of rank 1.
@@ -45,7 +46,7 @@ import umontreal.ssj.rng.RandomStream;
 public class Rank1Lattice extends PointSet {
 
    protected int[] genAs; // Lattice generator: a[i]
-   protected double[] v; // Lattice vector: v[i] = a[i]/n
+   protected double[] v;  // Lattice vector: v[i] = a[i]/n
    protected double normFactor; // 1/n.
 
    private void initN(int n) {
@@ -113,7 +114,7 @@ public class Rank1Lattice extends PointSet {
     * assumption that @f$n@f$ is prime.
     * The dimension @f$s@f$ and the number of points @f$n@f$ remain unchanged.
     */
-   public void setRandomAPrimen(RandomStream stream) {
+   public void setRandomAforPrimen(RandomStream stream) {
       for (int j = 0; j < dim; j++)
          genAs[j] = stream.nextInt(1, numPoints-1);
       initA();      
@@ -125,12 +126,24 @@ public class Rank1Lattice extends PointSet {
     * The @f$a_j@f$ are selected at random among the odd numbers less than @f$n@f$.
     * The dimension @f$s@f$ and the number of points @f$n@f$ remain unchanged.
     */
-   public void setRandomAPow(RandomStream stream) {
+   public void setRandomAforPow2n(RandomStream stream) {
       for (int j = 0; j < dim; j++)
          genAs[j] = 2 * stream.nextInt(1, (numPoints-1)/2) - 1;
       initA();      
    }
    
+   /**
+    * Selects both the number of points (the modulus) @f$n@f$ and the 
+    * generating vector @f$\bm a@f$ at random, as follows.
+    * For @f$n@f$, we generate a prime number uniformly between `nmin` and `nmax`.
+    * Then the generating vector is generated randomly exactly as in 
+    * `setRandomAforPrimen`.
+    */
+   public void setRandomAandn(int nmin, int nmax, RandomStream stream) {
+      numPoints = RandomPrime.randomPrime24 (nmin+1, nmax-1, stream); 
+      setRandomAforPrimen(stream);
+   }
+
    /**
     * Returns the generator @f$a_j@f$ of the lattice. (The original ones before
     * they are reset to @f$a_j \bmod n@f$). Its components are returned as
