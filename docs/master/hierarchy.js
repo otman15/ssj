@@ -79,6 +79,7 @@ var hierarchy =
       ] ]
     ] ],
     [ "Comparator", null, [
+      [ "umontreal.ssj.hups64.DigitalNetFromFile.NetComparator", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNetFromFile_1_1NetComparator.html", null ],
       [ "umontreal.ssj.hups.DigitalNetFromFile.NetComparator", "classumontreal_1_1ssj_1_1hups_1_1DigitalNetFromFile_1_1NetComparator.html", null ],
       [ "umontreal.ssj.util.multidimsort.DoubleArrayComparator", "classumontreal_1_1ssj_1_1util_1_1multidimsort_1_1DoubleArrayComparator.html", null ],
       [ "umontreal.ssj.util.multidimsort.HilbertCurveSort.LongIndexComparator2", "classumontreal_1_1ssj_1_1util_1_1multidimsort_1_1HilbertCurveSort_1_1LongIndexComparator2.html", null ],
@@ -244,6 +245,67 @@ var hierarchy =
     [ "umontreal.ssj.gof.GofStat", "classumontreal_1_1ssj_1_1gof_1_1GofStat.html", null ],
     [ "umontreal.ssj.gof.GofStat.OutcomeCategoriesChi2", "classumontreal_1_1ssj_1_1gof_1_1GofStat_1_1OutcomeCategoriesChi2.html", null ],
     [ "umontreal.ssj.gof.KernelDensity", "classumontreal_1_1ssj_1_1gof_1_1KernelDensity.html", null ],
+    [ "umontreal.ssj.hups64.F2wStructure", "classumontreal_1_1ssj_1_1hups64_1_1F2wStructure.html", null ],
+    [ "umontreal.ssj.hups64.PointSet", "classumontreal_1_1ssj_1_1hups64_1_1PointSet.html", [
+      [ "umontreal.ssj.hups64.CachedPointSet", "classumontreal_1_1ssj_1_1hups64_1_1CachedPointSet.html", [
+        [ "umontreal.ssj.hups64.IndependentPointsCached", "classumontreal_1_1ssj_1_1hups64_1_1IndependentPointsCached.html", null ],
+        [ "umontreal.ssj.hups64.LatinHypercube", "classumontreal_1_1ssj_1_1hups64_1_1LatinHypercube.html", null ],
+        [ "umontreal.ssj.hups64.SortedAndCutPointSet", "classumontreal_1_1ssj_1_1hups64_1_1SortedAndCutPointSet.html", null ],
+        [ "umontreal.ssj.hups64.StratifiedUnitCube", "classumontreal_1_1ssj_1_1hups64_1_1StratifiedUnitCube.html", null ],
+        [ "umontreal.ssj.hups64.StratifiedUnitCubeAnti", "classumontreal_1_1ssj_1_1hups64_1_1StratifiedUnitCubeAnti.html", null ]
+      ] ],
+      [ "umontreal.ssj.hups64.ContainerPointSet", "classumontreal_1_1ssj_1_1hups64_1_1ContainerPointSet.html", [
+        [ "umontreal.ssj.hups64.AntitheticPointSet", "classumontreal_1_1ssj_1_1hups64_1_1AntitheticPointSet.html", null ],
+        [ "umontreal.ssj.hups64.BakerTransformedPointSet", "classumontreal_1_1ssj_1_1hups64_1_1BakerTransformedPointSet.html", null ],
+        [ "umontreal.ssj.hups64.RandShiftedMod1PointSet", "classumontreal_1_1ssj_1_1hups64_1_1RandShiftedMod1PointSet.html", null ]
+      ] ],
+      [ "umontreal.ssj.hups64.CycleBasedPointSet", "classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSet.html", [
+        [ "umontreal.ssj.hups64.CycleBasedPointSetBase2", "classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSetBase2.html", [
+          [ "umontreal.ssj.hups64.CycleBasedLFSR", "classumontreal_1_1ssj_1_1hups64_1_1CycleBasedLFSR.html", null ],
+          [ "umontreal.ssj.hups64.F2wCycleBasedLFSR", "classumontreal_1_1ssj_1_1hups64_1_1F2wCycleBasedLFSR.html", null ],
+          [ "umontreal.ssj.hups64.F2wCycleBasedPolyLCG", "classumontreal_1_1ssj_1_1hups64_1_1F2wCycleBasedPolyLCG.html", null ]
+        ] ],
+        [ "umontreal.ssj.hups64.LCGPointSet", "classumontreal_1_1ssj_1_1hups64_1_1LCGPointSet.html", null ]
+      ] ],
+      [ "umontreal.ssj.hups64.DigitalNet", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNet.html", [
+        [ "umontreal.ssj.hups64.DigitalNetBase2", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNetBase2.html", [
+          [ "umontreal.ssj.hups64.DigitalNetBase2FromFile", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNetBase2FromFile.html", null ],
+          [ "umontreal.ssj.hups64.DigitalSequenceBase2", "classumontreal_1_1ssj_1_1hups64_1_1DigitalSequenceBase2.html", [
+            [ "umontreal.ssj.hups64.NiedSequenceBase2", "classumontreal_1_1ssj_1_1hups64_1_1NiedSequenceBase2.html", null ],
+            [ "umontreal.ssj.hups64.NiedXingSequenceBase2", "classumontreal_1_1ssj_1_1hups64_1_1NiedXingSequenceBase2.html", null ],
+            [ "umontreal.ssj.hups64.SobolSequence", "classumontreal_1_1ssj_1_1hups64_1_1SobolSequence.html", null ]
+          ] ],
+          [ "umontreal.ssj.hups64.F2wNetLFSR", "classumontreal_1_1ssj_1_1hups64_1_1F2wNetLFSR.html", null ],
+          [ "umontreal.ssj.hups64.F2wNetPolyLCG", "classumontreal_1_1ssj_1_1hups64_1_1F2wNetPolyLCG.html", null ]
+        ] ],
+        [ "umontreal.ssj.hups64.DigitalNetFromFile", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNetFromFile.html", null ],
+        [ "umontreal.ssj.hups64.DigitalSequence", "classumontreal_1_1ssj_1_1hups64_1_1DigitalSequence.html", [
+          [ "umontreal.ssj.hups64.FaureSequence", "classumontreal_1_1ssj_1_1hups64_1_1FaureSequence.html", null ]
+        ] ]
+      ] ],
+      [ "umontreal.ssj.hups64.HaltonSequence", "classumontreal_1_1ssj_1_1hups64_1_1HaltonSequence.html", null ],
+      [ "umontreal.ssj.hups64.HammersleyPointSet", "classumontreal_1_1ssj_1_1hups64_1_1HammersleyPointSet.html", null ],
+      [ "umontreal.ssj.hups64.Rank1Lattice", "classumontreal_1_1ssj_1_1hups64_1_1Rank1Lattice.html", [
+        [ "umontreal.ssj.hups64.KorobovLattice", "classumontreal_1_1ssj_1_1hups64_1_1KorobovLattice.html", [
+          [ "umontreal.ssj.hups64.KorobovLatticeSequence", "classumontreal_1_1ssj_1_1hups64_1_1KorobovLatticeSequence.html", null ]
+        ] ]
+      ] ],
+      [ "umontreal.ssj.hups64.SubsetOfPointSet", "classumontreal_1_1ssj_1_1hups64_1_1SubsetOfPointSet.html", null ]
+    ] ],
+    [ "umontreal.ssj.hups64.PointSetRandomization", "interfaceumontreal_1_1ssj_1_1hups64_1_1PointSetRandomization.html", [
+      [ "umontreal.ssj.hups64.EmptyRandomization", "classumontreal_1_1ssj_1_1hups64_1_1EmptyRandomization.html", null ],
+      [ "umontreal.ssj.hups64.NestedUniformScrambling", "classumontreal_1_1ssj_1_1hups64_1_1NestedUniformScrambling.html", null ],
+      [ "umontreal.ssj.hups64.NestedUniformScramblingNoCache", "classumontreal_1_1ssj_1_1hups64_1_1NestedUniformScramblingNoCache.html", null ],
+      [ "umontreal.ssj.hups64.RandomLatticeParams", "classumontreal_1_1ssj_1_1hups64_1_1RandomLatticeParams.html", null ],
+      [ "umontreal.ssj.hups64.RandomShift", "classumontreal_1_1ssj_1_1hups64_1_1RandomShift.html", [
+        [ "umontreal.ssj.hups64.LMScramble", "classumontreal_1_1ssj_1_1hups64_1_1LMScramble.html", null ],
+        [ "umontreal.ssj.hups64.LMScrambleShift", "classumontreal_1_1ssj_1_1hups64_1_1LMScrambleShift.html", null ],
+        [ "umontreal.ssj.hups64.SMScrambleShift", "classumontreal_1_1ssj_1_1hups64_1_1SMScrambleShift.html", null ]
+      ] ],
+      [ "umontreal.ssj.hups64.RandomStart", "classumontreal_1_1ssj_1_1hups64_1_1RandomStart.html", null ]
+    ] ],
+    [ "umontreal.ssj.hups64.RadicalInverse", "classumontreal_1_1ssj_1_1hups64_1_1RadicalInverse.html", null ],
+    [ "umontreal.ssj.hups64.RQMCPointSet", "classumontreal_1_1ssj_1_1hups64_1_1RQMCPointSet.html", null ],
     [ "umontreal.ssj.hups.F2wStructure", "classumontreal_1_1ssj_1_1hups_1_1F2wStructure.html", null ],
     [ "umontreal.ssj.hups.PointSet", "classumontreal_1_1ssj_1_1hups_1_1PointSet.html", [
       [ "umontreal.ssj.hups.CachedPointSet", "classumontreal_1_1ssj_1_1hups_1_1CachedPointSet.html", [
@@ -356,7 +418,8 @@ var hierarchy =
       ] ]
     ] ],
     [ "umontreal.ssj.mcqmctools.MonteCarloExperiment", "classumontreal_1_1ssj_1_1mcqmctools_1_1MonteCarloExperiment.html", [
-      [ "umontreal.ssj.mcqmctools.RQMCExperiment", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment.html", null ]
+      [ "umontreal.ssj.mcqmctools.RQMCExperiment", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment.html", null ],
+      [ "umontreal.ssj.mcqmctools.RQMCExperiment64", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment64.html", null ]
     ] ],
     [ "umontreal.ssj.mcqmctools.MonteCarloModel&lt; E &gt;", "interfaceumontreal_1_1ssj_1_1mcqmctools_1_1MonteCarloModel.html", [
       [ "umontreal.ssj.mcqmctools.anova.AnovaVarianceEstimator", "classumontreal_1_1ssj_1_1mcqmctools_1_1anova_1_1AnovaVarianceEstimator.html", null ],
@@ -599,7 +662,32 @@ var hierarchy =
       ] ]
     ] ],
     [ "umontreal.ssj.rng.RandomPermutation", "classumontreal_1_1ssj_1_1rng_1_1RandomPermutation.html", null ],
+    [ "umontreal.ssj.rng.RandomPrime", "classumontreal_1_1ssj_1_1rng_1_1RandomPrime.html", null ],
     [ "umontreal.ssj.rng.RandomStream", "interfaceumontreal_1_1ssj_1_1rng_1_1RandomStream.html", [
+      [ "umontreal.ssj.hups64.PointSetIterator", "interfaceumontreal_1_1ssj_1_1hups64_1_1PointSetIterator.html", [
+        [ "umontreal.ssj.hups64.PointSet.DefaultPointSetIterator", "classumontreal_1_1ssj_1_1hups64_1_1PointSet_1_1DefaultPointSetIterator.html", [
+          [ "umontreal.ssj.hups64.CachedPointSet.CachedPointSetIterator", "classumontreal_1_1ssj_1_1hups64_1_1CachedPointSet_1_1CachedPointSetIterator.html", null ],
+          [ "umontreal.ssj.hups64.ContainerPointSet.ContainerPointSetIterator", "classumontreal_1_1ssj_1_1hups64_1_1ContainerPointSet_1_1ContainerPointSetIterator.html", [
+            [ "umontreal.ssj.hups64.AntitheticPointSet.AntitheticPointSetIterator", "classumontreal_1_1ssj_1_1hups64_1_1AntitheticPointSet_1_1AntitheticPointSetIterator.html", null ],
+            [ "umontreal.ssj.hups64.BakerTransformedPointSet.BakerTransformedPointSetIterator", "classumontreal_1_1ssj_1_1hups64_1_1BakerTransformedPointSet_1_1BakerTransformedPointSetIterator.html", null ]
+          ] ],
+          [ "umontreal.ssj.hups64.CycleBasedPointSet.CycleBasedPointSetIterator", "classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSet_1_1CycleBasedPointSetIterator.html", [
+            [ "umontreal.ssj.hups64.CycleBasedPointSetBase2.CycleBasedPointSetBase2Iterator", "classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSetBase2_1_1CycleBasedPointSetBase2Iterator.html", null ]
+          ] ],
+          [ "umontreal.ssj.hups64.DigitalNet.DigitalNetIterator", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNet_1_1DigitalNetIterator.html", [
+            [ "umontreal.ssj.hups64.DigitalNet.DigitalNetIteratorNoGray", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNet_1_1DigitalNetIteratorNoGray.html", null ],
+            [ "umontreal.ssj.hups64.DigitalNetBase2.DigitalNetBase2Iterator", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNetBase2_1_1DigitalNetBase2Iterator.html", [
+              [ "umontreal.ssj.hups64.DigitalNetBase2.DigitalNetBase2IteratorNUSWrong", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNetBase2_1_1DigitalNetBase2IteratorNUSWrong.html", null ],
+              [ "umontreal.ssj.hups64.DigitalNetBase2.DigitalNetBase2IteratorNoGray", "classumontreal_1_1ssj_1_1hups64_1_1DigitalNetBase2_1_1DigitalNetBase2IteratorNoGray.html", null ],
+              [ "umontreal.ssj.hups64.DigitalSequenceBase2.DigitalNetBase2IteratorShiftGenerators", "classumontreal_1_1ssj_1_1hups64_1_1DigitalSequenceBase2_1_1DigitalNetBase2IteratorShiftGenerators.html", null ],
+              [ "umontreal.ssj.hups64.DigitalSequenceBase2.DigitalNetBase2IteratorShiftNoGray", "classumontreal_1_1ssj_1_1hups64_1_1DigitalSequenceBase2_1_1DigitalNetBase2IteratorShiftNoGray.html", null ]
+            ] ],
+            [ "umontreal.ssj.hups64.DigitalSequence.DigitalNetIteratorShiftGenerators", "classumontreal_1_1ssj_1_1hups64_1_1DigitalSequence_1_1DigitalNetIteratorShiftGenerators.html", null ],
+            [ "umontreal.ssj.hups64.DigitalSequence.DigitalNetIteratorShiftNoGray", "classumontreal_1_1ssj_1_1hups64_1_1DigitalSequence_1_1DigitalNetIteratorShiftNoGray.html", null ]
+          ] ],
+          [ "umontreal.ssj.hups64.SortedAndCutPointSet.SortedAndCutPointSetIterator", "classumontreal_1_1ssj_1_1hups64_1_1SortedAndCutPointSet_1_1SortedAndCutPointSetIterator.html", null ]
+        ] ]
+      ] ],
       [ "umontreal.ssj.hups.PointSetIterator", "interfaceumontreal_1_1ssj_1_1hups_1_1PointSetIterator.html", [
         [ "umontreal.ssj.hups.PointSet.DefaultPointSetIterator", "classumontreal_1_1ssj_1_1hups_1_1PointSet_1_1DefaultPointSetIterator.html", [
           [ "umontreal.ssj.hups.CachedPointSet.CachedPointSetIterator", "classumontreal_1_1ssj_1_1hups_1_1CachedPointSet_1_1CachedPointSetIterator.html", null ],
@@ -620,7 +708,6 @@ var hierarchy =
             [ "umontreal.ssj.hups.DigitalSequence.DigitalNetIteratorShiftGenerators", "classumontreal_1_1ssj_1_1hups_1_1DigitalSequence_1_1DigitalNetIteratorShiftGenerators.html", null ],
             [ "umontreal.ssj.hups.DigitalSequence.DigitalNetIteratorShiftNoGray", "classumontreal_1_1ssj_1_1hups_1_1DigitalSequence_1_1DigitalNetIteratorShiftNoGray.html", null ]
           ] ],
-          [ "umontreal.ssj.hups.Rank1Lattice.Rank1LatticeIterator", "classumontreal_1_1ssj_1_1hups_1_1Rank1Lattice_1_1Rank1LatticeIterator.html", null ],
           [ "umontreal.ssj.hups.SortedAndCutPointSet.SortedAndCutPointSetIterator", "classumontreal_1_1ssj_1_1hups_1_1SortedAndCutPointSet_1_1SortedAndCutPointSetIterator.html", null ]
         ] ]
       ] ],
@@ -648,6 +735,7 @@ var hierarchy =
       [ "umontreal.ssj.simexp.BatchMeansSim", "classumontreal_1_1ssj_1_1simexp_1_1BatchMeansSim.html", null ],
       [ "umontreal.ssj.simexp.RepSim", "classumontreal_1_1ssj_1_1simexp_1_1RepSim.html", null ]
     ] ],
+    [ "umontreal.ssj.stat.DataTable", "classumontreal_1_1ssj_1_1stat_1_1DataTable.html", null ],
     [ "umontreal.ssj.stat.density.DensityEstimator", "classumontreal_1_1ssj_1_1stat_1_1density_1_1DensityEstimator.html", [
       [ "umontreal.ssj.stat.density.DEHistogram", "classumontreal_1_1ssj_1_1stat_1_1density_1_1DEHistogram.html", null ],
       [ "umontreal.ssj.stat.density.DEKernelDensity", "classumontreal_1_1ssj_1_1stat_1_1density_1_1DEKernelDensity.html", null ],
@@ -682,7 +770,6 @@ var hierarchy =
       [ "tutorial.QueueObs.LargeWaitsCollector", "classtutorial_1_1QueueObs_1_1LargeWaitsCollector.html", null ],
       [ "tutorial.QueueObs.ObservationTrace", "classtutorial_1_1QueueObs_1_1ObservationTrace.html", null ]
     ] ],
-    [ "umontreal.ssj.stat.PgfDataTable", "classumontreal_1_1ssj_1_1stat_1_1PgfDataTable.html", null ],
     [ "umontreal.ssj.stat.ScaledHistogram", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html", null ],
     [ "umontreal.ssj.stat.StatProbe", "classumontreal_1_1ssj_1_1stat_1_1StatProbe.html", [
       [ "umontreal.ssj.simevents.Accumulate", "classumontreal_1_1ssj_1_1simevents_1_1Accumulate.html", null ],

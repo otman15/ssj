@@ -13,6 +13,13 @@ var classumontreal_1_1ssj_1_1stat_1_1TallyStore =
     [ "getArray", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#a5eb17e64184c0edfe378f13b097e6cdc", null ],
     [ "getDoubleArrayList", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#a4bca239cdfa4e304295e3206e819621b", null ],
     [ "init", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#a97187db69dbc1bb2045b82ad3fede688", null ],
+    [ "kurtosis", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#aefe66fdea440a537de95841127d08678", null ],
+    [ "kurtosis", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#ac81a7266f02363621cd8484b5c956879", null ],
+    [ "kurtosis2", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#ac58e003d8348c749e53131316ea2d6ac", null ],
     [ "quickSort", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#a29586e7bdd3e4e9d908b2ff2d1e77175", null ],
-    [ "toString", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#aa60245befd349c7f762b071e2a66a9ec", null ]
+    [ "skewness", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#aa2516fef34019fc8e0209e3c1721b719", null ],
+    [ "skewness", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#ac1258f19fa18fd492fe3f23198155da3", null ],
+    [ "skewness2", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#af02898aa78afc17651ec879c5d0176d3", null ],
+    [ "toString", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#aa60245befd349c7f762b071e2a66a9ec", null ],
+    [ "variance2", "classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#a5b5ca6f000d16bc13c1a42c3842e225f", null ]
 ];

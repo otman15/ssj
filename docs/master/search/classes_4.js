@@ -4,7 +4,7 @@ var searchData=
   ['empiricaldist_1',['EmpiricalDist',['../classumontreal_1_1ssj_1_1probdist_1_1EmpiricalDist.html',1,'umontreal::ssj::probdist']]],
   ['empiricalrenderer_2',['EmpiricalRenderer',['../classumontreal_1_1ssj_1_1charts_1_1EmpiricalRenderer.html',1,'umontreal::ssj::charts']]],
   ['empiricalseriescollection_3',['EmpiricalSeriesCollection',['../classumontreal_1_1ssj_1_1charts_1_1EmpiricalSeriesCollection.html',1,'umontreal::ssj::charts']]],
-  ['emptyrandomization_4',['EmptyRandomization',['../classumontreal_1_1ssj_1_1hups_1_1EmptyRandomization.html',1,'umontreal::ssj::hups']]],
+  ['emptyrandomization_4',['EmptyRandomization',['../classumontreal_1_1ssj_1_1hups64_1_1EmptyRandomization.html',1,'umontreal.ssj.hups64.EmptyRandomization'],['../classumontreal_1_1ssj_1_1hups_1_1EmptyRandomization.html',1,'umontreal.ssj.hups.EmptyRandomization']]],
   ['endofsim_5',['EndOfSim',['../classtutorial_1_1PreyPred_1_1EndOfSim.html',1,'tutorial.PreyPred.EndOfSim'],['../classtutorial_1_1QueueEv_1_1EndOfSim.html',1,'tutorial.QueueEv.EndOfSim']]],
   ['erlangconvolutiongen_6',['ErlangConvolutionGen',['../classumontreal_1_1ssj_1_1randvar_1_1ErlangConvolutionGen.html',1,'umontreal::ssj::randvar']]],
   ['erlangdist_7',['ErlangDist',['../classumontreal_1_1ssj_1_1probdist_1_1ErlangDist.html',1,'umontreal::ssj::probdist']]],

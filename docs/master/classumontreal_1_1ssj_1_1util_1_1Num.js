@@ -43,6 +43,7 @@ var classumontreal_1_1ssj_1_1util_1_1Num =
     [ "LN_DBL_MIN", "classumontreal_1_1ssj_1_1util_1_1Num.html#a18161d08ce50ac3db040cbd3166f6081", null ],
     [ "MAXINTDOUBLE", "classumontreal_1_1ssj_1_1util_1_1Num.html#afe244a245db98c7756937297f90f141d", null ],
     [ "MAXTWOEXP", "classumontreal_1_1ssj_1_1util_1_1Num.html#a7c12c2ec7d364d8a3736c232fdf2769a", null ],
+    [ "PRIME_LESS_THAN_TWOEXP", "classumontreal_1_1ssj_1_1util_1_1Num.html#a67882a73e4f0196c67d36dd143da3b60", null ],
     [ "RAC2", "classumontreal_1_1ssj_1_1util_1_1Num.html#a08ac88fc97775787d9e73bb32f6e0711", null ],
     [ "TEN_NEG_POW", "classumontreal_1_1ssj_1_1util_1_1Num.html#a7bd6499c869376b04c797a0a94be786d", null ],
     [ "TWOEXP", "classumontreal_1_1ssj_1_1util_1_1Num.html#ac41db87d63f8f2eb92d0973738008242", null ]

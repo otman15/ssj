@@ -1,8 +1,8 @@
 var searchData=
 [
   ['cacheddatawriter_0',['CachedDataWriter',['../classumontreal_1_1ssj_1_1util_1_1io_1_1CachedDataWriter.html',1,'umontreal::ssj::util::io']]],
-  ['cachedpointset_1',['CachedPointSet',['../classumontreal_1_1ssj_1_1hups_1_1CachedPointSet.html',1,'umontreal::ssj::hups']]],
-  ['cachedpointsetiterator_2',['CachedPointSetIterator',['../classumontreal_1_1ssj_1_1hups_1_1CachedPointSet_1_1CachedPointSetIterator.html',1,'umontreal::ssj::hups::CachedPointSet']]],
+  ['cachedpointset_1',['CachedPointSet',['../classumontreal_1_1ssj_1_1hups64_1_1CachedPointSet.html',1,'umontreal.ssj.hups64.CachedPointSet'],['../classumontreal_1_1ssj_1_1hups_1_1CachedPointSet.html',1,'umontreal.ssj.hups.CachedPointSet']]],
+  ['cachedpointsetiterator_2',['CachedPointSetIterator',['../classumontreal_1_1ssj_1_1hups64_1_1CachedPointSet_1_1CachedPointSetIterator.html',1,'umontreal.ssj.hups64.CachedPointSet.CachedPointSetIterator'],['../classumontreal_1_1ssj_1_1hups_1_1CachedPointSet_1_1CachedPointSetIterator.html',1,'umontreal.ssj.hups.CachedPointSet.CachedPointSetIterator']]],
   ['call_3',['Call',['../classtutorial_1_1CallCenter_1_1Call.html',1,'tutorial.CallCenter.Call'],['../classtutorial_1_1CallEv_1_1Call.html',1,'tutorial.CallEv.Call']]],
   ['callcenter_4',['CallCenter',['../classtutorial_1_1CallCenter.html',1,'tutorial']]],
   ['callcompletion_5',['CallCompletion',['../classtutorial_1_1CallCenter_1_1CallCompletion.html',1,'tutorial.CallCenter.CallCompletion'],['../classtutorial_1_1CallEv_1_1CallCompletion.html',1,'tutorial.CallEv.CallCompletion']]],
@@ -34,8 +34,8 @@ var searchData=
   ['constantdist_31',['ConstantDist',['../classumontreal_1_1ssj_1_1probdist_1_1ConstantDist.html',1,'umontreal::ssj::probdist']]],
   ['constantgen_32',['ConstantGen',['../classumontreal_1_1ssj_1_1randvar_1_1ConstantGen.html',1,'umontreal::ssj::randvar']]],
   ['constantintdist_33',['ConstantIntDist',['../classumontreal_1_1ssj_1_1probdist_1_1ConstantIntDist.html',1,'umontreal::ssj::probdist']]],
-  ['containerpointset_34',['ContainerPointSet',['../classumontreal_1_1ssj_1_1hups_1_1ContainerPointSet.html',1,'umontreal::ssj::hups']]],
-  ['containerpointsetiterator_35',['ContainerPointSetIterator',['../classumontreal_1_1ssj_1_1hups_1_1ContainerPointSet_1_1ContainerPointSetIterator.html',1,'umontreal::ssj::hups::ContainerPointSet']]],
+  ['containerpointset_34',['ContainerPointSet',['../classumontreal_1_1ssj_1_1hups64_1_1ContainerPointSet.html',1,'umontreal.ssj.hups64.ContainerPointSet'],['../classumontreal_1_1ssj_1_1hups_1_1ContainerPointSet.html',1,'umontreal.ssj.hups.ContainerPointSet']]],
+  ['containerpointsetiterator_35',['ContainerPointSetIterator',['../classumontreal_1_1ssj_1_1hups64_1_1ContainerPointSet_1_1ContainerPointSetIterator.html',1,'umontreal.ssj.hups64.ContainerPointSet.ContainerPointSetIterator'],['../classumontreal_1_1ssj_1_1hups_1_1ContainerPointSet_1_1ContainerPointSetIterator.html',1,'umontreal.ssj.hups.ContainerPointSet.ContainerPointSetIterator']]],
   ['continuous_36',['Continuous',['../classumontreal_1_1ssj_1_1simevents_1_1Continuous.html',1,'umontreal::ssj::simevents']]],
   ['continuousdistchart_37',['ContinuousDistChart',['../classumontreal_1_1ssj_1_1charts_1_1ContinuousDistChart.html',1,'umontreal::ssj::charts']]],
   ['continuousdistribution_38',['ContinuousDistribution',['../classumontreal_1_1ssj_1_1probdist_1_1ContinuousDistribution.html',1,'umontreal::ssj::probdist']]],
@@ -47,9 +47,9 @@ var searchData=
   ['cramervonmisesdist_44',['CramerVonMisesDist',['../classumontreal_1_1ssj_1_1probdist_1_1CramerVonMisesDist.html',1,'umontreal::ssj::probdist']]],
   ['customer_45',['Customer',['../classtutorial_1_1QueueEv_1_1Customer.html',1,'tutorial::QueueEv']]],
   ['customhistogramdataset_46',['CustomHistogramDataset',['../classumontreal_1_1ssj_1_1charts_1_1CustomHistogramDataset.html',1,'umontreal::ssj::charts']]],
-  ['cyclebasedlfsr_47',['CycleBasedLFSR',['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedLFSR.html',1,'umontreal::ssj::hups']]],
-  ['cyclebasedpointset_48',['CycleBasedPointSet',['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet.html',1,'umontreal::ssj::hups']]],
-  ['cyclebasedpointsetbase2_49',['CycleBasedPointSetBase2',['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSetBase2.html',1,'umontreal::ssj::hups']]],
-  ['cyclebasedpointsetbase2iterator_50',['CycleBasedPointSetBase2Iterator',['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSetBase2_1_1CycleBasedPointSetBase2Iterator.html',1,'umontreal::ssj::hups::CycleBasedPointSetBase2']]],
-  ['cyclebasedpointsetiterator_51',['CycleBasedPointSetIterator',['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet_1_1CycleBasedPointSetIterator.html',1,'umontreal::ssj::hups::CycleBasedPointSet']]]
+  ['cyclebasedlfsr_47',['CycleBasedLFSR',['../classumontreal_1_1ssj_1_1hups64_1_1CycleBasedLFSR.html',1,'umontreal.ssj.hups64.CycleBasedLFSR'],['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedLFSR.html',1,'umontreal.ssj.hups.CycleBasedLFSR']]],
+  ['cyclebasedpointset_48',['CycleBasedPointSet',['../classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSet.html',1,'umontreal.ssj.hups64.CycleBasedPointSet'],['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet.html',1,'umontreal.ssj.hups.CycleBasedPointSet']]],
+  ['cyclebasedpointsetbase2_49',['CycleBasedPointSetBase2',['../classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSetBase2.html',1,'umontreal.ssj.hups64.CycleBasedPointSetBase2'],['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSetBase2.html',1,'umontreal.ssj.hups.CycleBasedPointSetBase2']]],
+  ['cyclebasedpointsetbase2iterator_50',['CycleBasedPointSetBase2Iterator',['../classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSetBase2_1_1CycleBasedPointSetBase2Iterator.html',1,'umontreal.ssj.hups64.CycleBasedPointSetBase2.CycleBasedPointSetBase2Iterator'],['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSetBase2_1_1CycleBasedPointSetBase2Iterator.html',1,'umontreal.ssj.hups.CycleBasedPointSetBase2.CycleBasedPointSetBase2Iterator']]],
+  ['cyclebasedpointsetiterator_51',['CycleBasedPointSetIterator',['../classumontreal_1_1ssj_1_1hups64_1_1CycleBasedPointSet_1_1CycleBasedPointSetIterator.html',1,'umontreal.ssj.hups64.CycleBasedPointSet.CycleBasedPointSetIterator'],['../classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet_1_1CycleBasedPointSetIterator.html',1,'umontreal.ssj.hups.CycleBasedPointSet.CycleBasedPointSetIterator']]]
 ];

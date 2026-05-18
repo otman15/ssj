@@ -24,8 +24,38 @@
 */
 var NAVTREE =
 [
-  [ "SSJ API Documentation", "index.html", [
+  [ "ssj", "index.html", [
     [ "SSJ User's Guide.", "index.html", "index" ],
+    [ "LICENSE", "md_LICENSE.html", null ],
+    [ "# SSJ release highlights", "md_NEWS.html", [
+      [ "SSJ 3.3.2", "md_NEWS.html#autotoc_md12", null ],
+      [ "SSJ 3.3.1", "md_NEWS.html#autotoc_md13", null ],
+      [ "SSJ 3.3.0", "md_NEWS.html#autotoc_md14", null ],
+      [ "SSJ 3.2.1", "md_NEWS.html#autotoc_md15", null ],
+      [ "SSJ 3.2.0", "md_NEWS.html#autotoc_md16", null ],
+      [ "SSJ 3.0.0-rc1", "md_NEWS.html#autotoc_md17", null ]
+    ] ],
+    [ "SSJ", "md_README.html", [
+      [ "Documentation and tutorial", "md_README.html#autotoc_md19", null ],
+      [ "Installation", "md_README.html#autotoc_md20", [
+        [ "Using Maven", "md_README.html#autotoc_md21", null ],
+        [ "Binary releases", "md_README.html#autotoc_md23", [
+          [ "Download a binary archive", "md_README.html#autotoc_md24", null ],
+          [ "Set the Java class path", "md_README.html#autotoc_md25", [
+            [ "On the command line", "md_README.html#autotoc_md26", null ],
+            [ "In Eclipse", "md_README.html#autotoc_md27", null ],
+            [ "In NetBeans", "md_README.html#autotoc_md28", null ]
+          ] ]
+        ] ]
+      ] ],
+      [ "Compiling the source code", "md_README.html#autotoc_md29", [
+        [ "Using Gradle", "md_README.html#autotoc_md30", null ],
+        [ "Building the documentation", "md_README.html#autotoc_md31", null ],
+        [ "JNI classes", "md_README.html#autotoc_md32", null ],
+        [ "Cross-compiling", "md_README.html#autotoc_md33", null ]
+      ] ],
+      [ "Dependencies", "md_README.html#autotoc_md34", null ]
+    ] ],
     [ "Tutorial", "Tutorial.html", [
       [ "SSJ introduction and tutorial by examples", "Tutorial.html#REF_examples_sec_01", null ],
       [ "Quick Overview of Some Key Packages", "Tutorial.html#REF_examples_sec_overview", [
@@ -48,23 +78,15 @@ var NAVTREE =
         [ "A call center", "Tutorial.html#REF_examples_sec_call_center", null ]
       ] ]
     ] ],
+    [ "Instructions pour développer la librairie SSJ", "md_SSJ-instructions-2026.html", null ],
+    [ "Todo List", "todo.html", null ],
     [ "Bibliography", "citelist.html", null ],
     [ "Packages", "namespaces.html", [
-      [ "Package List", "namespaces.html", "namespaces_dup" ],
-      [ "Package Members", "namespacemembers.html", [
-        [ "All", "namespacemembers.html", null ],
-        [ "Functions", "namespacemembers_func.html", null ]
-      ] ]
+      [ "Package List", "namespaces.html", "namespaces_dup" ]
     ] ],
     [ "Classes", "annotated.html", [
-      [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
-      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
-      [ "Class Members", "functions.html", [
-        [ "All", "functions.html", "functions_dup" ],
-        [ "Functions", "functions_func.html", "functions_func" ],
-        [ "Variables", "functions_vars.html", null ]
-      ] ]
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ]
     ] ]
   ] ]
 ];
@@ -72,52 +94,31 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Tutorial.html",
-"classumontreal_1_1ssj_1_1charts_1_1CustomHistogramDataset.html#ad652eec7d5352b89f7e9e51ad79b554c",
-"classumontreal_1_1ssj_1_1charts_1_1PlotFormat.html#a7975513b0ab0ee363fcde85f00549f75",
-"classumontreal_1_1ssj_1_1discrepancy_1_1DiscL2Hickernell.html",
-"classumontreal_1_1ssj_1_1discrepancy_1_1DiscrepancyContainer.html#a5828389365d24bd431245a62a3c6e9b3",
-"classumontreal_1_1ssj_1_1functions_1_1Polynomial.html#a72e6376f27640794ef38a8f565ddb5fe",
-"classumontreal_1_1ssj_1_1hups_1_1AntitheticPointSet_1_1AntitheticPointSetIterator.html#a61fe69e48ddc65e51102e92034a76805",
-"classumontreal_1_1ssj_1_1hups_1_1DigitalNetBase2.html#a4354438dbe6197fcac525344e5c8146a",
-"classumontreal_1_1ssj_1_1hups_1_1HammersleyPointSet.html",
-"classumontreal_1_1ssj_1_1hups_1_1RQMCPointSet.html#afe975e6a79164aa31aabee58a9d89bd3",
-"classumontreal_1_1ssj_1_1latnetbuilder_1_1Search.html#a1ac92b17b25782bfac3d0f961b2017a0",
-"classumontreal_1_1ssj_1_1markovchainrqmc_1_1ArrayOfComparableChains.html#add406c20117c77a5383d79c84ef47449",
-"classumontreal_1_1ssj_1_1mcqmctools_1_1anova_1_1AnovaVarianceCollector.html#ad8567d0b3153b4d31b0c8a838eb75dd1",
-"classumontreal_1_1ssj_1_1probdist_1_1AndersonDarlingDistQuick.html",
-"classumontreal_1_1ssj_1_1probdist_1_1CauchyDist.html#a6f0402d7d64d9b2116866fcaa10e574d",
-"classumontreal_1_1ssj_1_1probdist_1_1DiscreteDistribution.html#a03aab11f39cf6fc920df5bfb64ee4990",
-"classumontreal_1_1ssj_1_1probdist_1_1FatigueLifeDist.html#a0f16aa2f47625567691ebb670e928008",
-"classumontreal_1_1ssj_1_1probdist_1_1GeometricDist.html#a5e4f7c9c1056d912fa3123fed968d8b3",
-"classumontreal_1_1ssj_1_1probdist_1_1HypoExponentialDist.html#ad12a9fe36a0abd425de6193126812d4f",
-"classumontreal_1_1ssj_1_1probdist_1_1JohnsonSLDist.html#ad91d41a8a8b57e056a3da925e6fdf109",
-"classumontreal_1_1ssj_1_1probdist_1_1LogisticDist.html#a7165d1b329800fec4fbf2238595c40a1",
-"classumontreal_1_1ssj_1_1probdist_1_1NormalDist.html#a9ab3f50e38d6aba3997c3f12f1558843",
-"classumontreal_1_1ssj_1_1probdist_1_1Pearson6Dist.html#ad8b9bc714c835271192ad0a2e32b046b",
-"classumontreal_1_1ssj_1_1probdist_1_1StudentDistQuick.html#aa0dbcba4f4dae8f2a4df592667b432d2",
-"classumontreal_1_1ssj_1_1probdist_1_1WatsonUDist.html#ad8601313510a61908a8ba3c7d6920f8d",
-"classumontreal_1_1ssj_1_1probdistmulti_1_1DiscreteDistributionIntMulti.html#ad1738f2f18a0defe1dfa0c72d5242dd4",
-"classumontreal_1_1ssj_1_1randvar_1_1BinomialConvolutionGen.html#a1445d89b737df566ee5e06aa53563723",
-"classumontreal_1_1ssj_1_1randvar_1_1GammaAcceptanceRejectionGen.html#ab86061db8bee4b61e08bb99dc4a5ed5a",
-"classumontreal_1_1ssj_1_1randvar_1_1LaplaceGen.html#a08e4ae159be6b912797ff1a0a2e0d197",
-"classumontreal_1_1ssj_1_1randvar_1_1PascalConvolutionGen.html#a5e3df0c9a351ab2bc161d0861060830c",
-"classumontreal_1_1ssj_1_1randvar_1_1WeibullGen.html#a659773bd7ae49704f9c028574f80453b",
-"classumontreal_1_1ssj_1_1rng_1_1MRG32k3a.html#a9dbbd2a8154bc510f1cd4e99e0a13fba",
-"classumontreal_1_1ssj_1_1simevents_1_1Accumulate.html#aa83dbdabfc75fe7832137a1f3cb0d3fc",
-"classumontreal_1_1ssj_1_1simevents_1_1eventlist_1_1DoublyLinked.html#a8ca2f6f0249f8e0fc68f491c44d0cdfa",
-"classumontreal_1_1ssj_1_1simexp_1_1SimExp.html#a533decedf540b77c96b4546d10853614",
-"classumontreal_1_1ssj_1_1stat_1_1Tally.html#a8f375a279ae221857336d77554c83ca9",
-"classumontreal_1_1ssj_1_1stat_1_1density_1_1DEKernelDensity.html#aebe9cc799bab5a08bb0a3495af462a64",
-"classumontreal_1_1ssj_1_1stat_1_1list_1_1lincv_1_1ListOfTalliesWithCV.html#a44c74094b0b8e282c7faf6262e570f98",
-"classumontreal_1_1ssj_1_1stochprocess_1_1CIRProcess.html#a801e738fb63d110a49a9ac33cedb5e43",
-"classumontreal_1_1ssj_1_1stochprocess_1_1InverseGaussianProcess.html#a5dddc6af23f817807cfeb5a39d73bfe5",
-"classumontreal_1_1ssj_1_1stochprocess_1_1OrnsteinUhlenbeckProcess.html#a0c0463e5b8fa89df16244f8a07aa5200",
-"classumontreal_1_1ssj_1_1util_1_1BitMatrix.html#ab7fcbadb2fcec33c24011cd946af56b8",
-"classumontreal_1_1ssj_1_1util_1_1Misc.html#ae88c2edbbeb54616ca34af17a44f93a4",
-"classumontreal_1_1ssj_1_1util_1_1TableFormat.html#a7459fb62c8fb2997707d1dc818290ddd",
-"classumontreal_1_1ssj_1_1util_1_1io_1_1DataField.html#a53aeb862e9d045e1acdcd54625de9673",
-"functions_g.html",
-"interfaceumontreal_1_1ssj_1_1stat_1_1ObservationListener.html#a7ade5ebf8ab878e555026999d166aec4"
+"classumontreal_1_1ssj_1_1charts_1_1HistogramSeriesCollection.html#a72f797114669bc6858fb0ee2802d9217",
+"classumontreal_1_1ssj_1_1discrepancy_1_1DiscShiftBaker1Lattice.html#a1742fc3a5ddf61140e00d9a3609c90ec",
+"classumontreal_1_1ssj_1_1gof_1_1GofStat.html#a17e6594a259464e7b93b313536fd9b62",
+"classumontreal_1_1ssj_1_1hups64_1_1DigitalSequenceBase2_1_1DigitalNetBase2IteratorShiftNoGray.html#aa0faf6381909f1ee22fe951041e3ee40",
+"classumontreal_1_1ssj_1_1hups64_1_1SobolSequence.html#a9bf5ccf176d73f4d9a078acb206b804d",
+"classumontreal_1_1ssj_1_1hups_1_1DigitalSequenceBase2_1_1DigitalNetBase2IteratorShiftGenerators.html#a15d16b1c2c4d88daa2c3044e3d37f933",
+"classumontreal_1_1ssj_1_1hups_1_1StratifiedUnitCube.html#a88f0c7321501a70a62c880a6fd263ea1",
+"classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment.html#aacec7cff2076cb788609b080a74b903e",
+"classumontreal_1_1ssj_1_1probdist_1_1BetaDist.html#af27d6467bc6192fc352e32f243f81d4a",
+"classumontreal_1_1ssj_1_1probdist_1_1ErlangDist.html#aad614d825829e9ca2a23c148c31a1866",
+"classumontreal_1_1ssj_1_1probdist_1_1HalfNormalDist.html#af142877afa6996f1ce894e2a130d3751",
+"classumontreal_1_1ssj_1_1probdist_1_1KolmogorovSmirnovPlusDist.html#aabda265f868f5e5ba2fda1220af746b0",
+"classumontreal_1_1ssj_1_1probdist_1_1ParetoDist.html#a98e87a8563e84c5b59d2064ac57a0bb9",
+"classumontreal_1_1ssj_1_1probdist_1_1UniformDist.html#ab32a3309e93eb40f6a3f21f4367239e4",
+"classumontreal_1_1ssj_1_1probdistmulti_1_1norta_1_1NortaInitDisc.html#aae74f4a0d2cc2e1631e8717a45d58117",
+"classumontreal_1_1ssj_1_1randvar_1_1HypoExponentialGen.html#ab0495ff07a75082348e90f777fa92ff9",
+"classumontreal_1_1ssj_1_1randvar_1_1RandomVariateGenWithCache.html#a55107e69c5dcdfebda040d39d32ce155",
+"classumontreal_1_1ssj_1_1rng_1_1RandomStreamBase.html#af8b3c3247207dad804ca0ec2153019cb",
+"classumontreal_1_1ssj_1_1simexp_1_1BatchMeansSim.html#a2787b6f7c4b8e2ee57b7822b6197841c",
+"classumontreal_1_1ssj_1_1stat_1_1TallyStore.html#a97187db69dbc1bb2045b82ad3fede688",
+"classumontreal_1_1ssj_1_1stat_1_1matrix_1_1MatrixOfStatProbes.html",
+"classumontreal_1_1ssj_1_1stochprocess_1_1InverseGaussianProcessMSH_1_1NonRandomStream.html#aed8df8aa3888bf301a3869e3cb50e36f",
+"classumontreal_1_1ssj_1_1util_1_1ChronoSingleThread.html",
+"classumontreal_1_1ssj_1_1util_1_1io_1_1AbstractDataReader.html#a328de24781e7759e9b7271b2895f3db9",
+"interfaceumontreal_1_1ssj_1_1hups_1_1PointSetRandomization.html#a37976a82d55bbdaeb0e9349cc5d39c62"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

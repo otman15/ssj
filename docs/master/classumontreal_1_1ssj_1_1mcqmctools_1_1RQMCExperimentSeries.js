@@ -19,7 +19,7 @@ var classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries =
     [ "setExecutionDisplay", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#a1408562fdebad31b833278bf3657452f", null ],
     [ "testVarianceRate", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#a9ad3260512dc09b85b70048489324d47", null ],
     [ "testVarianceRateCV", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#a7b17dc819d44ba0ad62ecc0e63a91539", null ],
-    [ "testVarianceRateManyPointTypes", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#aa637a531b00594492c5dad315f6a1be8", null ],
-    [ "toPgfDataTable", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#a120a1c09cf8cc2058e6843178e9ec52b", null ],
+    [ "testVarianceRateManyPointTypes", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#a70ceb7b6dd680de292aad6ac793cf405", null ],
+    [ "toPgfDataTable", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#ab741a6c25b8e7f1c5a7a994861391cee", null ],
     [ "toString", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html#ab11aa0a099b4f99251b02468e1651a72", null ]
 ];

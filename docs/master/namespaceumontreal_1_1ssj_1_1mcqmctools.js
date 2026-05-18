@@ -8,5 +8,6 @@ var namespaceumontreal_1_1ssj_1_1mcqmctools =
     [ "MonteCarloModelDouble", "interfaceumontreal_1_1ssj_1_1mcqmctools_1_1MonteCarloModelDouble.html", "interfaceumontreal_1_1ssj_1_1mcqmctools_1_1MonteCarloModelDouble" ],
     [ "MonteCarloModelDoubleArray", "interfaceumontreal_1_1ssj_1_1mcqmctools_1_1MonteCarloModelDoubleArray.html", "interfaceumontreal_1_1ssj_1_1mcqmctools_1_1MonteCarloModelDoubleArray" ],
     [ "RQMCExperiment", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment.html", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment" ],
+    [ "RQMCExperiment64", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment64.html", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperiment64" ],
     [ "RQMCExperimentSeries", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries.html", "classumontreal_1_1ssj_1_1mcqmctools_1_1RQMCExperimentSeries" ]
 ];

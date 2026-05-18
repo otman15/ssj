@@ -6,6 +6,6 @@ var searchData=
   ['kolmogorovsmirnovdist_3',['KolmogorovSmirnovDist',['../classumontreal_1_1ssj_1_1probdist_1_1KolmogorovSmirnovDist.html',1,'umontreal::ssj::probdist']]],
   ['kolmogorovsmirnovdistquick_4',['KolmogorovSmirnovDistQuick',['../classumontreal_1_1ssj_1_1probdist_1_1KolmogorovSmirnovDistQuick.html',1,'umontreal::ssj::probdist']]],
   ['kolmogorovsmirnovplusdist_5',['KolmogorovSmirnovPlusDist',['../classumontreal_1_1ssj_1_1probdist_1_1KolmogorovSmirnovPlusDist.html',1,'umontreal::ssj::probdist']]],
-  ['korobovlattice_6',['KorobovLattice',['../classumontreal_1_1ssj_1_1hups_1_1KorobovLattice.html',1,'umontreal::ssj::hups']]],
-  ['korobovlatticesequence_7',['KorobovLatticeSequence',['../classumontreal_1_1ssj_1_1hups_1_1KorobovLatticeSequence.html',1,'umontreal::ssj::hups']]]
+  ['korobovlattice_6',['KorobovLattice',['../classumontreal_1_1ssj_1_1hups64_1_1KorobovLattice.html',1,'umontreal.ssj.hups64.KorobovLattice'],['../classumontreal_1_1ssj_1_1hups_1_1KorobovLattice.html',1,'umontreal.ssj.hups.KorobovLattice']]],
+  ['korobovlatticesequence_7',['KorobovLatticeSequence',['../classumontreal_1_1ssj_1_1hups64_1_1KorobovLatticeSequence.html',1,'umontreal.ssj.hups64.KorobovLatticeSequence'],['../classumontreal_1_1ssj_1_1hups_1_1KorobovLatticeSequence.html',1,'umontreal.ssj.hups.KorobovLatticeSequence']]]
 ];

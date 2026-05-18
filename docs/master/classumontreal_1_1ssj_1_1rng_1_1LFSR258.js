@@ -5,6 +5,7 @@ var classumontreal_1_1ssj_1_1rng_1_1LFSR258 =
     [ "clone", "classumontreal_1_1ssj_1_1rng_1_1LFSR258.html#a83ce2a4297c6e4d9ac7ee802e93e7589", null ],
     [ "getState", "classumontreal_1_1ssj_1_1rng_1_1LFSR258.html#a40d19e22cdf39865a2b874ba47281209", null ],
     [ "nextInt", "classumontreal_1_1ssj_1_1rng_1_1LFSR258.html#a5a40fca937082028165bf4e0b7a86b86", null ],
+    [ "nextLong", "classumontreal_1_1ssj_1_1rng_1_1LFSR258.html#a00fba153e0bd6155f82ae9a8a3615df5", null ],
     [ "nextValue", "classumontreal_1_1ssj_1_1rng_1_1LFSR258.html#a02182f4979c1ae95db81bca8e48dbbfa", null ],
     [ "resetNextSubstream", "classumontreal_1_1ssj_1_1rng_1_1LFSR258.html#a377cb118d6387b2b20199c52d4d5056b", null ],
     [ "resetStartStream", "classumontreal_1_1ssj_1_1rng_1_1LFSR258.html#a06d51a00e8289e5933bc0899f8bbd5df", null ],

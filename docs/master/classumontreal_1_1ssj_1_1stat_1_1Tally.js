@@ -16,6 +16,7 @@ var classumontreal_1_1ssj_1_1stat_1_1Tally =
     [ "formatCIStudent", "classumontreal_1_1ssj_1_1stat_1_1Tally.html#aeca103c9df6ef930a4bcbc5a949458f9", null ],
     [ "formatCIVarianceChi2", "classumontreal_1_1ssj_1_1stat_1_1Tally.html#a5242bee1fc7e56f836777dff8a30f452", null ],
     [ "getConfidenceLevel", "classumontreal_1_1ssj_1_1stat_1_1Tally.html#ad74e42b648fa2e7730616310cf5a6de0", null ],
+    [ "getName", "classumontreal_1_1ssj_1_1stat_1_1Tally.html#ab1929a8189f1977902db6924fd9b7947", null ],
     [ "init", "classumontreal_1_1ssj_1_1stat_1_1Tally.html#a5097b9b2a023471499f8e0708fcdcb9a", null ],
     [ "numberObs", "classumontreal_1_1ssj_1_1stat_1_1Tally.html#a3ecb5416911d9746d6af3fb290ab32ef", null ],
     [ "report", "classumontreal_1_1ssj_1_1stat_1_1Tally.html#af7c02d0a076e2732ab766972ac86b6f4", null ],

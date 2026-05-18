@@ -8,5 +8,6 @@ var classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet =
     [ "getCoordinate", "classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet.html#a8945126cdde9131c00cd96dcf45c36e5", null ],
     [ "getDimension", "classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet.html#a652aa032efd43680ee4b755de6d67ad1", null ],
     [ "iterator", "classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet.html#a396f284167a2ed531c118e75a0e2f2b8", null ],
+    [ "setDimension", "classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet.html#aed432084847117749f5d5e925f12b63c", null ],
     [ "toString", "classumontreal_1_1ssj_1_1hups_1_1CycleBasedPointSet.html#af4746edfc3327265746e5c49c3ab49fd", null ]
 ];

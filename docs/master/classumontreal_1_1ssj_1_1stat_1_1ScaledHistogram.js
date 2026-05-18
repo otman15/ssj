@@ -11,6 +11,7 @@ var classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram =
     [ "getA", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#aebbe945d28e18b94aaea3ae3fe1860ad", null ],
     [ "getB", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a46e0effaa76ffb75081b91468234682d", null ],
     [ "getHeights", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a08428b03d624472ad9819cfb8623007d", null ],
+    [ "getHistogramBounds", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a77b5a5035e56fa567019c908ce20827f", null ],
     [ "getIntegral", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#aa205794662cae0bee5a7b4cc89e431a2", null ],
     [ "getNumBins", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#ad38eb0f8bc3d566b047892bb032c4740", null ],
     [ "init", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#ab5c4347219aca3c11003326c78e6e1a2", null ],
@@ -18,5 +19,8 @@ var classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram =
     [ "init", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a9e448eff3e68a985212bd62d4f580949", null ],
     [ "ISEvsU01", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a210d3dc111d678e6a7f9fe408f29c048", null ],
     [ "ISEvsU01polygonal", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a8e5ffd283f2a25162e846df8a9cc3f7c", null ],
-    [ "rescale", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#ab935e4dfb19b6541c429e5e9cded6fe3", null ]
+    [ "rescale", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#ab935e4dfb19b6541c429e5e9cded6fe3", null ],
+    [ "setAddPlotOptions", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a3b45bb1908aa726ed776a24eec37e814", null ],
+    [ "setAxisOptions", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#aa3ea0f648ec4e7e786f77c3091720e2c", null ],
+    [ "toLatex", "classumontreal_1_1ssj_1_1stat_1_1ScaledHistogram.html#a6ce20693f49697256f715cce815b2b05", null ]
 ];

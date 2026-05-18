@@ -8,6 +8,7 @@ var classumontreal_1_1ssj_1_1stat_1_1TallyHistogram =
     [ "clone", "classumontreal_1_1ssj_1_1stat_1_1TallyHistogram.html#aeb66d18b8b3a6f7b893038e793ebd481", null ],
     [ "fillFromArray", "classumontreal_1_1ssj_1_1stat_1_1TallyHistogram.html#aecaee0083ac237fe16a52c9a3d8aaf0d", null ],
     [ "fillFromArray", "classumontreal_1_1ssj_1_1stat_1_1TallyHistogram.html#ab776e4e41ef0070f3203399996d5bfed", null ],
+    [ "fillFromFile", "classumontreal_1_1ssj_1_1stat_1_1TallyHistogram.html#ac949b4abd75c357e24969f49305f8133", null ],
     [ "fillFromTallyStore", "classumontreal_1_1ssj_1_1stat_1_1TallyHistogram.html#a87e18c14e5899646c93ff1b20aeb3b33", null ],
     [ "getA", "classumontreal_1_1ssj_1_1stat_1_1TallyHistogram.html#a91313b18f6c27234e28d190cd68e4dcd", null ],
     [ "getB", "classumontreal_1_1ssj_1_1stat_1_1TallyHistogram.html#ae7b2c6b945add3b4969bc80396ecf7c1", null ],

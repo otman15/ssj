@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['data_0',['data',['../classumontreal_1_1ssj_1_1stat_1_1density_1_1DensityEstimator.html#a361b26d939c38e538022f26789fe7f40',1,'umontreal.ssj.stat.density.DensityEstimator.data'],['../classumontreal_1_1ssj_1_1stat_1_1density_1_1DensityEstimatorDoubleArray.html#a38d6d7d7dc895292135efcbc2581b12c',1,'umontreal.ssj.stat.density.DensityEstimatorDoubleArray.data']]],
+  ['data_0',['data',['../classumontreal_1_1ssj_1_1stat_1_1density_1_1DensityEstimator.html#a361b26d939c38e538022f26789fe7f40',1,'umontreal::ssj.stat.density.DensityEstimator.data'],['../classumontreal_1_1ssj_1_1stat_1_1density_1_1DensityEstimatorDoubleArray.html#a38d6d7d7dc895292135efcbc2581b12c',1,'umontreal::ssj.stat.density.DensityEstimatorDoubleArray.data']]],
   ['day_1',['DAY',['../enumumontreal_1_1ssj_1_1util_1_1TimeUnit.html#aba17b96ada6fd54081ba4e99f42b9a51',1,'umontreal::ssj::util::TimeUnit']]],
   ['dbl_5fdig_2',['DBL_DIG',['../classumontreal_1_1ssj_1_1util_1_1Num.html#a1417f513384deaaa1dfbada36040fd29',1,'umontreal::ssj::util::Num']]],
   ['dbl_5fepsilon_3',['DBL_EPSILON',['../classumontreal_1_1ssj_1_1util_1_1Num.html#a4e6d1356d3e48ce21813eea3640cb4b6',1,'umontreal::ssj::util::Num']]],
@@ -13,8 +13,8 @@ var searchData=
   ['default_5fheader_5fprefix_10',['DEFAULT_HEADER_PREFIX',['../classumontreal_1_1ssj_1_1util_1_1io_1_1TextDataWriter.html#a0910714dacb9a4ea23eb5aa6e69f4ab9',1,'umontreal::ssj::util::io::TextDataWriter']]],
   ['defaultsimulator_11',['defaultSimulator',['../classumontreal_1_1ssj_1_1simevents_1_1Simulator.html#ad871eb9af067b821343e03591a3fbe77',1,'umontreal::ssj::simevents::Simulator']]],
   ['defaultweight_12',['defaultWeight',['../classumontreal_1_1ssj_1_1latnetbuilder_1_1weights_1_1Weights.html#a2ee11ae1239bfb585a23a7152c0486ca',1,'umontreal::ssj::latnetbuilder::weights::Weights']]],
-  ['delta_13',['delta',['../classumontreal_1_1ssj_1_1hups_1_1StratifiedUnitCube.html#a1aa418bf209039790967b6250b54a94d',1,'umontreal.ssj.hups.StratifiedUnitCube.delta'],['../classumontreal_1_1ssj_1_1hups_1_1StratifiedUnitCubeAnti.html#a3f5e76bc7f11e51308fba4a1c7cfd7a5',1,'umontreal.ssj.hups.StratifiedUnitCubeAnti.delta']]],
-  ['dim_14',['dim',['../classumontreal_1_1ssj_1_1hups_1_1PointSet.html#abb688f087b2cdc26b1ff971c0ce31d9b',1,'umontreal::ssj::hups::PointSet']]],
-  ['dimshift_15',['dimShift',['../classumontreal_1_1ssj_1_1hups_1_1PointSet.html#a10e20a117e7cfa98c8a7700d0805d38d',1,'umontreal::ssj::hups::PointSet']]],
+  ['delta_13',['delta',['../classumontreal_1_1ssj_1_1hups_1_1StratifiedUnitCube.html#a1aa418bf209039790967b6250b54a94d',1,'umontreal::ssj::hups.StratifiedUnitCube.delta'],['../classumontreal_1_1ssj_1_1hups_1_1StratifiedUnitCubeAnti.html#a3f5e76bc7f11e51308fba4a1c7cfd7a5',1,'umontreal::ssj::hups.StratifiedUnitCubeAnti.delta'],['../classumontreal_1_1ssj_1_1hups64_1_1StratifiedUnitCube.html#a12a8bf4b61a0ce373f1a8508c50fad5f',1,'umontreal::ssj.hups64.StratifiedUnitCube.delta'],['../classumontreal_1_1ssj_1_1hups64_1_1StratifiedUnitCubeAnti.html#a84c9b61a97a7a798c3e3c10f360bac51',1,'umontreal::ssj.hups64.StratifiedUnitCubeAnti.delta']]],
+  ['dim_14',['dim',['../classumontreal_1_1ssj_1_1hups_1_1PointSet.html#abb688f087b2cdc26b1ff971c0ce31d9b',1,'umontreal::ssj::hups.PointSet.dim'],['../classumontreal_1_1ssj_1_1hups64_1_1PointSet.html#a2f1edb8485cebf5a687a41c7356d7d30',1,'umontreal::ssj.hups64.PointSet.dim']]],
+  ['dimshift_15',['dimShift',['../classumontreal_1_1ssj_1_1hups_1_1PointSet.html#a10e20a117e7cfa98c8a7700d0805d38d',1,'umontreal::ssj::hups.PointSet.dimShift'],['../classumontreal_1_1ssj_1_1hups64_1_1PointSet.html#a08e0d0d7ebe2edda10784e1c46301e4b',1,'umontreal::ssj.hups64.PointSet.dimShift']]],
   ['dists_16',['dists',['../classumontreal_1_1ssj_1_1randvar_1_1MixtureGen.html#adaadc0a9555113afcfe63818bfc4042b',1,'umontreal::ssj::randvar::MixtureGen']]]
 ];

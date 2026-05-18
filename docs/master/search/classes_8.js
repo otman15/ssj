@@ -3,7 +3,7 @@ var searchData=
   ['identitymathfunction_0',['IdentityMathFunction',['../classumontreal_1_1ssj_1_1functions_1_1IdentityMathFunction.html',1,'umontreal::ssj::functions']]],
   ['iidmultivariategen_1',['IIDMultivariateGen',['../classumontreal_1_1ssj_1_1randvarmulti_1_1IIDMultivariateGen.html',1,'umontreal::ssj::randvarmulti']]],
   ['incompatibledimensionexception_2',['IncompatibleDimensionException',['../classumontreal_1_1ssj_1_1util_1_1BitMatrix_1_1IncompatibleDimensionException.html',1,'umontreal::ssj::util::BitMatrix']]],
-  ['independentpointscached_3',['IndependentPointsCached',['../classumontreal_1_1ssj_1_1hups_1_1IndependentPointsCached.html',1,'umontreal::ssj::hups']]],
+  ['independentpointscached_3',['IndependentPointsCached',['../classumontreal_1_1ssj_1_1hups64_1_1IndependentPointsCached.html',1,'umontreal.ssj.hups64.IndependentPointsCached'],['../classumontreal_1_1ssj_1_1hups_1_1IndependentPointsCached.html',1,'umontreal.ssj.hups.IndependentPointsCached']]],
   ['integmethod_4',['IntegMethod',['../enumumontreal_1_1ssj_1_1simevents_1_1ContinuousState_1_1IntegMethod.html',1,'umontreal::ssj::simevents::ContinuousState']]],
   ['integrator_5',['Integrator',['../interfaceumontreal_1_1ssj_1_1mcqmctools_1_1anova_1_1Integrator.html',1,'umontreal::ssj::mcqmctools::anova']]],
   ['introspection_6',['Introspection',['../classumontreal_1_1ssj_1_1util_1_1Introspection.html',1,'umontreal::ssj::util']]],

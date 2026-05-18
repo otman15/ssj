@@ -2,8 +2,8 @@ var searchData=
 [
   ['halfnormaldist_0',['HalfNormalDist',['../classumontreal_1_1ssj_1_1probdist_1_1HalfNormalDist.html',1,'umontreal::ssj::probdist']]],
   ['halfnormalgen_1',['HalfNormalGen',['../classumontreal_1_1ssj_1_1randvar_1_1HalfNormalGen.html',1,'umontreal::ssj::randvar']]],
-  ['haltonsequence_2',['HaltonSequence',['../classumontreal_1_1ssj_1_1hups_1_1HaltonSequence.html',1,'umontreal::ssj::hups']]],
-  ['hammersleypointset_3',['HammersleyPointSet',['../classumontreal_1_1ssj_1_1hups_1_1HammersleyPointSet.html',1,'umontreal::ssj::hups']]],
+  ['haltonsequence_2',['HaltonSequence',['../classumontreal_1_1ssj_1_1hups64_1_1HaltonSequence.html',1,'umontreal.ssj.hups64.HaltonSequence'],['../classumontreal_1_1ssj_1_1hups_1_1HaltonSequence.html',1,'umontreal.ssj.hups.HaltonSequence']]],
+  ['hammersleypointset_3',['HammersleyPointSet',['../classumontreal_1_1ssj_1_1hups64_1_1HammersleyPointSet.html',1,'umontreal.ssj.hups64.HammersleyPointSet'],['../classumontreal_1_1ssj_1_1hups_1_1HammersleyPointSet.html',1,'umontreal.ssj.hups.HammersleyPointSet']]],
   ['henriksen_4',['Henriksen',['../classumontreal_1_1ssj_1_1simevents_1_1eventlist_1_1Henriksen.html',1,'umontreal::ssj::simevents::eventlist']]],
   ['hilbertcurvebatchsort_5',['HilbertCurveBatchSort',['../classumontreal_1_1ssj_1_1util_1_1multidimsort_1_1HilbertCurveBatchSort.html',1,'umontreal::ssj::util::multidimsort']]],
   ['hilbertcurvemap_6',['HilbertCurveMap',['../classumontreal_1_1ssj_1_1util_1_1multidimsort_1_1HilbertCurveMap.html',1,'umontreal::ssj::util::multidimsort']]],

@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['bakertransformedpointset_0',['BakerTransformedPointSet',['../classumontreal_1_1ssj_1_1hups_1_1BakerTransformedPointSet.html',1,'umontreal::ssj::hups']]],
-  ['bakertransformedpointsetiterator_1',['BakerTransformedPointSetIterator',['../classumontreal_1_1ssj_1_1hups_1_1BakerTransformedPointSet_1_1BakerTransformedPointSetIterator.html',1,'umontreal::ssj::hups::BakerTransformedPointSet']]],
+  ['bakertransformedpointset_0',['BakerTransformedPointSet',['../classumontreal_1_1ssj_1_1hups64_1_1BakerTransformedPointSet.html',1,'umontreal.ssj.hups64.BakerTransformedPointSet'],['../classumontreal_1_1ssj_1_1hups_1_1BakerTransformedPointSet.html',1,'umontreal.ssj.hups.BakerTransformedPointSet']]],
+  ['bakertransformedpointsetiterator_1',['BakerTransformedPointSetIterator',['../classumontreal_1_1ssj_1_1hups64_1_1BakerTransformedPointSet_1_1BakerTransformedPointSetIterator.html',1,'umontreal.ssj.hups64.BakerTransformedPointSet.BakerTransformedPointSetIterator'],['../classumontreal_1_1ssj_1_1hups_1_1BakerTransformedPointSet_1_1BakerTransformedPointSetIterator.html',1,'umontreal.ssj.hups.BakerTransformedPointSet.BakerTransformedPointSetIterator']]],
   ['bakertransformedstream_2',['BakerTransformedStream',['../classumontreal_1_1ssj_1_1rng_1_1BakerTransformedStream.html',1,'umontreal::ssj::rng']]],
   ['bankev_3',['BankEv',['../classtutorial_1_1BankEv.html',1,'tutorial']]],
   ['basicobservationcollector_4',['BasicObservationCollector',['../classumontreal_1_1ssj_1_1mcqmctools_1_1anova_1_1BasicObservationCollector.html',1,'umontreal::ssj::mcqmctools::anova']]],

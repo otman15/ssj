@@ -10,6 +10,7 @@ var namespaceumontreal_1_1ssj_1_1rng =
     [ "MRG32k3a", "classumontreal_1_1ssj_1_1rng_1_1MRG32k3a.html", "classumontreal_1_1ssj_1_1rng_1_1MRG32k3a" ],
     [ "MRG32k3aL", "classumontreal_1_1ssj_1_1rng_1_1MRG32k3aL.html", "classumontreal_1_1ssj_1_1rng_1_1MRG32k3aL" ],
     [ "RandomPermutation", "classumontreal_1_1ssj_1_1rng_1_1RandomPermutation.html", "classumontreal_1_1ssj_1_1rng_1_1RandomPermutation" ],
+    [ "RandomPrime", "classumontreal_1_1ssj_1_1rng_1_1RandomPrime.html", "classumontreal_1_1ssj_1_1rng_1_1RandomPrime" ],
     [ "RandomStream", "interfaceumontreal_1_1ssj_1_1rng_1_1RandomStream.html", "interfaceumontreal_1_1ssj_1_1rng_1_1RandomStream" ],
     [ "RandomStreamBase", "classumontreal_1_1ssj_1_1rng_1_1RandomStreamBase.html", "classumontreal_1_1ssj_1_1rng_1_1RandomStreamBase" ],
     [ "RandomStreamFactory", "interfaceumontreal_1_1ssj_1_1rng_1_1RandomStreamFactory.html", "interfaceumontreal_1_1ssj_1_1rng_1_1RandomStreamFactory" ],
