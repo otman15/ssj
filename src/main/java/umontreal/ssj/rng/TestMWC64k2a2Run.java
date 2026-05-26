@@ -20,10 +20,10 @@ public class TestMWC64k2a2Run {
 
    /*
     * Java state order:
-    *   {x2, x1, carry}
+    *   {x0, x1, carry}
     *
     * This corresponds to:
-    *   x2 = x_{n-2}
+    *   x0 = x_{n-2}
     *   x1 = x_{n-1}
     *   carry = c
     */
@@ -34,8 +34,10 @@ public class TestMWC64k2a2Run {
 	  //get_n_frst_values(10);
       //runSpeedRawTest();
       //runSpeedU01Test();
-      //runJumpTest();// has its own params
-      runSpeedLongTest();
+      //runJumpTest();
+	   //runSpeedLontTest();
+	   //TestNextBytes();
+	   compareNextBitsLongVsNextLong(new MWC64k2a2(),63, 1000000000L);
    }
    
    /*
@@ -111,78 +113,58 @@ public class TestMWC64k2a2Run {
       long end = System.nanoTime();
 
       System.out.println();
-      System.out.println("========================nextvalue=====================================");
+      System.out.println("=============================================================");
       System.out.println("MWC64k2a2 U(0,1) speed test");
       System.out.println("n = " + N_SPEED);
       System.out.println("average = " + (sum / N_SPEED));
       System.out.println("time = " + seconds(start, end));
-      
-      
-      rng.setSeed(SEED);
-
-       double sum2 = 0.0;
-
-       long start2 = System.nanoTime();
-
-      for (long i = 0; i < N_SPEED; i++) {
-         sum2 += rng.nextDouble();
-      }
-
-       long end2 = System.nanoTime();
-
-      System.out.println();
-      System.out.println("===========================nextdouble==================================");
-      System.out.println("MWC64k2a2 U(0,1) speed test");
-      System.out.println("n = " + N_SPEED);
-      System.out.println("average = " + (sum2 / N_SPEED));
-      System.out.println("time = " + seconds(start2, end2));
    }
    
-   private static void runSpeedLongTest() {
+   
+   private static void runSpeedLontTest() {
 	      MWC64k2a2 rng = new MWC64k2a2();
 	      rng.setSeed(SEED);
 	      
-
-	      long sum = 0;
-	      long n = 10000000000L;
+	      long m = 1000000000L;
 	      
+	      Long n = 10000000L;
 
-	      long start = System.nanoTime();
+	      long sum1 = 0;
 
-	      for (long i = 0; i < n; i++) {
-	         sum += rng.nextLong(0, n);
+	      long start1 = System.nanoTime();
+
+	      for (long i = 0; i < m; i++) {
+	         sum1 += rng.nextLong(0,m);
 	      }
 
-	      long end = System.nanoTime();
+	      long end1 = System.nanoTime();
 
 	      System.out.println();
-	      System.out.println("========================longjava=====================================");
-	      System.out.println("MWC64k2a2 long("+ 0 +"," +n+ ") speed test");
-	      System.out.println("n = " + n);
-	      System.out.println("sum = " + (sum));
-	      System.out.println("time = " + seconds(start, end));
-	      
+	      System.out.println("===================Long java Random=============================");
+	      System.out.println("MWC64k2a2 nextLong("+0+","+m +") speed test");
+	      System.out.println("n sim = " + m);
+	      System.out.println("sum = " + (sum1));
+	      System.out.println("time = " + seconds(start1, end1));
 	      
 	      rng.setSeed(SEED);
 
-		      long sum2 = 0;
-		      
+	      long sum2= 0;
 
-		      long start2 = System.nanoTime();
+	      long start2 = System.nanoTime();
 
-		      for (long i = 0; i < n; i++) {
-		         sum2 += rng.nextLongSsj(0, n);
-		      }
+	      for (long i = 0; i < m; i++) {
+	         sum2 += rng.nextLongSsj(0,m);
+	      }
 
-		      long end2 = System.nanoTime();
+	      long end2 = System.nanoTime();
 
-		      System.out.println();
-		      System.out.println("========================longssj=====================================");
-		      System.out.println("MWC64k2a2 long("+ 0 +"," +n+ "speed test");
-		      System.out.println("n = " + n);
-		      System.out.println("sum = " + (sum2));
-		      System.out.println("time = " + seconds(start2, end2));
-	   }
+	      System.out.println();
+	      System.out.println("===================Long ssj rng=============================");
+	      System.out.println("MWC64k2a2 nextLongSsj("+0+","+m +") speed test");
+	      System.out.println("n sim = " + m);
+	      System.out.println("sum = " + (sum2));
+	      System.out.println("time = " + seconds(start2, end2));
+   }
 
    /*
     * Same structure as MWCJump.res:
@@ -295,4 +277,100 @@ public class TestMWC64k2a2Run {
    private static double seconds(long start, long end) {
       return (end - start) / 1.0e9;
    }
+   
+   private static String toHex(byte[] bytes) {
+       StringBuilder sb = new StringBuilder();
+
+       for (byte b : bytes) {
+           sb.append(String.format("%02X ", b & 0xFF));
+       }
+
+       return sb.toString().trim();
+   }
+   
+   private static void bintostr(byte[] bytes){
+
+       for (byte b : bytes) {
+    	   System.out.print("rep bin: " + Integer.toBinaryString(b & 0xFF ) + ", ");
+       }
+       System.out.println();
+   }
+   
+   
+   public static void TestNextBytes() {
+	   
+	   long m = 1000000L;
+
+	   MWC64k2a2 rng1 = new MWC64k2a2();
+	   rng1.setSeed(SEED);
+
+       byte[] a = new byte[16];
+	   long start1 = System.nanoTime();
+	   for (int i = 0; i <= m; i++) {
+		   rng1.nextBytes(a);}
+	   long end1 = System.nanoTime();
+
+       System.out.println("High-first:");
+	
+       System.out.println();
+       System.out.println("=================High-first:=========================");
+       System.out.println("rep hex: " + toHex(a));
+       bintostr(a);
+       System.out.println("time = " + seconds(start1, end1));
+
+       rng1.setSeed(SEED);
+
+       byte[] b = new byte[16];
+	   long start2 = System.nanoTime();
+	   for (int i = 0; i <= m; i++) {
+		   rng1.nextBytes1(b);}
+	   long end2 = System.nanoTime();
+	   
+      System.out.println();
+      System.out.println("=================Java-style low-first=========================");
+      System.out.println("rep hex: " +toHex(b));
+      bintostr(b);
+      System.out.println("time = " + seconds(start2, end2));
+       
+
+   }
+   
+   public static void compareNextBitsLongVsNextLong(MWC64k2a2 stream, int b, long m) {
+	   b=45;
+	   m=10000000000L;
+	    if (b < 0 || b > 63) {
+	        throw new IllegalArgumentException("b must be between 0 and 62");
+	    }
+
+	    long upper = (1L << b) - 1L;
+
+	    long sum1 = 0;
+	    stream.resetStartStream();
+
+	    long t0 = System.nanoTime();
+	    for (long i = 0; i < m; i++) {
+	         stream.nextLong(0L, upper);//sum1 +=
+	    }
+	    long t1 = System.nanoTime();
+
+	    long sum2 = 0;
+	    stream.resetStartStream();
+
+	    long t2 = System.nanoTime();
+	    for (long i = 0; i < m; i++) {
+	        stream.nextBitsLong(b);//sum2 += 
+	    }
+	    long t3 = System.nanoTime();
+
+	    double timeLong = (t1 - t0) / 1_000_000.0;
+	    double  timeBits = (t3 - t2) / 1_000_000.0;
+	    
+	    
+	    System.out.println("-------------------Compare Nextlong(2**b-1) and nextBitsLong(b)----------------------");
+	    System.out.println("b = " + b);
+	    System.out.println("m = " + m);
+	    System.out.printf("nextBitsLong(%d): %.3f ms, sum = %d%n", b, timeBits, sum2);
+	    System.out.printf("nextLong(0, 2^%d - 1): %.3f ms, sum = %d%n", b, timeLong, sum1);
+	    System.out.printf("speedup = %.3f%n", timeLong / timeBits);
+	}
 }

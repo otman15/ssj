@@ -17,20 +17,16 @@ public class TestLSFR {
 //		ThreadMXBean bean = ManagementFactory.getThreadMXBean();
 //
 //		long start = bean.getCurrentThreadCpuTime();
-		   Long m=1000000000L;
-		   int n=1000000;
-		   System.out.println("With <<32,  " + "n = " + n + ", m = " + m);
+		   int m=100000;
+		   int n=100;
+		   System.out.println("With long,  " + "n = " + n + ", m = " + m);
 		Chrono timer = new Chrono();
 
 		TestRngOnly(new LFSR258(), n, m);
 		System.out.println(
 	            "\nTotal time for Int: " + timer.format() + "\n=========================================== \n");
-		
-//		With <<32,  n = 1000000, m = 1000000000
-//
-//				Total time for Int: 0:0:4.39
-//				=========================================== 
 	   }
+	
 
 //		long end = bean.getCurrentThreadCpuTime();
 //
@@ -39,8 +35,19 @@ public class TestLSFR {
 //		TestRngOnly(new MRG32k3a());
 //CPU time = 241.487985706 seconds nextInt(0, n-1) for LFSR258
 //CPU time = 241.035011479 seconds intL}
+//	
+//	With <<32,  n = 100000, m = 1000000000
+//
+//			Total time for Int: 0:0:20.87
+//			=========================================== 
+//	With <<32,  n = 100000, m = 1000000000
+//
+//			Total time for Int: 0:0:20.87
+//			=========================================== 
 	
-	private static void TestRngOnly(RandomStream stream, int n, Long m) {
+	
+	
+	private static void TestRngOnly(RandomStream stream, int n, int m) {
 		   int[] counts = new int[n];
 
 		   for (int i= 0; i < m; i++) {

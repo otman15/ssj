@@ -7,146 +7,65 @@ import java.util.Locale;
 import umontreal.ssj.stat.*; 
 
 
+/*On linux run:
+  for f in folder_latex/*.tex; do
+   echo "Compiling $f"; 
+   pdflatex -output-directory=pdfFoler "$f"; 
+   rm pdfFoler/*.aux pdfFoler/*.log; 
+   done
+ */
+
+
 public class HistLatex3 {
 	
 	
 	public static void main(String[] args) throws IOException {
 
-	      String dataDir = "C:/Users/cherrato/Documents/GitHub/Data/datapl/";// .dat files should be here
-	      String latexDir = "C:/Users/cherrato/Documents/GitHub/Data/fn-test/tikz/";// output .tex file will be created here
-	      
-	      //"PieceLinGauss", "Polynomial", "SmoothGauss", "Oscillatory",  "MC2"
-		   String[] modelTags = {"PieceLinGauss", "Polynomial", "SmoothGauss"};
-		   int[] ss = {2,4};
-		   int m = 10000;
-		   int[] ks = {8, 10, 12, 14, 16};
-		   
-		   
-		   for(String modelTag : modelTags) {
-			   for(int s:ss) {
-	      
-				   	makeLat(dataDir, latexDir , modelTag,s, m, ks);
-			   }
-		   }
-	      
-	}
-	
-	public static void makeLat(String dataDir, String latexDir, String modelTag, int s, int m, int[] ks) throws IOException {
+	      String dataDir = "/home/otman/Dropbox/samo25/datapl/";// .dat files should be here
+	      String latexDir = "/home/otman/Documents/GitHub/Data/samo25-test/tikz/";// output .tex file will be created here
 
 		   // Important: Change these parameters as needed to match the .dat files you have.
-
-		   // Choose what to generate.
-		   boolean makeLattice = true;
-		   boolean makeSobol = true;
-
-		   String baseTag = modelTag + "-" + s;
-
+		   String modelTags[] = {"SmoothPerB4","SumUeU","MC2","Polynomial","Oscillatory","Gaussian","SmoothGauss","PieceLinGauss","IndSumNormal"}; // The model tag used in the .dat file names, e.g. "SumUeU", "Polynomial", etc.";
+		   int sDims[] = {2,4,8,16,32};
+		   int m = 10000;
+		   int mExp = (int) Math.log10(m);
+		   int[] ks = {10, 12, 14, 16};
+		   
 		   File inputFolder = new File(dataDir);
 		   File outputFolder = new File(latexDir);
 		   outputFolder.mkdirs();
-
 		   File[] files = inputFolder.listFiles((dir, name) -> name.endsWith(".dat"));
-
 		   if (files == null || files.length == 0) {
 		      System.out.println("No .dat files found in " + dataDir);
 		      return;
 		   }
-
 		   Arrays.sort(files);
+		   
+		   String[][] pages = {
+				   {"Rank-1 lattice", "rank1_nonbaker", "Lat-RS,Lat-RvRS,Lat-RpvRS"},
+				   {"Rank-1 lattice with baker transform", "rank1_baker", "Lat-RSB,Lat-RvRSB,Lat-RpvRSB"},
+				   {"Sobol", "sobol", "Sob-RDS,Sob-LMS,Sob-NUS"}
+				};
 
-		   // ============================================================
-		   // LATTICE PAGES
-		   // ============================================================
-		   if (makeLattice) {
+				for (String model : modelTags) {
+				   for (int s : sDims) {
+				      String baseTag = model + "-" + s;
 
-		      // --------------------------
-		      // Non-baker lattice page
-		      // 4 methods x 4 k values = 16 plots
-		      // --------------------------
-		      writeHistogramPage(
-		         files,
-		         outputFolder,
-		         baseTag,
-		         modelTag + "-" + s + "_rank1_nonbaker_plots.tex",
-		         "RQMC Rank-1 lattice point set comparison: "
-		               + modelTag + "-" + s + " ($10^4$ samples)",
-		         new String[][] {
-		            {"Lat-RS"},
-		            {"Lat-Rv"},
-		            {"Lat-RvRS"},
-		            {"Lat-RpvRS"}
-		         },
-		         new String[] {
-		            "Lat-RS",
-		            "Lat-Rv",
-		            "Lat-RvRS",
-		            "Lat-RpvRS"
-		         },
-		         ks,
-		         m
-		      );
-
-		      // --------------------------
-		      // Baker lattice page
-		      // 4 methods x 4 k values = 16 plots
-		      // --------------------------
-		      writeHistogramPage(
-		         files,
-		         outputFolder,
-		         baseTag,
-		         modelTag + "-baker-" + s + "_rank1_baker_plots.tex",
-		         "RQMC Rank-1 lattice point set comparison with baker transform: "
-		               + modelTag + "-baker-" + s + " ($10^4$ samples)",
-		         new String[][] {
-		            {"Lat-RSB"},
-		            {"Lat-RpvB"},
-		            {"Lat-RvRSB"},
-		            {"Lat-RpvRSB"}
-		         },
-		         new String[] {
-		            "Lat-RSB",
-		            "Lat-RpvB",
-		            "Lat-RvRSB",
-		            "Lat-RpvRSB"
-		         },
-		         ks,
-		         m
-		      );
-		   }
-
-		   // ============================================================
-		   // SOBOL PAGE
-		   // ============================================================
-		   if (makeSobol) {
-
-		      // 6 methods x 4 k values = 24 plots
-		      writeHistogramPage(
-		         files,
-		         outputFolder,
-		         baseTag,
-		         modelTag + "-" + s + "_sobol_plots.tex",
-		         "RQMC Sobol point set comparison: "
-		               + modelTag + "-" + s + " ($10^4$ samples)",
-		         new String[][] {
-		            {"Sob-RDS"},
-		            {"Sob-RDST"},
-		            {"Sob-LMS"},
-		            {"Sob-LMS-RDS"},
-		            {"Sob-LMS-RDS-IRB"},
-		            {"Sob-NUS"}
-		         },
-		         new String[] {
-		            "Sob-RDS",
-		            "Sob-RDST",
-		            "Sob-LMS",
-		            "Sob-LMS-RDS",
-		            "Sob-LMS-RDS-IRB",
-		            "Sob-NUS"
-		         },
-		         ks,
-		         m
-		      );
-		   }
+				      for (String[] page : pages) {
+				         writeHistogramPage(
+				            files,
+				            outputFolder,
+				            baseTag,
+				            model + "-" + s + "_" + page[1] + ".tex",
+				            "RQMC " + page[0] + " comparison: " + baseTag + " ($10^{" + mExp + "}$ samples)",
+				            page[2].split(","),
+				            ks,
+				            m
+				         );
+				      }
+				   }
+				}
+		   
 		}
 	
 	
@@ -157,8 +76,7 @@ public class HistLatex3 {
 		      String baseTag,
 		      String outputName,
 		      String pageTitle,
-		      String[][] methodCandidates,
-		      String[] rowLabels,
+		      String[] methods,
 		      int[] ks,
 		      int m) throws IOException {
 
@@ -184,15 +102,15 @@ public class HistLatex3 {
 		            + "}{c}{\\fontsize{7}{8}\\selectfont\\textbf{"
 		            + escapeLatex(pageTitle) + "}} \\\\[2mm]");
 
-		      for (int r = 0; r < rowLabels.length; r++) {
+		      for (int r = 0; r < methods.length; r++) {
 
 		         out.print("{\\fontsize{6}{7}\\selectfont "
-		               + escapeLatex(rowLabels[r]) + "}");
+		               + escapeLatex(methods[r]) + "}");
 
 		         for (int c = 0; c < ks.length; c++) {
 		            int k = ks[c];
 
-		            File file = findFile(files, baseTag, methodCandidates[r], k, m);
+		            File file = findFile(files, baseTag, methods[r], k, m);
 
 		            if (file == null) {
 		               out.print(" & {\\tiny Missing}");
@@ -226,19 +144,16 @@ public class HistLatex3 {
 	
 	
 	
-	private static File findFile(File[] files, String baseTag, String[] methodCandidates, int k, int m) {
+	private static File findFile(File[] files, String baseTag, String method, int k, int m) {
+		   String exactName = baseTag + "-" + method + "-" + k + "-" + m + ".dat";
 
-	      for (String method : methodCandidates) {
-	         String exactName = baseTag + "-" + method + "-" + k + "-" + m + ".dat";
+		   for (File file : files) {
+		      if (file.getName().equals(exactName))
+		         return file;
+		   }
 
-	         for (File file : files) {
-	            if (file.getName().equals(exactName))
-	               return file;
-	         }
-	      }
-
-	      return null;
-	   }
+		   return null;
+		}
 	
 	
 	
@@ -246,10 +161,10 @@ public class HistLatex3 {
 
 	   private static String makeHistogramLatex(File file) throws IOException {
 
-		   TallyStore stats = getFileStats(file);
+		   TallyStore fileStats = getFilefileStats(file);
 
-	      double xmin = stats.min();
-	      double xmax = stats.max();
+	      double xmin = fileStats.min();
+	      double xmax = fileStats.max();
 
 	      if (xmin == xmax) {
 	         xmin -= 1.0;
@@ -260,7 +175,7 @@ public class HistLatex3 {
 	         xmax += pad;
 	      }
 
-	      int numBins = Math.max(20, (int) Math.round(2*Math.cbrt(stats.numberObs())));
+	      int numBins = Math.max(20, (int) Math.round(2*Math.cbrt(fileStats.numberObs())));
 
 	      TallyHistogram hist = new TallyHistogram(xmin, xmax, numBins); 
 	      hist.fillFromFile(file.getAbsolutePath());
@@ -273,8 +188,8 @@ public class HistLatex3 {
 	    	      "\\scalebox{0.62}{"
 	    	      + "\\begin{tabular}{@{}l@{}}"
 	    	      + "$\\sigma^2$=" + sci(hist.variance())
-	    	      + "\\\\[-1pt]$\\gamma$=" + sci(stats.skewness())
-	    	      + "\\\\[-1pt]$\\kappa'$=" + sci(stats.kurtosis())
+	    	      + "\\\\[-1pt]$\\gamma$=" + sci(fileStats.skewness())
+	    	      + "\\\\[-1pt]$\\kappa'$=" + sci(fileStats.kurtosis())
 	    	      + "\\end{tabular}"
 	    	      + "}";
 
@@ -334,9 +249,9 @@ public class HistLatex3 {
 	   
 	   
 	   
-	   private static TallyStore getFileStats(File file) throws IOException {
+	   private static TallyStore getFilefileStats(File file) throws IOException {
 	      
-	      TallyStore stats = new TallyStore();
+	      TallyStore fileStats = new TallyStore();
 
 
 	      try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -352,15 +267,15 @@ public class HistLatex3 {
 
 	            for (String value : values) {
 	               double x = Double.parseDouble(value);
-	               stats.add(x);
+	               fileStats.add(x);
 	            }
 	         }
 	      }
 
-	      if (stats.numberObs() == 0)
+	      if (fileStats.numberObs() == 0)
 	         throw new IOException("No observations found in " + file.getAbsolutePath());
 
-	      return stats;
+	      return fileStats;
 	   }
 
 	   	   

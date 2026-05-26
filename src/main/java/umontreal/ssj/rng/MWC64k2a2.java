@@ -28,6 +28,7 @@ import java.math.BigInteger;
  * </pre>
  */
 public class MWC64k2a2 extends RandomStreamBase {
+	
    private static final long serialVersionUID = 20260518L;
 
    /** First coefficient a1. */
@@ -36,7 +37,7 @@ public class MWC64k2a2 extends RandomStreamBase {
    /** Second coefficient a2. */
    private static final long A2 = 1966812196490295L;
    
-//   private static final long  A1 = 556348944096481337L; // for jump comparaison with c++ 
+//   private static final long  A1 = 556348944096481337L; // for jump
 //   private static final long  A2 = 8250136865355103L;
 
    /** 2^(-53), used to convert 53 random bits to a double. */
@@ -54,7 +55,7 @@ public class MWC64k2a2 extends RandomStreamBase {
    /** Initial state of this stream. */
    private long[] Ig;
 
-   /** Initial state of the current substream. */
+   /** Beginning state of the current substream of stream. */
    private long[] Bg;
 
    /** State component x_{n-2}, interpreted as unsigned 64-bit. */
@@ -65,8 +66,6 @@ public class MWC64k2a2 extends RandomStreamBase {
 
    /** Carry c_{n-1}. */
    private long carry;
-   
-   private static final long MAX_CARRY = A1 + A2 - 1L;
     
    /**
     * Precomputed BigInteger constants for the 128-bit MWC-to-LCG transformation.
@@ -76,7 +75,7 @@ public class MWC64k2a2 extends RandomStreamBase {
    private static final BigInteger BI_A2 = BigInteger.valueOf(A2);
    
    // m = a2 * b^2 + a1 * b - 1
-   private static final BigInteger BI_M = BI_A2.multiply(BI_B).add(BI_A1).multiply(BI_B).subtract(BigInteger.ONE);//////////////////
+   private static final BigInteger BI_M = BI_A2.multiply(BI_B).add(BI_A1).multiply(BI_B).subtract(BigInteger.ONE);
    
    // Precomputed modular inverse of base b modulo m: b^(-1) mod m
    private static final BigInteger BI_B_INV = BI_B.modInverse(BI_M);
@@ -195,15 +194,14 @@ public class MWC64k2a2 extends RandomStreamBase {
 //   }
    /**
     * Generates one MWC step and returns the old x_{n-1},
-    * to match the C++ speed-test convention.
     *
     * @return old x_{n-1}, interpreted as unsigned 64-bit
     */
    private long nextNumber() {
       long out = x1;                         // C++ returns old x1 first.
 
-      long lo1 = A1 * x1;                    // Low 64 bits of A1*x_{n-1}. 
-      long hi1 = Math.unsignedMultiplyHigh(A1, x1); 
+      long lo1 = A1 * x1;                    // Low 64 bits of A1*x_{n-1}.
+      long hi1 = Math.unsignedMultiplyHigh(A1, x1);
 
       long lo2 = A2 * x2;                    // Low 64 bits of A2*x_{n-2}.
       long hi2 = Math.unsignedMultiplyHigh(A2, x2);
@@ -276,23 +274,13 @@ public class MWC64k2a2 extends RandomStreamBase {
    /**
     * Returns the next U(0,1) value.
     *
-    * We use (x + 0.5) / 2^53 to avoid returning exactly 0 or 1.
+    * We use (x + 0.5) / 2^32 to avoid returning exactly 0 or 1.
     */
-   protected double Double() {
+   protected double nextValue2() {
       return ((nextNumber() >>> 11) + 0.5) * NORM53;
    }
-//   ========================nextvalue=====================================
-//		   MWC64k2a2 U(0,1) speed test
-//		   n = 10000000000
-//		   average = 0.5000009572281813
-//		   time = 24.6817623
-//
-//		   ===========================nextdouble==================================
-//		   MWC64k2a2 U(0,1) speed test
-//		   n = 10000000000
-//		   average = 0.5000009572281813
-//		   time = 24.6173632
    
+
 
    /**
     * Returns a random long in [i, j].
@@ -347,28 +335,38 @@ public class MWC64k2a2 extends RandomStreamBase {
 
 	      return i + (res / q);
 	   }
-//   ========================longjava=====================================
-//		   MWC64k2a2 long(0,10000000speed test
-//		   n = 10000000
-//		   sum = 49989873754832
-//		   time = 0.0305606
-//
-//		   ========================longssj=====================================
-//		   MWC64k2a2 long(0,10000000speed test
-//		   n = 10000000
-//		   sum = 50006109875265
-//		   time = 0.0349795
    
-//   MWC64k2a2 long(0,10000000000) speed test
-//   n = 10000000000
-//   sum = -5339884515476624033
-//   time = 19.0749811
+//   public long nextBitsLong(int b) {
+//	    if (b < 0 || b > 63) {
+//	        throw new IllegalArgumentException("b must be between 0 and 63");
+//	    }
 //
-//   ========================longssj=====================================
-//   MWC64k2a2 long(0,10000000000speed test
-//   n = 10000000000
-//   sum = -5340136479366736445
-//   time = 25.9652686
+//	    if (b == 0) {
+//	        return 0L;
+//	    }
+//
+//	    long r = nextNumber() >>> 1;
+//
+//	    if (b == 63) {
+//	        return r;
+//	    }
+//
+//	    return r & ((1L << b) - 1L);
+//	}
+   
+   public long nextBitsLong(int b) {
+	    if (b < 0 || b > 63) {
+	        throw new IllegalArgumentException("b must be between 0 and 63");
+	    }
+
+	    if (b == 0) {
+	        return 0L;
+	    }
+
+	    long z = nextNumber();
+
+	    return z >>> (64 - b);
+	}
 
    /**
     * Returns a random int in [i, j].
@@ -406,6 +404,81 @@ public class MWC64k2a2 extends RandomStreamBase {
       for (int p = start; p < start + n; p++)
          u[p] = nextLong(i, j);
    }
+   
+   /**
+    * Fills the whole byte array using random bytes.
+    *
+    * This version is closer to java.util.Random.nextBytes().
+    * It extracts bytes from each 64-bit output from the least
+    * significant byte to the most significant byte.
+    *
+    * Example:
+    * nextNumber() = 0x1122334455667788
+    * output bytes = 88 77 66 55 44 33 22 11
+    */
+   
+   public void nextBytes1(byte[] bytes) {
+	    if (bytes == null)
+	        throw new NullPointerException("bytes is null");
+	    for (int i = 0; i < bytes.length; ) {
+	        long rnd = nextNumber();
+	        int n = Math.min(bytes.length - i, 8);
+
+	        while (n-- > 0) {
+	            bytes[i++] = (byte) rnd;
+	            rnd >>>= 8;
+	        }
+	    }
+	}
+   
+//   =================High-first:=========================
+//		   96 CF F7 1F C7 B3 4D DD 99 8A 71 31 34 91 BA 0B
+//		   time = 14.29018546
+//
+//		   =================Java-style low-first=========================
+//		   DD 4D B3 C7 1F F7 CF 96 0B BA 91 34 31 71 8A 99
+//		   time = 25.18534711
+   
+   /**
+    * Fills the whole byte array using random bytes.
+    *
+    * This version extracts bytes from each 64-bit output from
+    * the most significant byte to the least significant byte.
+    *
+    * Example:
+    * nextNumber() = 0x1122334455667788
+    * output bytes = 11 22 33 44 55 66 77 88
+    */
+   
+		public void nextBytes(byte[] bytes) {
+		    if (bytes == null)
+		        throw new NullPointerException("bytes is null");
+		    
+		    int length = bytes.length;
+	
+		    int i = 0;
+	
+		    while (i + 8 <= length) {
+		        long x = nextNumber();
+	
+		        bytes[i++] = (byte) (x >>> 56);
+		        bytes[i++] = (byte) (x >>> 48);
+		        bytes[i++] = (byte) (x >>> 40);
+		        bytes[i++] = (byte) (x >>> 32);
+		        bytes[i++] = (byte) (x >>> 24);
+		        bytes[i++] = (byte) (x >>> 16);
+		        bytes[i++] = (byte) (x >>> 8);
+		        bytes[i++] = (byte) x;
+		    }
+	
+		    if (i < length) {
+		        long x = nextNumber();
+	
+		        for (int shift = 56; i < length; shift -= 8) {
+		            bytes[i++] = (byte) (x >>> shift);
+		        }
+		    }
+		}
 
    /**
     * Sets antithetic mode.
@@ -490,6 +563,7 @@ public class MWC64k2a2 extends RandomStreamBase {
     *
     * @param seed seed to check
     */
+   private static final long MAX_CARRY = A1 + A2 - 1L;
 
    private static void checkSeed(long[] seed) {
       if (seed == null)
@@ -517,10 +591,10 @@ public class MWC64k2a2 extends RandomStreamBase {
     */
    private static void advanceState(long[] state) {
       long lo1 = A1 * state[1];
-      long hi1 = Math.multiplyHigh(A1, state[1]);
+      long hi1 = Math.unsignedMultiplyHigh(A1, state[1]);
 
       long lo2 = A2 * state[0];
-      long hi2 = Math.multiplyHigh(A2, state[0]);
+      long hi2 = Math.unsignedMultiplyHigh(A2, state[0]); 
 
       long low = lo1 + lo2;
       long overflow1 = Long.compareUnsigned(low, lo1) < 0 ? 1L : 0L;
@@ -680,7 +754,8 @@ public class MWC64k2a2 extends RandomStreamBase {
 //
 //      return high;
 //   }
-//   
+   
+   
    /**
     * Converts an unsigned 64-bit long to a positive BigInteger.
     */
