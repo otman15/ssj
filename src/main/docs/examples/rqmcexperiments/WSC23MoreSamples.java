@@ -133,12 +133,12 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("*   Lattice with RS");
       statReps.setName(modelTag + "-" + s + "-Lat-RS-" + k + "-" + m);
       simulRepsRQMCSort(model, pLat, randShift, m, statReps);
-
+/*
       // Lat-RSB
       System.out.println("*   Lattice with RS + tent transform");
       statReps.setName(modelTag + "-" + s + "-Lat-RSB-" + k + "-" + m);
       simulRepsRQMCSort(model, ptent, randShift, m, statReps);
-
+/*
       // Lat-Rv, random a
       System.out.println("*   Lattice with random gen vector a, no shift");
       randLatPar.setRandShift(false);
@@ -156,7 +156,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       randLatPar.setRandShift(true);
       statReps.setName(modelTag + "-" + s + "-Lat-RvRS-" + k + "-" + m);
       simulRepsRQMCSort(model, pLat, randLatPar, m, statReps);
-
+*/
       // Lat-RvRSB, random a and RS + tent
       System.out.println("*   Lattice with random gen vector a and RS + tent");
       statReps.setName(modelTag + "-" + s + "-Lat-RvRSB-" + k + "-" + m);
@@ -172,7 +172,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("*   Lattice with random n, random gen vector a, and RS + tent");
       statReps.setName(modelTag + "-" + s + "-Lat-RpvRSB-" + k + "-" + m);
       simulRepsRQMCSort(model, ptent, randLatPar2, m, statReps);
-
+/*
       // -------------------------
       // Objects for Sobol' points
       System.out.println("*** Sobol points ");
