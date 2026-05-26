@@ -42,7 +42,7 @@ public class HistLatexSamo25 {
       String latexDir = "/home/otman/Documents/GitHub/Data/samo25-test/latex-files/"; // latex output dir
 
       String[] modelTags = {"SmoothPerB4","SumUeU","MC2","Polynomial","Oscillatory","Gaussian","SmoothGauss","PieceLinGauss","IndSumNormal"}; // choose models to include
-      //String[] modelTags = {"MC2"};
+      //String[] modelTags = {"Gaussian","MC2"};
       
       int[] sDims = {2, 4, 8, 16, 32};
       int m = 10000;
@@ -83,11 +83,13 @@ public class HistLatexSamo25 {
                String baseTag = model + "-" + s;
                String titleTag = model + " s = " + s;
                double shift = getCenteringShift(model, s);
+               String centered = shift == 0.0 ? "" : " (Data centered)";
+               
 
                for (String[] page : pages) {
                   String pageTitle =
                      "RQMC " + page[0] + " comparison: "
-                     + titleTag + " ($10^{" + mExp + "}$ samples)";
+                     + titleTag + " ($10^{" + mExp + "}$ samples)" + centered;
 
                   writeHistogramPageBody(
                      out,
@@ -287,16 +289,16 @@ public class HistLatexSamo25 {
       if (rightSum > legendMoveRatio * Math.max(1, leftSum))
          legendPos = "north west";
       
-      String centered = shift == 0.0 ? "" : " (centered)";
-      String title = cleanTitle(file.getName()) + centered;
+      //String centered = shift == 0.0 ? "" : " (centered)";
+      String title = cleanTitle(file.getName()) ;
       
       String legend =
-    		   "\\parbox[c][0.35cm][c]{1.1cm}{\\centering"
-    		   + "\\scalebox{0.6}{\\bfseries\\boldmath"
+    		   "\\parbox[c][0.35cm][c]{1.5cm}{\\centering"
+    		   + "\\scalebox{0.58}{\\bfseries\\boldmath"
     		   + "\\begin{tabular}{@{}l@{}}"
-    		   + "$\\sigma^2$=" + sci(hist.variance())
-    		   + "\\\\[-1pt]$\\gamma$=" + sci(fileStats.skewness())
-    		   + "\\\\[-1pt]$\\kappa'$=" + sci(fileStats.kurtosis())
+    		   + "$\\sigma^2$=\\pgfmathprintnumber[sci,precision=1]{" + texNum(hist.variance()) + "}"
+    		   + "\\\\[-1pt]$\\gamma$=\\pgfmathprintnumber[sci,precision=1]{" + texNum(fileStats.skewness()) + "}"
+    		   + "\\\\[-1pt]$\\kappa'$=\\pgfmathprintnumber[sci,precision=1]{" + texNum(fileStats.kurtosis()) + "}"
     		   + "\\end{tabular}"
     		   + "}}";
       scHist.setAxisOptions(
@@ -306,19 +308,14 @@ public class HistLatexSamo25 {
     		   "xmin=" + texNum(xmin) + ", " +
     		   "xmax=" + texNum(xmax) + ", " +
     		   "scaled x ticks=true, " +
-    		   "minor x tick num=0, " +
     		   "scaled y ticks=false, " +
-    		   "tick label style={font=\\small}, " + 
     		   "every x tick label/.append style={scale=0.6, transform shape}, " + 
     		   "every x tick scale label/.style={font={\\bfseries\\boldmath\\small}, at={(axis description cs:1,0)}, anchor=north east, xshift=2pt, yshift=-9.2pt, inner sep=0pt}, " +
     		   "legend entries={{" + legend + "}}, " +
     		   "legend image code/.code={}, " +
     		   "legend style={"
     		   	  + "draw=gray, "
-    		      + "line width=0.1pt, "
-    		      + "fill=none, "
     		      + "font=\\small, "
-    		      + "cells={anchor=east}, "
     		      + "inner xsep=0pt, "
     		      + "inner ysep=3pt,"
     		   + "}, " +
@@ -413,24 +410,6 @@ public class HistLatexSamo25 {
          line = line.substring(0, commentIndex).trim();
 
       return line;
-   }
-
-   /**
-    * Formats a number in compact scientific notation.
-    *
-    * The exponent is simplified by removing unnecessary zeros and plus signs.
-    *
-    * @param x value to format
-    * @return compact scientific-notation string
-    */
-   private static String sci(double x) {
-      String s = String.format(Locale.US, "%.1e", x);
-
-      s = s.replace("e-0", "e-");
-      s = s.replace("e+0", "e");
-      s = s.replace("e+", "e");
-
-      return s;
    }
    
    /**
