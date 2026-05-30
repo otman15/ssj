@@ -108,4 +108,9 @@ public class GenzDiscontinuous implements MonteCarloModelDouble {
    public String getTag() {
       return "GenzDiscontinuous";
    }
+   /////////for test
+   public double getExactMean() {
+	   return exactMean;
+	}
+   
 }

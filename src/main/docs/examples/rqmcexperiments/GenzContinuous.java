@@ -73,6 +73,19 @@ public class GenzContinuous implements MonteCarloModelDouble {
    /**
     * Computes the exact mean of the Genz continuous function.
     *
+    * This uses the corrected formula for the continuous case. The formula
+    * printed in the article "Explicit solutions of Genz test integrals"
+    *  appears to contain an error: per coordinate, it
+    * gives : (exp(c_j * w_j - c_j) - exp(-c_j * w_j)) / c_j.
+    *
+    * For the integrand exp(-c_j * abs(u_j - w_j)), the correct
+    * one-dimensional integral is
+    *
+    *    (2 - exp(-c_j * w_j) - exp(-c_j * (1 - w_j))) / c_j.
+    *
+    * The implementation below uses the equivalent expm1 form for better
+    * numerical accuracy.
+    *
     * @return exact integral over @f$[0,1]^s@f$
     */
    private double computeExactMean() {
@@ -95,4 +108,9 @@ public class GenzContinuous implements MonteCarloModelDouble {
    public String getTag() {
       return "GenzContinuous";
    }
+   
+   /////////for test
+   public double getExactMean() {
+	   return exactMean;
+	}
 }

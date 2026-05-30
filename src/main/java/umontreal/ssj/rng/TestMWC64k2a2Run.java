@@ -1,5 +1,10 @@
 package umontreal.ssj.rng;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
+
+
 public class TestMWC64k2a2Run {
 
    /*
@@ -16,7 +21,7 @@ public class TestMWC64k2a2Run {
     */
    private static final long N_SPEED = 10_000_000_000L;
    private static final long JUMP_SIZE = 5000L;
-   private static final long N_JUMPS = 1_000_000L;
+   private static final long N_JUMPS = 1000_000L;
 
    /*
     * Java state order:
@@ -27,19 +32,26 @@ public class TestMWC64k2a2Run {
     *   x1 = x_{n-1}
     *   carry = c
     */
-   private static final long[] SEED = {12345L, 12345L, 12345L};
+   private static final long[] SEED = {12345L, 12345L, 12345L, 12345L};
 
-   public static void main(String[] args) {
+   public static void main(String[] args) throws IOException {
+	   
+		StringBuilder out = new StringBuilder();
+		   
+		out.append("-----MWC64k2a2Tests------------------\n");
 	   
 	  //get_n_frst_values(10);
       //runSpeedRawTest();
       //runSpeedU01Test();
-      //runJumpTest();
-	   //runSpeedLontTest();
-	   //TestNextBytes();
-	   compareNextBitsLongVsNextLong(new MWC64k2a2(),63, 1000000000L);
+      runJumpTest(out);
+
+      
+      System.out.println(out);
+
+//      FileWriter writer = new FileWriter("/home/otman/Documents/GitHub/Data/o-MWC-test/Jumps__precomputing.res");
+//      writer.write(out.toString());
+//      writer.close();
    }
-   
    /*
     * for raw vallues
     * */
@@ -95,8 +107,7 @@ public class TestMWC64k2a2Run {
     * dsum = 0;
     * for i = 0 to n-1:
     *     dsum += mwc64k2a2U01();
-    *
-    * Your Java nextValue() uses the top 53 bits and rejects 0.
+    * Java nextValue() uses the top 53 bits and rejects 0.
     */
    private static void runSpeedU01Test() {
       MWC64k2a2 rng = new MWC64k2a2();
@@ -120,51 +131,6 @@ public class TestMWC64k2a2Run {
       System.out.println("time = " + seconds(start, end));
    }
    
-   
-   private static void runSpeedLontTest() {
-	      MWC64k2a2 rng = new MWC64k2a2();
-	      rng.setSeed(SEED);
-	      
-	      long m = 1000000000L;
-	      
-	      Long n = 10000000L;
-
-	      long sum1 = 0;
-
-	      long start1 = System.nanoTime();
-
-	      for (long i = 0; i < m; i++) {
-	         sum1 += rng.nextLong(0,m);
-	      }
-
-	      long end1 = System.nanoTime();
-
-	      System.out.println();
-	      System.out.println("===================Long java Random=============================");
-	      System.out.println("MWC64k2a2 nextLong("+0+","+m +") speed test");
-	      System.out.println("n sim = " + m);
-	      System.out.println("sum = " + (sum1));
-	      System.out.println("time = " + seconds(start1, end1));
-	      
-	      rng.setSeed(SEED);
-
-	      long sum2= 0;
-
-	      long start2 = System.nanoTime();
-
-	      for (long i = 0; i < m; i++) {
-	         sum2 += rng.nextLongSsj(0,m);
-	      }
-
-	      long end2 = System.nanoTime();
-
-	      System.out.println();
-	      System.out.println("===================Long ssj rng=============================");
-	      System.out.println("MWC64k2a2 nextLongSsj("+0+","+m +") speed test");
-	      System.out.println("n sim = " + m);
-	      System.out.println("sum = " + (sum2));
-	      System.out.println("time = " + seconds(start2, end2));
-   }
 
    /*
     * Same structure as MWCJump.res:
@@ -173,59 +139,48 @@ public class TestMWC64k2a2Run {
     * 2. Make 4 successive jumps of size 5000.
     * 3. Make one large jump of size 20000 from the initial state.
     * 4. Make 1,000,000 jumps of size 5000 and print final state + time.
-    *
-    * Important:
-    * This uses your Java class constants.
-    * It will match C++ jump output only if the C++ jump file uses the same constants.
-    * /*
  * IMPORTANT for MWCJump.res comparison:
  *
- * TestMWCJump.cc uses different mwc64k2a2 constants than TestMWCSpeed.cc.
+ * TestMWCJump.cc uses different  constants than TestMWCSpeed.cc.
  *
  * To match the MWCJump.res output, temporarily change the constants
  * in MWC64k2a2.java to:
- *
  *   A1 = 0x07b88c6ac008d039L;  // 556348944096481337
  *   A2 = 0x001d4f74ad35355fL;  // 8250136865355103
- *
- * The normal speed-test constants are:
- *
- *   A1 = 0x02ae390b92740f6dL;  // 193154555888013165
- *   A2 = 0x0006fcce264fcc37L;  // 1966812196490295
- *
- * Use the jump constants only when comparing with MWCJump.res.
+ ** in MWC64k3a2.java to:
+ *A2 = 0x320fbe97bef0f95L, A3 = 0x4a1849ec18bfa6L; 
  */
     
-   private static void runJumpTest() {
-      System.out.println();
-      System.out.println("=============================================================");
-      System.out.println("MWC64k2a2 jump test");
-      System.out.println("jumpSize = " + JUMP_SIZE);
-      System.out.println("n jumps for timing = " + N_JUMPS);
+   private static void runJumpTest(StringBuilder out) {
+	   out.append("");
+	   out.append("============================================================= \n");
+	   out.append("MWC64k2a2 jump test \\n");
+	   out.append("jumpSize = " + JUMP_SIZE +"\n");
+	   out.append("n jumps for timing = " + N_JUMPS +"\n");
 
-      MWC64k2a2 rng = new MWC64k2a2();
+      MWC64k3a2 rng = new MWC64k3a2();
       rng.setSeed(SEED);
 
-      System.out.println();
-      System.out.println("Successive jumps ahead:");
-      System.out.println("initial state = " + state(rng.getState()));
+      out.append("");
+      out.append("Successive jumps ahead: \\n");
+      out.append("initial state = " + state(rng.getState()) + "\n");
 
       long start = System.nanoTime();
 
       for (int i = 1; i <= 4; i++) {
          rng.advanceStateByJump(JUMP_SIZE);
-         System.out.println("after jump " + i + " = " + state(rng.getState()));
+         out.append("after jump " + i + " = " + state(rng.getState()) + "\n");
       }
 
       long end = System.nanoTime();
 
-      System.out.println("time for 4 jumps = " + seconds(start, end));
+      out.append("time for 4 jumps = " + seconds(start, end) + "\n");
 
       /*
        * One big jump from the original seed.
        * This corresponds to jumpSize2 = n0 * jumpSize = 4 * 5000 = 20000.
        */
-      MWC64k2a2 bigJump = new MWC64k2a2();
+      MWC64k3a2 bigJump = new MWC64k3a2();
       bigJump.setSeed(SEED);
 
       start = System.nanoTime();
@@ -234,17 +189,17 @@ public class TestMWC64k2a2Run {
 
       end = System.nanoTime();
 
-      System.out.println();
-      System.out.println("One large jump:");
-      System.out.println("jumpSize2 = " + (4L * JUMP_SIZE));
-      System.out.println("state = " + state(bigJump.getState()));
-      System.out.println("time = " + seconds(start, end));
+      out.append("\n");
+      out.append("One large jump: \n");
+      out.append("jumpSize2 = " + (4L * JUMP_SIZE) + "\n");
+      out.append("state = " + state(bigJump.getState())+"\n");
+      out.append("time = " + seconds(start, end) + "\n");
 
       /*
        * Timing test:
        * jump ahead by jumpSize, repeated N_JUMPS times.
        */
-      MWC64k2a2 manyJumps = new MWC64k2a2();
+      MWC64k3a2 manyJumps = new MWC64k3a2();
       manyJumps.setSeed(SEED);
 
       start = System.nanoTime();
@@ -255,12 +210,12 @@ public class TestMWC64k2a2Run {
 
       end = System.nanoTime();
 
-      System.out.println();
-      System.out.println("Repeated jump timing:");
-      System.out.println("number of jumps = " + N_JUMPS);
-      System.out.println("jumpSize = " + JUMP_SIZE);
-      System.out.println("final state = " + state(manyJumps.getState()));
-      System.out.println("time = " + seconds(start, end));
+      out.append("\n");
+      out.append("Repeated jump timing:\n");
+      out.append("number of jumps = " + N_JUMPS +"\n");
+      out.append("jumpSize = " + JUMP_SIZE+"\n");
+      out.append("final state = " + state(manyJumps.getState()) + "\n");
+      out.append("time = " + seconds(start, end) + "\n");
    }
 
    /*
@@ -278,99 +233,5 @@ public class TestMWC64k2a2Run {
       return (end - start) / 1.0e9;
    }
    
-   private static String toHex(byte[] bytes) {
-       StringBuilder sb = new StringBuilder();
 
-       for (byte b : bytes) {
-           sb.append(String.format("%02X ", b & 0xFF));
-       }
-
-       return sb.toString().trim();
-   }
-   
-   private static void bintostr(byte[] bytes){
-
-       for (byte b : bytes) {
-    	   System.out.print("rep bin: " + Integer.toBinaryString(b & 0xFF ) + ", ");
-       }
-       System.out.println();
-   }
-   
-   
-   public static void TestNextBytes() {
-	   
-	   long m = 1000000L;
-
-	   MWC64k2a2 rng1 = new MWC64k2a2();
-	   rng1.setSeed(SEED);
-
-       byte[] a = new byte[16];
-	   long start1 = System.nanoTime();
-	   for (int i = 0; i <= m; i++) {
-		   rng1.nextBytes(a);}
-	   long end1 = System.nanoTime();
-
-       System.out.println("High-first:");
-	
-       System.out.println();
-       System.out.println("=================High-first:=========================");
-       System.out.println("rep hex: " + toHex(a));
-       bintostr(a);
-       System.out.println("time = " + seconds(start1, end1));
-
-       rng1.setSeed(SEED);
-
-       byte[] b = new byte[16];
-	   long start2 = System.nanoTime();
-	   for (int i = 0; i <= m; i++) {
-		   rng1.nextBytes1(b);}
-	   long end2 = System.nanoTime();
-	   
-      System.out.println();
-      System.out.println("=================Java-style low-first=========================");
-      System.out.println("rep hex: " +toHex(b));
-      bintostr(b);
-      System.out.println("time = " + seconds(start2, end2));
-       
-
-   }
-   
-   public static void compareNextBitsLongVsNextLong(MWC64k2a2 stream, int b, long m) {
-	   b=45;
-	   m=10000000000L;
-	    if (b < 0 || b > 63) {
-	        throw new IllegalArgumentException("b must be between 0 and 62");
-	    }
-
-	    long upper = (1L << b) - 1L;
-
-	    long sum1 = 0;
-	    stream.resetStartStream();
-
-	    long t0 = System.nanoTime();
-	    for (long i = 0; i < m; i++) {
-	         stream.nextLong(0L, upper);//sum1 +=
-	    }
-	    long t1 = System.nanoTime();
-
-	    long sum2 = 0;
-	    stream.resetStartStream();
-
-	    long t2 = System.nanoTime();
-	    for (long i = 0; i < m; i++) {
-	        stream.nextBitsLong(b);//sum2 += 
-	    }
-	    long t3 = System.nanoTime();
-
-	    double timeLong = (t1 - t0) / 1_000_000.0;
-	    double  timeBits = (t3 - t2) / 1_000_000.0;
-	    
-	    
-	    System.out.println("-------------------Compare Nextlong(2**b-1) and nextBitsLong(b)----------------------");
-	    System.out.println("b = " + b);
-	    System.out.println("m = " + m);
-	    System.out.printf("nextBitsLong(%d): %.3f ms, sum = %d%n", b, timeBits, sum2);
-	    System.out.printf("nextLong(0, 2^%d - 1): %.3f ms, sum = %d%n", b, timeLong, sum1);
-	    System.out.printf("speedup = %.3f%n", timeLong / timeBits);
-	}
 }

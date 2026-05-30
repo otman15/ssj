@@ -76,7 +76,7 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
       for (int j = 0; j < s; j++)
          prod *= c[j];
 
-      return subsetSum(0, 0.0, 0) / (Num.factorial(s) * prod);
+      return subsetSum(0, 0.0, 0) / (Num.factorial(s) * prod); // Using recursive function, iteration maybe more efficient but long 
    }
 
    /**
@@ -107,4 +107,9 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    public String getTag() {
       return "GenzCornerPeak";
    }
+   
+   /////////for test
+   public double getExactMean() {
+	   return exactMean;
+	}
 }
