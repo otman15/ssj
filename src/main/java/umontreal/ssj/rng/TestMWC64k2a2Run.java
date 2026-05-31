@@ -32,7 +32,7 @@ public class TestMWC64k2a2Run {
     *   x1 = x_{n-1}
     *   carry = c
     */
-   private static final long[] SEED = {12345L, 12345L, 12345L, 12345L};
+   private static final long[] SEED = {12345L, 12345L, 12345L};
 
    public static void main(String[] args) throws IOException {
 	   
@@ -158,7 +158,7 @@ public class TestMWC64k2a2Run {
 	   out.append("jumpSize = " + JUMP_SIZE +"\n");
 	   out.append("n jumps for timing = " + N_JUMPS +"\n");
 
-      MWC64k3a2 rng = new MWC64k3a2();
+      MWC64k2a2 rng = new MWC64k2a2();
       rng.setSeed(SEED);
 
       out.append("");
@@ -180,12 +180,13 @@ public class TestMWC64k2a2Run {
        * One big jump from the original seed.
        * This corresponds to jumpSize2 = n0 * jumpSize = 4 * 5000 = 20000.
        */
-      MWC64k3a2 bigJump = new MWC64k3a2();
+      MWC64k2a2 bigJump = new MWC64k2a2();
       bigJump.setSeed(SEED);
+      rng.setSeed(SEED);
 
       start = System.nanoTime();
 
-      bigJump.advanceStateByJump(4L * JUMP_SIZE);
+      rng.advanceStateByJump(4L * JUMP_SIZE);
 
       end = System.nanoTime();
 
@@ -199,13 +200,14 @@ public class TestMWC64k2a2Run {
        * Timing test:
        * jump ahead by jumpSize, repeated N_JUMPS times.
        */
-      MWC64k3a2 manyJumps = new MWC64k3a2();
+      MWC64k2a2 manyJumps = new MWC64k2a2();
       manyJumps.setSeed(SEED);
+      rng.setSeed(SEED);
 
       start = System.nanoTime();
 
       for (long i = 0; i < N_JUMPS; i++) {
-         manyJumps.advanceStateByJump(JUMP_SIZE);
+    	  rng.advanceStateByJump(JUMP_SIZE);
       }
 
       end = System.nanoTime();
