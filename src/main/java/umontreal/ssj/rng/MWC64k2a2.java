@@ -38,7 +38,7 @@ public class MWC64k2a2 extends RandomStreamBase {
    private static final long A1 = 193154555888013165L;
    /** Second coefficient a2. */
    private static final long A2 = 1966812196490295L;
-//   private static final long  A1 = 556348944096481337L, A2 = 8250136865355103L; // Used in cpp code for jumps
+  // private static final long  A1 = 556348944096481337L, A2 = 8250136865355103L; // Used in cpp code for jumps
    
    /** 2^(-53), used to convert 53 random bits to a double. */
    private static final double NORM53 = 0x1.0p-53;
@@ -217,13 +217,6 @@ public class MWC64k2a2 extends RandomStreamBase {
       return block53 * NORM53;            // Convert to double.
    }
    
-   /**
-    * Another possibility to avoid returning 0 ?
-    */
-//   protected double nextValue2() {
-//      return ((nextNumber() >>> 11) + 0.5) * NORM53;
-//   }
-   
 
    /**
     * Returns a random long in [i, j].
@@ -283,17 +276,7 @@ public class MWC64k2a2 extends RandomStreamBase {
    
    // return a block of b bits (int): should be added to interface
    private long nextBitsLong(int b) {
-	    if (b < 0 || b > 63) {
-	        throw new IllegalArgumentException("b must be between 0 and 63");
-	    }
-
-	    if (b == 0) {
-	        return 0L;
-	    }
-
-	    long z = nextNumber();
-
-	    return z >>> (64 - b);
+	    return nextNumber() >>> (64 - b);
 	}
 
    /**
@@ -442,7 +425,7 @@ public class MWC64k2a2 extends RandomStreamBase {
     *
     * @param n number of steps
     */
-   void advanceStateByJump(long n) { // use same code as for fixedsize jumps to test them, but normally for varying size this is slower, normal computing is faster.
+  public void advanceStateByJump(long n) { // use same code as for fixedsize jumps to test them, but normally for varying size this is slower, normal computing is faster.
 	   if (n < 0) {
 	      throw new IllegalArgumentException("Jump step n cannot be negative.");
 	   }

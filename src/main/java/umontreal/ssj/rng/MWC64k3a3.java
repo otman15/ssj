@@ -4,15 +4,13 @@ import java.math.BigInteger;
 
 /**
  * This generator uses Math.unsignedMultiplyHigh which requires JDK 18 or later.
- * MWC generator with:
+ * MWC generator with base b = 2^64, order k = 3, and coefficients:
  *
  * <pre>
- * b  = 2^64
- * k  = 3
  * a0 = -1
- * a1 = 0
- * a2 = 184698970548483715
- * a3 = 6028691832887
+ * a1 = 42677777384320164
+ * a2 = 224559258625446056
+ * a3 = 89699660373453
  * </pre>
  * 
  * The recurrence is:
@@ -23,41 +21,40 @@ import java.math.BigInteger;
  * c_n = floor(t / 2^64)
  * </pre>
  *
- * Since a1 = 0, the implemented recurrence is:
- *
- * <pre>
- * t   = a2*x_{n-2} + a3*x_{n-3} + c_{n-1}
- * x_n = low 64 bits of t
- * c_n = high 64 bits of t
- * </pre>
- *
  * The state is stored as:
  *
  * <pre>
  * {x_{n-3}, x_{n-2}, x_{n-1}, carry}
  * </pre>
  */
-public class MWC64k3a2 extends RandomStreamBase {
-	
+public class MWC64k3a3 extends RandomStreamBase {
+   
    private static final long serialVersionUID = 20260518L;
    
    /** State components x_{n-1}, x_{n-2}, x_{n-3} and c_{n-1} interpreted as unsigned 64-bit. */
    private long x1, x2, x3, carry;
+
+   /** First coefficient a1. */
+   private static final long A1 = 42677777384320164L;
    /** Second coefficient a2. */
-   private static final long A2 = 184698970548483715L;
+   private static final long A2 = 224559258625446056L;
    /** Third coefficient a3. */
-   private static final long A3 = 6028691832887L;   
-  // private static final long A2 = 0x320fbe97bef0f95L, A3 = 0x4a1849ec18bfa6L; // for jumps comparaison with cpp
+   private static final long A3 = 89699660373453L;
 
    /** 2^(-53), used to convert 53 random bits to a double. */
    private static final double NORM53 = 0x1.0p-53;
-   private static final int STREAM_ADVANCE_EXPONENT = 169;
-   private static final int SUBSTREAM_ADVANCE_EXPONENT = 118;
+
+   /** Stream spacing: 2^173 generated values. */
+   private static final int STREAM_ADVANCE_EXPONENT = 173;
+   /** Substream spacing: 2^122 generated values. */
+   private static final int SUBSTREAM_ADVANCE_EXPONENT = 122;
 
    /** Seed used for the next created stream: {x_{n-3}, x_{n-2}, x_{n-1}, carry}. */
    private static long[] nextSeed = {1L, 3L, 4L, 5L};
+
    /** Initial state of this stream. */
    private long[] Ig;
+
    /** Beginning state of the current substream of stream. */
    private long[] Bg;
   
@@ -67,41 +64,34 @@ public class MWC64k3a2 extends RandomStreamBase {
    private static final BigInteger BI_B = BigInteger.ONE.shiftLeft(64); // b = 2^64
    private static final BigInteger BI_B2 = BigInteger.ONE.shiftLeft(128); // b^2
    private static final BigInteger BI_B3 = BigInteger.ONE.shiftLeft(192); // b^3
+   private static final BigInteger BI_A1 = BigInteger.valueOf(A1);
    private static final BigInteger BI_A2 = BigInteger.valueOf(A2);
    private static final BigInteger BI_A3 = BigInteger.valueOf(A3);
-   private static final BigInteger BI_M = BI_A3.multiply(BI_B).add(BI_A2).multiply(BI_B).multiply(BI_B).subtract(BigInteger.ONE); // m = a3*b^3 + a2*b^2 - 1
+   private static final BigInteger BI_M = BI_A3.multiply(BI_B3)
+         .add(BI_A2.multiply(BI_B2))
+         .add(BI_A1.multiply(BI_B))
+         .subtract(BigInteger.ONE); // m = a3*b^3 + a2*b^2 + a1*b - 1
    private static final BigInteger BI_B_INV = BI_B.modInverse(BI_M); // b^(-1) mod m
-   private static final BigInteger BI_MAP_X3 = BigInteger.ONE.subtract(BI_A2.multiply(BI_B2)); // 1 - a2*b^2
+   private static final BigInteger BI_MAP_X3 = BigInteger.ONE
+         .subtract(BI_A1.multiply(BI_B))
+         .subtract(BI_A2.multiply(BI_B2)); // 1 - a1*b - a2*b^2
+   private static final BigInteger BI_MAP_X2 = BI_B.subtract(BI_A1.multiply(BI_B2)); // b - a1*b^2
    
-   private static final BigInteger STREAM_JUMP_MULTIPLIER = BI_B_INV.modPow(BigInteger.ONE.shiftLeft(STREAM_ADVANCE_EXPONENT), BI_M);
-   private static final BigInteger SUBSTREAM_JUMP_MULTIPLIER = BI_B_INV.modPow(BigInteger.ONE.shiftLeft(SUBSTREAM_ADVANCE_EXPONENT), BI_M);
-   private static final BigInteger STREAM_K_X3 = STREAM_JUMP_MULTIPLIER.multiply(BI_MAP_X3).mod(BI_M); // K_x3 = J*(1 - a2*b^2) mod m
-   private static final BigInteger STREAM_K_X2 = STREAM_JUMP_MULTIPLIER.multiply(BI_B).mod(BI_M); // K_x2 = J*b mod m
+   private static final BigInteger STREAM_JUMP_MULTIPLIER = BI_B_INV.modPow(BigInteger.ONE.shiftLeft(STREAM_ADVANCE_EXPONENT), BI_M); // J = (b^(-1))^(2^STREAM_ADVANCE_EXPONENT) mod m
+   private static final BigInteger SUBSTREAM_JUMP_MULTIPLIER = BI_B_INV.modPow(BigInteger.ONE.shiftLeft(SUBSTREAM_ADVANCE_EXPONENT), BI_M); // J = (b^(-1))^(2^SUBSTREAM_ADVANCE_EXPONENT) mod m
+   private static final BigInteger STREAM_K_X3 = STREAM_JUMP_MULTIPLIER.multiply(BI_MAP_X3).mod(BI_M); // K_x3 = J*(1 - a1*b - a2*b^2) mod m
+   private static final BigInteger STREAM_K_X2 = STREAM_JUMP_MULTIPLIER.multiply(BI_MAP_X2).mod(BI_M); // K_x2 = J*(b - a1*b^2) mod m
    private static final BigInteger STREAM_K_X1 = STREAM_JUMP_MULTIPLIER.multiply(BI_B2).mod(BI_M); // K_x1 = J*b^2 mod m
    private static final BigInteger STREAM_K_C = STREAM_JUMP_MULTIPLIER.multiply(BI_B3).mod(BI_M); // K_c = J*b^3 mod m
-   private static final BigInteger SUBSTREAM_K_X3 = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_MAP_X3).mod(BI_M); // K_x3 = J*(1 - a2*b^2) mod m
-   private static final BigInteger SUBSTREAM_K_X2 = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_B).mod(BI_M); // K_x2 = J*b mod m
+   private static final BigInteger SUBSTREAM_K_X3 = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_MAP_X3).mod(BI_M); // K_x3 = J*(1 - a1*b - a2*b^2) mod m
+   private static final BigInteger SUBSTREAM_K_X2 = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_MAP_X2).mod(BI_M); // K_x2 = J*(b - a1*b^2) mod m
    private static final BigInteger SUBSTREAM_K_X1 = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_B2).mod(BI_M); // K_x1 = J*b^2 mod m
    private static final BigInteger SUBSTREAM_K_C = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_B3).mod(BI_M); // K_c = J*b^3 mod m
-    
-//   /*For 	A2 = 184698970548483715L;
-//		     A3 = 6028691832887L;
-//		     STREAM_ADVANCE_EXPONENT = 169;
-//		     SUBSTREAM_ADVANCE_EXPONENT= 118; The values are : 
-//    * */
-//   private static final BigInteger STREAM_K_X3 = new BigInteger("30761207224142103968985508472479115773948763076232986832853996703743926");// Only for the given Ai, and jump sizes
-//   private static final BigInteger STREAM_K_X2 = new BigInteger("2872972596550318317758382057880878886623467367682449388684617761028650");
-//   private static final BigInteger STREAM_K_X1 = new BigInteger("4069686296670218292987053305317065107287547089332977129336044355568643");
-//   private static final BigInteger STREAM_K_C  = new BigInteger("34755671117913769181768749032362575598747313001613768640912748315496354");
-//   private static final BigInteger SUBSTREAM_K_X3 = new BigInteger("20090213403734858454669729088644822937139898902572196936652480155985710");
-//   private static final BigInteger SUBSTREAM_K_X2 = new BigInteger("30641754650566983779571625104122293069399614764417128859406251785748295");
-//   private static final BigInteger SUBSTREAM_K_X1 = new BigInteger("29054523288761736837102924918335104151590420345759813743506375422415858");
-//   private static final BigInteger SUBSTREAM_K_C  = new BigInteger("34358740962475771621509856934142753157316553495393517345486280420486523");
    
    /**
     * Constructs a new stream.
     */
-   public MWC64k3a2() {
+   public MWC64k3a3() {
       Ig = nextSeed.clone();              // Save the start state of this stream.
       Bg = new long[4];                   // Allocate the substream state.
 
@@ -114,7 +104,7 @@ public class MWC64k3a2 extends RandomStreamBase {
     *
     * @param name stream name
     */
-   public MWC64k3a2(String name) {
+   public MWC64k3a3(String name) {
       this();                            
       this.name = name;                  
    }
@@ -175,9 +165,9 @@ public class MWC64k3a2 extends RandomStreamBase {
     * Moves this stream to the beginning of the next substream.
     */
    public void resetNextSubstream() {
-	   advanceStateFixedJump(Bg, SUBSTREAM_K_X3, SUBSTREAM_K_X2, SUBSTREAM_K_X1, SUBSTREAM_K_C);
-	   resetStartSubstream();
-	}
+      advanceStateFixedJump(Bg, SUBSTREAM_K_X3, SUBSTREAM_K_X2, SUBSTREAM_K_X1, SUBSTREAM_K_C);
+      resetStartSubstream();
+   }
 
    /**
     * Generates one MWC step and returns the old x_{n-1},
@@ -188,19 +178,25 @@ public class MWC64k3a2 extends RandomStreamBase {
    private long nextNumber() { 
       long out = x1;                        
 
-      long low2 = A2 * x2;                  
+      long low1 = A1 * x1;
+      long high1 = Math.unsignedMultiplyHigh(A1, x1);
+
+      long low2 = A2 * x2;
       long high2 = Math.unsignedMultiplyHigh(A2, x2);
 
-      long low3 = A3 * x3;               
+      long low3 = A3 * x3;
       long high3 = Math.unsignedMultiplyHigh(A3, x3);
 
-      long low = low2 + low3;
-      long overflow1 = Long.compareUnsigned(low, low2) < 0 ? 1L : 0L;
+      long low12 = low1 + low2;
+      long overflow1 = Long.compareUnsigned(low12, low1) < 0 ? 1L : 0L;
+
+      long low = low12 + low3;
+      long overflow2 = Long.compareUnsigned(low, low12) < 0 ? 1L : 0L;
 
       long lowWithCarry = low + carry;
-      long overflow2 = Long.compareUnsigned(lowWithCarry, low) < 0 ? 1L : 0L;
+      long overflow3 = Long.compareUnsigned(lowWithCarry, low) < 0 ? 1L : 0L;
 
-      long high = high2 + high3 + overflow1 + overflow2; // we can replace high2,3,overflow1,2 directly here, kept for readability 
+      long high = high1 + high2 + high3 + overflow1 + overflow2 + overflow3;
 
       x3 = x2;
       x2 = x1;
@@ -232,14 +228,7 @@ public class MWC64k3a2 extends RandomStreamBase {
 
       return block53 * NORM53;            // Convert to double.
    }
-   
-   /**
-    * Another possibility to avoid returning 0 ?
-    */
-//   protected double nextValue2() {
-//      return ((nextNumber() >>> 11) + 0.5) * NORM53;
-//   }
-   
+
    /**
     * Returns a random long in [i, j].
     *
@@ -247,9 +236,6 @@ public class MWC64k3a2 extends RandomStreamBase {
     * @param j upper bound
     * @return random long in [i, j]
     */
-   
-   // This method implements the "unbiased bounded integer generation" algorithm used by java.util.Random.nextint.
-   // uses 63 bits entropy in the case of n >0
    public long nextLong(long i, long j) {
       if (i > j)
          throw new IllegalArgumentException(i + " is larger than " + j + ".");
@@ -263,7 +249,6 @@ public class MWC64k3a2 extends RandomStreamBase {
          if ((n & m) == 0L)          
             return i + (r & m);           
        
-         //Handling Modulo Bias (Rejection Sampling). Crop using (r % n) will introduce bias if n does not divide the number of possible r values. 
          long u = r;                      
          while (u + m - (r = u % n) < 0L)  
             u = nextNumber() >>> 1;      
@@ -279,23 +264,31 @@ public class MWC64k3a2 extends RandomStreamBase {
       return r;
    }
    
-   // LRSR version: range only up to 2^62  : should add guard to handle case where range is bigger
+   // LRSR version: range only up to 2^62.
    public long nextLongssj(long i, long j) { 
-         if (i > j)
-            throw new IllegalArgumentException(i + " is larger than " + j + ".");
-         long d = j - i + 1;
-         long q = 0x4000000000000000L / d;  // 0x4000000000000000L = 2^{62} in hexadecimal.
-         long r = 0x4000000000000000L % d;
-         long res;
-         do {
-            res = nextNumber() >>> 2;   // Integer smaller than 2^{62}.
-         } while (res >= 0x4000000000000000L - r);
+      if (i > j)
+         throw new IllegalArgumentException(i + " is larger than " + j + ".");
+      long d = j - i + 1;
+      long q = 0x4000000000000000L / d;  // 0x4000000000000000L = 2^{62} in hexadecimal.
+      long r = 0x4000000000000000L % d;
+      long res;
+      do {
+         res = nextNumber() >>> 2;        // Integer smaller than 2^{62}.
+      } while (res >= 0x4000000000000000L - r);
 
-         return i + (res / q);
-      }
-   
-   // return a block of b bits (int)
+      return i + (res / q);
+   }
+
+   // Return a block of b bits.
    private long nextBitsLong(int b) {
+      if (b < 0 || b > 63) {
+         throw new IllegalArgumentException("b must be between 0 and 63");
+      }
+
+      if (b == 0) {
+         return 0L;
+      }
+
       return nextNumber() >>> (64 - b);
    }
 
@@ -318,7 +311,7 @@ public class MWC64k3a2 extends RandomStreamBase {
    public String toString() {
       StringBuilder sb = new StringBuilder();
 
-      sb.append("The current state of MWC64k3a2");
+      sb.append("The current state of MWC64k3a3");
 
       if (name != null && name.length() > 0)
          sb.append(" ").append(name);
@@ -341,7 +334,7 @@ public class MWC64k3a2 extends RandomStreamBase {
       String nl = System.lineSeparator();
       StringBuilder sb = new StringBuilder();
 
-      sb.append("MWC64k3a2 stream");
+      sb.append("MWC64k3a3 stream");
 
       if (name != null && name.length() > 0)
          sb.append(" ").append(name);
@@ -374,8 +367,8 @@ public class MWC64k3a2 extends RandomStreamBase {
     *
     * @return independent copy of this stream
     */
-   public MWC64k3a2 clone() {
-      MWC64k3a2 copy = (MWC64k3a2) super.clone();
+   public MWC64k3a3 clone() {
+      MWC64k3a3 copy = (MWC64k3a3) super.clone();
 
       copy.Ig = Ig.clone();               // Copy stream-start state.
       copy.Bg = Bg.clone();               // Copy substream-start state.
@@ -388,7 +381,7 @@ public class MWC64k3a2 extends RandomStreamBase {
     *
     * @param seed seed to check
     */
-   private static final long MAX_CARRY = A2 + A3 - 1L;
+   private static final long MAX_CARRY = A1 + A2 + A3 - 1L;
 
    private static void checkSeed(long[] seed) {
       if (seed == null)
@@ -410,88 +403,89 @@ public class MWC64k3a2 extends RandomStreamBase {
    }
 
    /**
-    *  Advances by a fixed jump size predefined by precomputed constants
+    * Advances by a fixed jump size using precomputed constants.
     *
     * The state is {x_{n-3}, x_{n-2}, x_{n-1}, carry}.
     *
     * @param state state to advance
-    * @param kX3 precomputed x3 multiplier
-    * @param kX2 precomputed x2
-    * @param kX1 precomputed x1
-    * @param kCarry precomputed carry multiplier
+    * @param kX3 x3 multiplier
+    * @param kX2 x2 multiplier
+    * @param kX1 x1 multiplier
+    * @param kCarry carry multiplier
     */
-   
-   private static void advanceStateFixedJump(long[] state,  BigInteger kX3, BigInteger kX2, BigInteger kX1, BigInteger kCarry) {
-		BigInteger stateX3 = toUnsignedBigInt(state[0]);
-		BigInteger stateX2 = toUnsignedBigInt(state[1]);
-		BigInteger stateX1 = toUnsignedBigInt(state[2]);
-		BigInteger stateCarry = BigInteger.valueOf(state[3]);
-		
-		BigInteger sigma =
-		kX3.multiply(stateX3)
-		.add(kX2.multiply(stateX2))
-		.add(kX1.multiply(stateX1))
-		.add(kCarry.multiply(stateCarry))
-		.mod(BI_M);
-		
-		long newX3 = sigma.longValue();
-		sigma = sigma.shiftRight(64);
-		
-		long newX2 = sigma.longValue();
-		sigma = sigma.shiftRight(64);
-		
-		sigma = sigma.add(BI_A2.multiply(toUnsignedBigInt(newX3))); // y = y + A2*newX3 = newX1 + newCarry*b
-		
-		long newX1 = sigma.longValue();
-		long newCarry = sigma.shiftRight(64).longValue();
-		
-		state[0] = newX3;
-		state[1] = newX2;
-		state[2] = newX1;
-		state[3] = newCarry;
-   }	
+   private static void advanceStateFixedJump(long[] state, BigInteger kX3, BigInteger kX2, BigInteger kX1, BigInteger kCarry) {
+      BigInteger stateX3 = toUnsignedBigInt(state[0]);
+      BigInteger stateX2 = toUnsignedBigInt(state[1]);
+      BigInteger stateX1 = toUnsignedBigInt(state[2]);
+      BigInteger stateCarry = BigInteger.valueOf(state[3]);
+      
+      BigInteger sigma =
+            kX3.multiply(stateX3)
+          .add(kX2.multiply(stateX2))
+          .add(kX1.multiply(stateX1))
+          .add(kCarry.multiply(stateCarry))
+          .mod(BI_M);
+      
+      long newX3 = sigma.longValue();
+      sigma = sigma.shiftRight(64);
+      
+      sigma = sigma.add(BI_A1.multiply(toUnsignedBigInt(newX3)));
+      long newX2 = sigma.longValue();
+      sigma = sigma.shiftRight(64);
+      
+      sigma = sigma.add(BI_A1.multiply(toUnsignedBigInt(newX2)))
+            .add(BI_A2.multiply(toUnsignedBigInt(newX3)));
+      long newX1 = sigma.longValue();
+      long newCarry = sigma.shiftRight(64).longValue();
+      
+      state[0] = newX3;
+      state[1] = newX2;
+      state[2] = newX1;
+      state[3] = newCarry;
+   }
    
    /**
     * Advances the current stream state by n steps.
     *
     * @param n number of steps
     */
-  public void advanceStateByJump(long n) {
-	   if (n < 0) {
-	      throw new IllegalArgumentException("Jump step n cannot be negative.");
-	   }
-	   if (n == 0) {
-	      return;
-	   }
+   public void advanceStateByJump(long n) {
+      if (n < 0) {
+         throw new IllegalArgumentException("Jump step n cannot be negative.");
+      }
+      if (n == 0) {
+         return;
+      }
 
-	   long[] state = getState();
+      long[] state = getState();
 
-	   BigInteger jumpMultiplier =
-	         BI_B_INV.modPow(BigInteger.valueOf(n), BI_M);
+      BigInteger jumpMultiplier =
+            BI_B_INV.modPow(BigInteger.valueOf(n), BI_M);
 
-	   BigInteger kX3 =
-	         jumpMultiplier.multiply(BI_MAP_X3).mod(BI_M);
+      BigInteger kX3 =
+            jumpMultiplier.multiply(BI_MAP_X3).mod(BI_M);
 
-	   BigInteger kX2 =
-	         jumpMultiplier.multiply(BI_B).mod(BI_M);
+      BigInteger kX2 =
+            jumpMultiplier.multiply(BI_MAP_X2).mod(BI_M);
 
-	   BigInteger kX1 =
-	         jumpMultiplier.multiply(BI_B2).mod(BI_M);
+      BigInteger kX1 =
+            jumpMultiplier.multiply(BI_B2).mod(BI_M);
 
-	   BigInteger kCarry =
-	         jumpMultiplier.multiply(BI_B3).mod(BI_M);
+      BigInteger kCarry =
+            jumpMultiplier.multiply(BI_B3).mod(BI_M);
 
-	   advanceStateFixedJump(state, kX3, kX2, kX1, kCarry);
+      advanceStateFixedJump(state, kX3, kX2, kX1, kCarry);
 
-	   x3 = state[0];
-	   x2 = state[1];
-	   x1 = state[2];
-	   carry = state[3];
-	}
+      x3 = state[0];
+      x2 = state[1];
+      x1 = state[2];
+      carry = state[3];
+   }
    
-   //public method for nextnumber test
-   public long nextRaw()
-   { return nextNumber();}   
+   // Public method for nextNumber tests.
+   public long nextRaw() {
+      return nextNumber();
+   }
    
    /**
     * Converts an unsigned 64-bit long to a positive BigInteger.
@@ -500,7 +494,7 @@ public class MWC64k3a2 extends RandomStreamBase {
       if (value >= 0) {
          return BigInteger.valueOf(value);
       } else {
-         // Handle negative long bit patterns as unsigned 64-bit values
+         // Handle negative long bit patterns as unsigned 64-bit values.
          return BigInteger.valueOf(value & 0x7FFFFFFFFFFFFFFFL).setBit(63);
       }
    }
