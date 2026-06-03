@@ -43,7 +43,7 @@ public class GenzGaussian implements MonteCarloModelDouble {
       for (int j = 0; j < s; j++) {
          if (c[j] <= 0.0)
             throw new IllegalArgumentException("c[" + j + "] must be positive");
-         if (w[j] <= 0.0 || w[j] >= 1.0)
+         if (w[j] < 0.0 || w[j] >= 1.0)
             throw new IllegalArgumentException("w[" + j + "] must be in (0, 1)");
 
          cSquared[j] = c[j] * c[j];

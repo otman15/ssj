@@ -71,7 +71,7 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
     *
     * @return exact integral over @f$[0,1]^s@f$
     */
-   private double computeExactMean() {
+   public double computeExactMeanRec() {
       double prod = 1.0;
       for (int j = 0; j < s; j++)
          prod *= c[j];
@@ -96,6 +96,57 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
       return subsetSum(j + 1, partialSum, cardinality)
             + subsetSum(j + 1, partialSum + c[j], cardinality + 1);
    }
+   
+   public double computeExactMean() {
+	   if (s >= 63) {
+	      throw new IllegalArgumentException(
+	         "Exact subset enumeration needs 2^s subsets; s is too large."
+	      );
+	   }
+
+	   double prod = 1.0;
+	   for (int j = 0; j < s; j++)
+	      prod *= c[j];
+
+	   double subsetSum = 0.0;
+	   double compensation = 0.0; // Kahan compensation
+
+	   long previousGray = 0L;
+	   double partialSum = 0.0;
+	   int cardinality = 0;
+
+	   long nSubsets = 1L << s;
+
+	   for (long mask = 0; mask < nSubsets; mask++) {
+	      long gray = mask ^ (mask >> 1);
+
+	      if (mask != 0) {
+	         long changedBit = gray ^ previousGray;
+	         int j = Long.numberOfTrailingZeros(changedBit);
+
+	         if ((gray & changedBit) != 0L) {
+	            partialSum += c[j];
+	            cardinality++;
+	         } else {
+	            partialSum -= c[j];
+	            cardinality--;
+	         }
+	      }
+
+	      double sign = (cardinality % 2 == 0) ? 1.0 : -1.0;
+	      double term = sign / (1.0 + partialSum);
+
+	      // Kahan summation
+	      double y = term - compensation;
+	      double t = subsetSum + y;
+	      compensation = (t - subsetSum) - y;
+	      subsetSum = t;
+
+	      previousGray = gray;
+	   }
+
+	   return subsetSum / (Num.factorial(s) * prod);
+	}
 
 
    @Override

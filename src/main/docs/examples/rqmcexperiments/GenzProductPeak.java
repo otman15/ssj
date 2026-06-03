@@ -44,7 +44,7 @@ public class GenzProductPeak implements MonteCarloModelDouble {
       for (int j = 0; j < s; j++) {
          if (!(this.c[j] > 0.0))
             throw new IllegalArgumentException("c[" + j + "] must be positive");
-         if (!(this.w[j] > 0.0 && this.w[j] < 1.0))
+         if (!(this.w[j] >= 0.0 && this.w[j] < 1.0))
             throw new IllegalArgumentException("w[" + j + "] must be in (0, 1)");
 
          cInvSquared[j] = 1.0 / (this.c[j] * this.c[j]);
