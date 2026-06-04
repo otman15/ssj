@@ -23,6 +23,7 @@ public class CompareMWCvsCpp {
     *   jumpSize = 5000
     *   n0 = 4 successive jumps
     *   n = 1,000,000 jumps for timing
+    *   
     */
    private static final long N_SPEED = 10_000_000_000L;
    private static final long JUMP_SIZE = 5000L;
@@ -48,7 +49,7 @@ public class CompareMWCvsCpp {
 	  get_n_frst_values(10);
       runSpeedRawTest();
       runSpeedU01Test();
-      runJumpTest(out);
+      runJumpTest(out); // to match c++ jump res coefficients Ai must be changed, coefficient for jumps are commented in the class MWC64k2a2
 
       
       System.out.println(out);
@@ -127,7 +128,7 @@ public class CompareMWCvsCpp {
       long end = System.nanoTime();
 
       System.out.println();
-      System.out.println("=============================================================");
+      System.out.println("======================MWC64k2a2=======================================");
       System.out.println("MWC64k U(0,1) speed test");
       System.out.println("n = " + N_SPEED);
       System.out.println("average = " + (sum / N_SPEED));

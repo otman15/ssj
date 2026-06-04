@@ -442,10 +442,9 @@ public class MWC64k2a2 extends RandomStreamBase {
       BigInteger stateX1 = toUnsignedBigInt(x1);
       BigInteger stateCarry = BigInteger.valueOf(carry);
 
-//      /*
-//       * Map the current MWC state to the equivalent LCG state:
-//       * y =   (1 - A1*b)*x2 + b*x1 + b^2*carry mod m
-//       */
+//       Map the current MWC state to the equivalent LCG state:
+//        y =   (1 - A1*b)*x2 + b*x1 + b^2*carry mod m
+
       BigInteger y =
             BI_MAP_X2.multiply(stateX2)
           .add(BI_B.multiply(stateX1))

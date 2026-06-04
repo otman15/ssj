@@ -463,14 +463,11 @@ public class MWC64k3a2 extends RandomStreamBase {
     *
     * @param n number of steps to jump
     */
-   public void advanceStateByJump(BigInteger n) {
-      if (n == null)
-         throw new NullPointerException("Jump step n must not be null.");
-
-      if (n.signum() < 0)
+   public void advanceStateByJump(long n) {
+      if (n < 0L)
          throw new IllegalArgumentException("Jump step n cannot be negative.");
 
-      if (n.signum() == 0)
+      if (n == 0)
          return;
 
       BigInteger stateX3 = toUnsignedBigInt(x3);
@@ -478,10 +475,8 @@ public class MWC64k3a2 extends RandomStreamBase {
       BigInteger stateX1 = toUnsignedBigInt(x1);
       BigInteger stateCarry = BigInteger.valueOf(carry);
 
-//      /*
-//       * Map the current MWC state to the equivalent LCG state:
-//       * y =  (1 - A2*b^2)*x3 + b*x2 + b^2*x1 + b^3*carry mod m
-//       */
+//       Map the current MWC state to the equivalent LCG state:
+//        y =  (1 - A2*b^2)*x3 + b*x2 + b^2*x1 + b^3*carry mod m
       BigInteger y =
             BI_MAP_X3.multiply(stateX3)
           .add(BI_B.multiply(stateX2))
@@ -491,17 +486,15 @@ public class MWC64k3a2 extends RandomStreamBase {
 
       // Apply the LCG jump: y_new = (b^(-1))^n * y mod m.
       BigInteger sigma =
-            BI_B_INV.modPow(n, BI_M)
+            BI_B_INV.modPow(BigInteger.valueOf(n), BI_M)
           .multiply(y)
           .mod(BI_M);
 
-//      /*
-//       * Convert the jumped LCG state back to the MWC state.
-//       * For MWC64k3a2, A1 = 0, so the inverse reconstruction is:
-//       * newX3 = low 64 bits of sigma
-//       * newX2 = next 64 bits
-//       * then correct the remaining part with A2*newX3.
-//       */
+//      Convert the jumped LCG state back to the MWC state. For MWC64k3a2, A1 = 0, so the inverse reconstruction is:
+//        newX3 = low 64 bits of sigma
+//        newX2 = next 64 bits
+//        then correct the remaining part with A2*newX3.
+
       long newX3 = sigma.longValue();
       sigma = sigma.shiftRight(64);
 
