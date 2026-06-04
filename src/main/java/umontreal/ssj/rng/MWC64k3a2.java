@@ -456,18 +456,20 @@ public class MWC64k3a2 extends RandomStreamBase {
     *
     * @param n number of steps
     */
-  public void advanceStateByJump(long n) {
-	   if (n < 0) {
+//  public void advanceStateByJump(long n) { // for testing jumps i m using big int instead of long
+   public void advanceStateByJump(BigInteger n) {
+
+	   if (n.signum() < 0) {
 	      throw new IllegalArgumentException("Jump step n cannot be negative.");
 	   }
-	   if (n == 0) {
+	   if (n.signum() == 0) {
 	      return;
 	   }
 
 	   long[] state = getState();
 
 	   BigInteger jumpMultiplier =
-	         BI_B_INV.modPow(BigInteger.valueOf(n), BI_M);
+	         BI_B_INV.modPow(n, BI_M); // here BigInteger.valueOf(n) after test
 
 	   BigInteger kX3 =
 	         jumpMultiplier.multiply(BI_MAP_X3).mod(BI_M);
