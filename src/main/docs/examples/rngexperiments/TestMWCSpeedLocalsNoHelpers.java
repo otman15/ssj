@@ -5,18 +5,52 @@ import java.io.PrintStream;
 import java.io.FileNotFoundException;
 
 /**
- * Java mirror of TestMWCSpeed.cc with local 128-bit temporaries.
- *
- * Generator state remains static, as in the original benchmark, but the
- * simulated uint128 intermediates are local variables inside each generator.
- * No setTau... arithmetic helpers are used in the hot generator methods.
- * 
- * 
- * "if condition" is never used to increment the high", the ternary operation (condition< 0 ? 1L : 0L) is faster in these tests.  
- * Genarators that use more math.unsignedMultiplyHigh are more slow.
- * For Vigna extra is added to handle big coefficient, otherwise if math.unsignedMultiplyHigh handle this it become slow.
- */
-public final class TestMWCSpeed_2_Local {
+* Java mirror of the C++ TestMWCSpeed.cc benchmark using local variables to represent simulated 128-bit intermediates.
+*
+* The goal is to reproduce the same generator recurrences and benchmark
+* structure as the C++ file, while making the Java hot loops closer to the C++
+* implementation. Java does not provide uint64_t or __uint128_t, so unsigned
+* 64-bit values are stored in long variables, and each simulated 128-bit
+* intermediate is represented locally by two 64-bit variables, usually tl/th
+* for tauLow/tauHigh and pl/ph for productLow/productHigh.
+*
+* Unlike TestMWCSpeed_2.java, this version does not use setTau... helper
+* methods in the hot generator methods. Generator state remains static
+* because it represents the actual state of the RNG, but arithmetic temporary
+* values are local variables inside each generator.
+*
+* This matters for speed comparisons. Static fields such as tauLow, tauHigh,
+* pLow, pHigh, oldLow, sum3Low, and sum3High are not part of the RNG state;
+* they are only temporary values. Keeping them local gives the JIT compiler a
+* better chance to keep them in registers and avoids passing intermediate
+* results through class-level fields.
+*
+* Findings from the Java speed tests:
+*
+* 1. For carry propagation, the branchless form     high += condition ? 1L : 0L;  was faster in these tests than  if (condition) high++;
+* 	This is why carry updates use the ternary-add form.
+*
+* 2. Generators that require more calls to Math.unsignedMultiplyHigh are
+* generally slower in Java, because Java must emulate the high 64 bits of
+* an unsigned 128-bit product.
+*
+* 3. Some Vigna coefficients are unsigned 64-bit constants larger than
+* Long.MAX_VALUE, for example constants starting with 0xff.... Java stores
+* these as negative long values. Passing such values directly to
+* Math.unsignedMultiplyHigh is slower, because the method must correct the
+* signed high product to obtain the unsigned high product.
+*
+* For these cases, this version inlines the same identity   a = 2^64 - q  with q = -a in Java. It computes q*x and reconstructs
+* (2^64 - q)*x + carry by subtraction. This keeps the same recurrence while
+* avoiding the slower negative-coefficient path in Math.unsignedMultiplyHigh.
+*
+* This local-variable version is mainly intended for speed comparison with
+* the helper-based Java version. It keeps the RNG state static, but keeps
+* the simulated 128-bit arithmetic intermediates as local high/low pairs
+* inside each generator, instead of storing them in static helper fields.
+*/
+
+public final class TestMWCSpeedLocalsNoHelpers {
     static long x, y, z, c;
     static long x1, x2, x3;
     static long sum;
@@ -32,7 +66,7 @@ public final class TestMWCSpeed_2_Local {
     static final long GMWC_A0INV = 0xbbf397e9a69da811L;
     static final long GMWC_A3 = 0xff963a86efd088a2L;
 
-    private TestMWCSpeed_2_Local() {}
+    private TestMWCSpeedLocalsNoHelpers() {}
 
     static void printResults(String rngName, long elapsedNanos, long sum) {
         System.out.printf("%16s%13.6f    %18s%n",
@@ -739,7 +773,9 @@ public final class TestMWCSpeed_2_Local {
     // *************************************************************************
 
     public static void main (String[] args) throws java.io.FileNotFoundException {
-    	//PrintStream out = new PrintStream("C:/Users/cherrato/Documents/GitHub/Data/o-MWC-test/MWCSpeed10JavaLoc.res");
+    	
+    	//PrintStream out = new PrintStream("C:/Users/cherrato/Documents/GitHub/Data/o-MWC-test/MWCSpeed10JavaLoc.res");// Uncomment to write restults
+    	
     	//System.setOut(out);
         // long n = 4;
         // long n = 1000L * 1000L; // One million
@@ -754,9 +790,9 @@ public final class TestMWCSpeed_2_Local {
         // *******   k = 1  *********************************************
         System.out.println("k = 1 ");
 
-        testLoop("MWC128 given as a parameter to testLoop    ", TestMWCSpeed_2_Local::MWC128, n);
-        testLoop("mwc64k1 given as a parameter to testLoop   ", TestMWCSpeed_2_Local::mwc64k1, n);
-        testLoop("mwc64k3a2 given as a parameter to testLoop ", TestMWCSpeed_2_Local::mwc64k3a2, n);
+        testLoop("MWC128 given as a parameter to testLoop    ", TestMWCSpeedLocalsNoHelpers::MWC128, n);
+        testLoop("mwc64k1 given as a parameter to testLoop   ", TestMWCSpeedLocalsNoHelpers::mwc64k1, n);
+        testLoop("mwc64k3a2 given as a parameter to testLoop ", TestMWCSpeedLocalsNoHelpers::mwc64k3a2, n);
         System.out.println();
 
         

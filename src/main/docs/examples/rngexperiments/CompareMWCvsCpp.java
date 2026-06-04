@@ -45,9 +45,9 @@ public class CompareMWCvsCpp {
 		   
 		out.append("-----MWC64k2a2Tests------------------\n");
 	   
-	  //get_n_frst_values(10);
-      //runSpeedRawTest();
-      //runSpeedU01Test();
+	  get_n_frst_values(10);
+      runSpeedRawTest();
+      runSpeedU01Test();
       runJumpTest(out);
 
       
@@ -86,7 +86,7 @@ public class CompareMWCvsCpp {
     * Java long overflow automatically wraps modulo 2^64.
     */
    private static void runSpeedRawTest() {
-      MWC64k3a3 rng = new MWC64k3a3();
+      MWC64k2a2 rng = new MWC64k2a2();
 
       
       rng.setSeed(SEED);
@@ -113,7 +113,7 @@ public class CompareMWCvsCpp {
     * Java nextValue() uses the top 53 bits and rejects 0.
     */
    private static void runSpeedU01Test() {
-      MWC64k3a3 rng = new MWC64k3a3();
+      MWC64k2a2 rng = new MWC64k2a2();
       rng.setSeed(SEED);
 
       double sum = 0.0;

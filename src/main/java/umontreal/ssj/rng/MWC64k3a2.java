@@ -454,42 +454,70 @@ public class MWC64k3a2 extends RandomStreamBase {
    /**
     * Advances the current stream state by n steps.
     *
-    * @param n number of steps
+    * This method is used for a general jump size n. It does not use the
+    * precomputed fixed-jump constants, because those constants are useful only
+    * for fixed stream/substream jumps.
+    *
+    * The method first maps the current MWC state to the equivalent LCG state,
+    * applies the LCG jump, then converts the result back to the MWC state.
+    *
+    * @param n number of steps to jump
     */
-//  public void advanceStateByJump(long n) { // for testing jumps i m using big int instead of long
    public void advanceStateByJump(BigInteger n) {
+      if (n == null)
+         throw new NullPointerException("Jump step n must not be null.");
 
-	   if (n.signum() < 0) {
-	      throw new IllegalArgumentException("Jump step n cannot be negative.");
-	   }
-	   if (n.signum() == 0) {
-	      return;
-	   }
+      if (n.signum() < 0)
+         throw new IllegalArgumentException("Jump step n cannot be negative.");
 
-	   long[] state = getState();
+      if (n.signum() == 0)
+         return;
 
-	   BigInteger jumpMultiplier =
-	         BI_B_INV.modPow(n, BI_M); // here BigInteger.valueOf(n) after test
+      BigInteger stateX3 = toUnsignedBigInt(x3);
+      BigInteger stateX2 = toUnsignedBigInt(x2);
+      BigInteger stateX1 = toUnsignedBigInt(x1);
+      BigInteger stateCarry = BigInteger.valueOf(carry);
 
-	   BigInteger kX3 =
-	         jumpMultiplier.multiply(BI_MAP_X3).mod(BI_M);
+//      /*
+//       * Map the current MWC state to the equivalent LCG state:
+//       * y =  (1 - A2*b^2)*x3 + b*x2 + b^2*x1 + b^3*carry mod m
+//       */
+      BigInteger y =
+            BI_MAP_X3.multiply(stateX3)
+          .add(BI_B.multiply(stateX2))
+          .add(BI_B2.multiply(stateX1))
+          .add(BI_B3.multiply(stateCarry))
+          .mod(BI_M);
 
-	   BigInteger kX2 =
-	         jumpMultiplier.multiply(BI_B).mod(BI_M);
+      // Apply the LCG jump: y_new = (b^(-1))^n * y mod m.
+      BigInteger sigma =
+            BI_B_INV.modPow(n, BI_M)
+          .multiply(y)
+          .mod(BI_M);
 
-	   BigInteger kX1 =
-	         jumpMultiplier.multiply(BI_B2).mod(BI_M);
+//      /*
+//       * Convert the jumped LCG state back to the MWC state.
+//       * For MWC64k3a2, A1 = 0, so the inverse reconstruction is:
+//       * newX3 = low 64 bits of sigma
+//       * newX2 = next 64 bits
+//       * then correct the remaining part with A2*newX3.
+//       */
+      long newX3 = sigma.longValue();
+      sigma = sigma.shiftRight(64);
 
-	   BigInteger kCarry =
-	         jumpMultiplier.multiply(BI_B3).mod(BI_M);
+      long newX2 = sigma.longValue();
+      sigma = sigma.shiftRight(64);
 
-	   advanceStateFixedJump(state, kX3, kX2, kX1, kCarry);
+      sigma = sigma.add(BI_A2.multiply(toUnsignedBigInt(newX3)));
 
-	   x3 = state[0];
-	   x2 = state[1];
-	   x1 = state[2];
-	   carry = state[3];
-	}
+      long newX1 = sigma.longValue();
+      long newCarry = sigma.shiftRight(64).longValue();
+
+      x3 = newX3;
+      x2 = newX2;
+      x1 = newX1;
+      carry = newCarry;
+   }
    
    //public method for nextnumber test
    public long nextRaw()

@@ -4,20 +4,46 @@ import java.math.BigInteger;
 import java.util.function.LongSupplier;
 import java.io.PrintStream;
 import java.io.FileNotFoundException;
+
+
 /**
- * This is a  Java mirror of the C++ TestMWCSpeed.cc.
- *The only difference with the cpp file is how we handle multiplication and addition overlflow and sotre unit128.
- * Since Java has no uint64_t and no __uint128_t, 
- *We store unsigned 64-bit values in long variables and represents the C++ __uint128_t variable tau with the pair (tauHigh, tauLow). 
- *Another pair pHigh and pLow is used to handles the other products a2x2, a3x3.
- *Additionnaly, each time an addition is performed we check for overflow and update the high part.
- *
- *Findings :
- *"if condition" is never used to increment the high", the ternary operation (condition< 0 ? 1L : 0L) is faster in these tests.  
- * Genarators that use more math.unsignedMultiplyHigh are more slow.
- * For Vigna extra is added to handle big coefficient, otherwise if math.unsignedMultiplyHigh handle this it become slow.
- */
-public final class TestMWCSpeed_2 {
+* Java mirror of the C++ TestMWCSpeed.cc benchmark. The goal is to reproduce the same generator recurrences
+*  and benchmark structure as the C++ file.
+* Java does not provide uint64_t or __uint128_t, so unsigned 64-bit values are stored in long variables,
+*  and the simulated 128-bit product tau is represented by two 64-bit parts: tauHigh and tauLow.
+*
+* This version uses helper methods such as setTauMulAdd, setTauMulAdd2,
+* setTauMulAdd3, and setTauMul128Add to compute tau. The helpers store the
+* simulated 128-bit intermediate values in static temporary variables
+* tauLow, tauHigh, pLow, pHigh, oldLow, sum3Low, and sum3High.
+*
+* Findings from the Java speed tests:
+*
+* 1. For carry propagation, the branchless form : high += condition ? 1L : 0L; 
+*    was faster in these tests than  if (condition) high++;
+* This is why carry updates use the ternary-add form.
+*
+* 2. Generators that require more calls to Math.unsignedMultiplyHigh are
+* generally slower in Java, because Java must emulate the high 64 bits of
+* an unsigned 128-bit product.
+*
+* 3. Some Vigna coefficients are unsigned 64-bit constants larger than
+* Long.MAX_VALUE, for example constants starting with 0xff.... Java stores
+* these as negative long values. Passing such values directly to
+* Math.unsignedMultiplyHigh is slower, because the method must correct the
+* signed high product to obtain the unsigned high product.
+*
+* For these cases, this version uses a special helper based on
+* a = 2^64 - q  with q = -a in Java. It computes q*x and reconstructs
+* (2^64 - q)*x + carry by subtraction. This keeps the same recurrence while
+* avoiding the slower negative-coefficient path in Math.unsignedMultiplyHigh.
+*
+* This helper-based version is useful because it keeps the arithmetic logic
+* compact and close to the structure of a reusable implementation.
+* 
+* To write results to a .res file uncomment the PrintStream in main.
+ * */
+public final class TestMWCSpeedHelpers {
     static long x, y, z, c; 
     static long x1, x2, x3;
 
@@ -42,7 +68,7 @@ public final class TestMWCSpeed_2 {
     static final double twom63 = 0x1.0p-63;
     static final double twom64 = 0x1.0p-64;
 
-    private TestMWCSpeed_2() {}
+    private TestMWCSpeedHelpers() {}
 
     // print an unit128 in decimal
     static String uint128DecStr(long high, long low) {
@@ -208,7 +234,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         
     }
 
-    // *******   k = 1  ********************************************** The rest is exactly as the cc file : generators definition + the main method
+    // *******   k = 1  ********************************************** 
 
     // From Vigna 2021
 
@@ -764,8 +790,9 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
      * Runs the same sections as the cc file.
      */
     public static void main(String[] args) throws FileNotFoundException {
-    	PrintStream out = new PrintStream("C:/Users/cherrato/Documents/GitHub/Data/o-MWC-test/MWCSpeed10JavUdpVigNoIf.res");
-    	System.setOut(out);
+    	
+//    	PrintStream out = new PrintStream("C:/Users/cherrato/Documents/GitHub/Data/o-MWC-test/MWCSpeed10JavUdpVigNoIf.res");
+//    	System.setOut(out); // to write to res file uncomment these two lines
     	
          //long n = 4;
          //long n = 1000L * 1000L; // One million
@@ -779,9 +806,9 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         // *******   k = 1  *********************************************
         System.out.println("k = 1 ");
 
-        testLoop("MWC128 given as a parameter to testLoop    ", TestMWCSpeed_2::MWC128, n);
-        testLoop("mwc64k1 given as a parameter to testLoop   ", TestMWCSpeed_2::mwc64k1, n);
-        testLoop("mwc64k3a2 given as a parameter to testLoop ", TestMWCSpeed_2::mwc64k3a2, n);
+        testLoop("MWC128 given as a parameter to testLoop    ", TestMWCSpeedHelpers::MWC128, n);
+        testLoop("mwc64k1 given as a parameter to testLoop   ", TestMWCSpeedHelpers::mwc64k1, n);
+        testLoop("mwc64k3a2 given as a parameter to testLoop ", TestMWCSpeedHelpers::mwc64k3a2, n);
         System.out.println();
 
         x = c = 12345L;

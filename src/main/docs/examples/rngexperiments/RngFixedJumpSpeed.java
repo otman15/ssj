@@ -10,7 +10,7 @@ import umontreal.ssj.rng.LFSR258;
 import umontreal.ssj.rng.RandomStream;
 
 
-public class MRGJumpSpeedTest {
+public class RngFixedJumpSpeed {
 
     static final int M = 1_000_000;
     static final int N = 5;
@@ -157,3 +157,4 @@ public class MRGJumpSpeedTest {
         out.append("Average: ").append(total / N).append(" ms\n\n");
     }
 }
+
