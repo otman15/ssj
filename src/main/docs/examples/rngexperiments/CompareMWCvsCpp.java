@@ -12,7 +12,8 @@ import umontreal.ssj.rng.LFSR258;;
 
 public class CompareMWCvsCpp {
 
-   /*
+   /*This print same values in c++ tests (MWCSpeed10.res and MWCJump.res)
+    *  but only for MWC64k2a2: for the jumps the coefficients must be changed in MWC64k2a2
     * Fixed values chosen to match the C++ files:
     *
     * TestMWCSpeed.cc / MWCSpeed10.res:
