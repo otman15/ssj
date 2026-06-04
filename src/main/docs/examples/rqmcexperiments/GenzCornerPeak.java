@@ -86,38 +86,27 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    public double getPerformance() {
       return Math.pow(1.0 + sum, -(s + 1)) - exactMean;
    }
-
+   
    /**
     * Computes the exact mean of the Genz corner peak function.
     *
-    * @return exact integral over @f$[0,1]^s@f$
-    */
-   public double computeExactMeanRec() {
-      double prod = 1.0;
-      for (int j = 0; j < s; j++)
-         prod *= c[j];
-
-      return subsetSum(0, 0.0, 0) / (Num.factorial(s) * prod); // Using recursive function, iteration maybe more efficient but long 
-   }
-
-   /**
-    * Computes the subset sum in the exact integral formula.
+    * The exact formula contains a sum over all @f$2^s@f$ subsets of the
+    * scale parameters. This implementation enumerates the subsets using a
+    * Gray-code ordering. Since two consecutive Gray codes differ by only one bit,
+    * the current subset sum can be updated by adding or removing one @f$c_j@f$,
+    * instead of recomputing the sum from scratch for each subset.
     *
-    * @param j current coordinate index
-    * @param partialSum sum of selected parameters
-    * @param cardinality number of selected parameters
-    * @return contribution to the subset sum
+    * Kahan summation is used separately from the Gray-code enumeration to reduce
+    * floating-point roundoff in the alternating subset sum.
+    *
+    * A recursive include/exclude implementation gives the same mathematical result
+    * and is shorter and easier to read, but this iterative Gray-code version is relatively
+    * faster for larger dimensions. The cost remains @f$O(2^s)@f$.
+    *
+    * @return exact integral over @f$[0,1]^s@f$
+    * @throws IllegalArgumentException if @f$s \ge 63@f$, since @f$2^s@f$ subsets
+    *         cannot be represented safely with a `long`
     */
-   private double subsetSum(int j, double partialSum, int cardinality) {
-      if (j == s) {
-         double sign = (cardinality % 2 == 0) ? 1.0 : -1.0;
-         return sign / (1.0 + partialSum);
-      }
-
-      return subsetSum(j + 1, partialSum, cardinality)
-            + subsetSum(j + 1, partialSum + c[j], cardinality + 1);
-   }
-   
    public double computeExactMean() {
 	   if (s >= 63) {
 	      throw new IllegalArgumentException(

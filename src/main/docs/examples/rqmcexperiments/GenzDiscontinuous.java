@@ -46,7 +46,7 @@ public class GenzDiscontinuous implements MonteCarloModelDouble {
 
       for (int j = 0; j < 2; j++) {
          if (!(w[j] >= 0.0 && w[j] < 1.0))
-            throw new IllegalArgumentException("w[" + j + "] must be in (0, 1)");
+            throw new IllegalArgumentException("w[" + j + "] must be in [0, 1)");
       }
 
       this.s = s;
