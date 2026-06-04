@@ -30,15 +30,15 @@ import java.math.BigInteger;
  */
 public class MWC64k2a2 extends RandomStreamBase {
 	
-   private static final long serialVersionUID = 20260518L;  
+   private static final long serialVersionUID = 20260518L;
    
    /** State components x_{n-1}, x_{n-2} and c_{n-1} interpreted as unsigned 64-bit. */
    private long x1, x2, carry;
    /** First coefficient a1. */
-//   private static final long A1 = 193154555888013165L;
-//   /** Second coefficient a2. */
-//   private static final long A2 = 1966812196490295L;
-   private static final long  A1 = 556348944096481337L, A2 = 8250136865355103L; // Used in cpp code for jumps
+   private static final long A1 = 193154555888013165L;
+   /** Second coefficient a2. */
+   private static final long A2 = 1966812196490295L;
+// private static final long  A1 = 556348944096481337L, A2 = 8250136865355103L; // Used in cpp code for jumps
    
    /** 2^(-53), used to convert 53 random bits to a double. */
    private static final double NORM53 = 0x1.0p-53;
@@ -78,12 +78,12 @@ public class MWC64k2a2 extends RandomStreamBase {
 //   /*For A1 = 193154555888013165L; A2 = 1966812196490295L; STREAM_ADVANCE_EXPONENT = 113; SUBSTREAM_ADVANCE_EXPONENT = 62
 //    * These values are precalculated and hardcoded here 
 //    * */
-//   private static final BigInteger STREAM_K_X2 = new BigInteger("550287765979488443922754971547870548747622917622202515");// Ony for the given A1, A2 and the given jumpsizes
-//   private static final BigInteger STREAM_K_X1 = new BigInteger("590664228179752031471436901652469203082748750179775222");// Ony for the given A1, A2 and the given jumpsizes
-//   private static final BigInteger STREAM_K_C  = new BigInteger("521510005202858839425516464682983339842500770120428048");// Ony for the given A1, A2 and the given jumpsizes
-//   private static final BigInteger  SUBSTREAM_K_X2 = new BigInteger("253956167587244238733053471042992883266608765200613794");// Ony for the given A1, A2 and the given jumpsizes
-//   private static final BigInteger SUBSTREAM_K_X1 = new BigInteger("334142836076716064087784195971406862825997835485950288");
-//   private static final BigInteger SUBSTREAM_K_C  = new BigInteger("475660625350411904999072789094749200216738394742542956");// Ony for the given A1, A2 and the given jumpsizes
+//   private static final BigInteger STREAM_K_X2 = new BigInteger("550287765979488443922754971547870548747622917622202515");//Only for the given A1, A2 and the given jumpsizes
+//   private static final BigInteger STREAM_K_X1 = new BigInteger("590664228179752031471436901652469203082748750179775222");//Only for the given A1, A2 and the given jumpsizes
+//   private static final BigInteger STREAM_K_C  = new BigInteger("521510005202858839425516464682983339842500770120428048");//Only for the given A1, A2 and the given jumpsizes
+//   private static final BigInteger  SUBSTREAM_K_X2 = new BigInteger("253956167587244238733053471042992883266608765200613794");// Only for the given A1, A2 and the given jumpsizes
+//   private static final BigInteger SUBSTREAM_K_X1 = new BigInteger("334142836076716064087784195971406862825997835485950288");//Only for the given A1, A2 and the given jumpsizes
+//   private static final BigInteger SUBSTREAM_K_C  = new BigInteger("475660625350411904999072789094749200216738394742542956");//Only for the given A1, A2 and the given jumpsizes
  
    /**
     * Constructs a new stream.
@@ -217,7 +217,6 @@ public class MWC64k2a2 extends RandomStreamBase {
       return block53 * NORM53;            // Convert to double.
    }
    
-
    /**
     * Returns a random long in [i, j].
     *
@@ -274,8 +273,8 @@ public class MWC64k2a2 extends RandomStreamBase {
 	      return i + (res / q);
 	   }
    
-   // return a block of b bits (int): should be added to interface
-   private long nextBitsLong(int b) {
+   // return a block of b bits (int): 
+   public long nextBitsLong(int b) {
 	    return nextNumber() >>> (64 - b);
 	}
 
@@ -287,7 +286,7 @@ public class MWC64k2a2 extends RandomStreamBase {
     * @return random int in [i, j]
     */
    public int nextInt(int i, int j) {
-      return (int) nextLong(i, j);         // Reuse unbiased long method.
+      return (int) nextLong(i, j);    
    }
 
    /**
@@ -457,9 +456,7 @@ public class MWC64k2a2 extends RandomStreamBase {
           .multiply(y)
           .mod(BI_M);
 
-
        // Convert the jumped LCG state back to the MWC state.
-
       long newX2 = sigma.longValue();
       sigma = sigma.shiftRight(64);
 

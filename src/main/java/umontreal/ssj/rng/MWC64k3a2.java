@@ -47,7 +47,7 @@ public class MWC64k3a2 extends RandomStreamBase {
    private static final long A2 = 184698970548483715L;
    /** Third coefficient a3. */
    private static final long A3 = 6028691832887L;   
-  // private static final long A2 = 0x320fbe97bef0f95L, A3 = 0x4a1849ec18bfa6L; // for jumps comparaison with cpp
+//   private static final long A2 = 0x320fbe97bef0f95L, A3 = 0x4a1849ec18bfa6L; // for jumps comparaison with cpp
 
    /** 2^(-53), used to convert 53 random bits to a double. */
    private static final double NORM53 = 0x1.0p-53;
@@ -84,11 +84,11 @@ public class MWC64k3a2 extends RandomStreamBase {
    private static final BigInteger SUBSTREAM_K_X1 = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_B2).mod(BI_M); // K_x1 = J*b^2 mod m
    private static final BigInteger SUBSTREAM_K_C = SUBSTREAM_JUMP_MULTIPLIER.multiply(BI_B3).mod(BI_M); // K_c = J*b^3 mod m
     
-//   /*For 	A2 = 184698970548483715L;
+//  /*For 	A2 = 184698970548483715L;
 //		     A3 = 6028691832887L;
 //		     STREAM_ADVANCE_EXPONENT = 169;
 //		     SUBSTREAM_ADVANCE_EXPONENT= 118; The values are : 
-//    * */
+//   * */
 //   private static final BigInteger STREAM_K_X3 = new BigInteger("30761207224142103968985508472479115773948763076232986832853996703743926");// Only for the given Ai, and jump sizes
 //   private static final BigInteger STREAM_K_X2 = new BigInteger("2872972596550318317758382057880878886623467367682449388684617761028650");
 //   private static final BigInteger STREAM_K_X1 = new BigInteger("4069686296670218292987053305317065107287547089332977129336044355568643");
@@ -295,7 +295,7 @@ public class MWC64k3a2 extends RandomStreamBase {
       }
    
    // return a block of b bits (int)
-   private long nextBitsLong(int b) {
+   public long nextBitsLong(int b) {
       return nextNumber() >>> (64 - b);
    }
 
