@@ -41,29 +41,29 @@ public class MWC64k3a2 extends RandomStreamBase {
 	
    private static final long serialVersionUID = 20260518L;
    
-   /** State components x_{n-1}, x_{n-2}, x_{n-3} and c_{n-1} interpreted as unsigned 64-bit. */
+   // State components x_{n-1}, x_{n-2}, x_{n-3} and c_{n-1} interpreted as unsigned 64-bit. */
    private long x1, x2, x3, carry;
-   /** Second coefficient a2. */
+   //Second coefficient a2. */
    private static final long A2 = 184698970548483715L;
-   /** Third coefficient a3. */
+   //Third coefficient a3. */
    private static final long A3 = 6028691832887L;   
 //   private static final long A2 = 0x320fbe97bef0f95L, A3 = 0x4a1849ec18bfa6L; // for jumps comparaison with cpp
 
-   /** 2^(-53), used to convert 53 random bits to a double. */
+   //2^(-53), used to convert 53 random bits to a double. */
    private static final double NORM53 = 0x1.0p-53;
    private static final int STREAM_ADVANCE_EXPONENT = 169;
    private static final int SUBSTREAM_ADVANCE_EXPONENT = 118;
 
-   /** Seed used for the next created stream: {x_{n-3}, x_{n-2}, x_{n-1}, carry}. */
+   //Seed used for the next created stream: {x_{n-3}, x_{n-2}, x_{n-1}, carry}. 
    private static long[] nextSeed = {1L, 3L, 4L, 5L};
    /** Initial state of this stream. */
    private long[] Ig;
-   /** Beginning state of the current substream of stream. */
+   //Beginning state of the current substream of stream. 
    private long[] Bg;
   
-   /**
-    * Precomputed BigInteger constants for the MWC-to-LCG jump transformation.
-    */
+   
+   // Precomputed BigInteger constants for the MWC-to-LCG jump transformation.
+    
    private static final BigInteger BI_B = BigInteger.ONE.shiftLeft(64); // b = 2^64
    private static final BigInteger BI_B2 = BigInteger.ONE.shiftLeft(128); // b^2
    private static final BigInteger BI_B3 = BigInteger.ONE.shiftLeft(192); // b^3

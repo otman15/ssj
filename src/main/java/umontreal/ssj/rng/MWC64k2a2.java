@@ -32,31 +32,31 @@ public class MWC64k2a2 extends RandomStreamBase {
 	
    private static final long serialVersionUID = 20260518L;
    
-   /** State components x_{n-1}, x_{n-2} and c_{n-1} interpreted as unsigned 64-bit. */
+   // State components x_{n-1}, x_{n-2} and c_{n-1} interpreted as unsigned 64-bit. */
    private long x1, x2, carry;
-   /** First coefficient a1. */
+   // First coefficient a1. */
    private static final long A1 = 193154555888013165L;
-   /** Second coefficient a2. */
+   // Second coefficient a2. */
    private static final long A2 = 1966812196490295L;
 // private static final long  A1 = 556348944096481337L, A2 = 8250136865355103L; // Used in cpp code for jumps
    
-   /** 2^(-53), used to convert 53 random bits to a double. */
+   // 2^(-53), used to convert 53 random bits to a double. */
    private static final double NORM53 = 0x1.0p-53;
-   /** Stream spacing: 2^113 generated values. */
+   // Stream spacing: 2^113 generated values. */
    private static final int STREAM_ADVANCE_EXPONENT =  113;
-   /** Substream spacing: 2^62	 generated values. */
+   // Substream spacing: 2^62	 generated values. */
    private static final int SUBSTREAM_ADVANCE_EXPONENT = 62;
 
-   /** Seed used for the next created stream: {x_{n-2}, x_{n-1}, carry}. */
+   // Seed used for the next created stream: {x_{n-2}, x_{n-1}, carry}. */
    private static long[] nextSeed = {12345L, 12345L, 12345L}; 
-   /** Initial state of this stream. */
+   //Initial state of this stream. */
    private long[] Ig;
-   /** Beginning state of the current substream of stream. */
+   // Beginning state of the current substream of stream. */
    private long[] Bg;
   
-   /**
-    * Precomputed BigInteger constants for the MWC-to-LCG jump transformation.
-    */
+   
+    // Precomputed BigInteger constants for the MWC-to-LCG jump transformation.
+    
    private static final BigInteger BI_B = BigInteger.ONE.shiftLeft(64); // b = 2^64
    private static final BigInteger BI_A1 = BigInteger.valueOf(A1);
    private static final BigInteger BI_A2 = BigInteger.valueOf(A2); 
@@ -273,7 +273,7 @@ public class MWC64k2a2 extends RandomStreamBase {
 	      return i + (res / q);
 	   }
    
-   // return a block of b bits (int): 
+   // return a block of b bits (int):
    public long nextBitsLong(int b) {
 	    return nextNumber() >>> (64 - b);
 	}
@@ -286,7 +286,7 @@ public class MWC64k2a2 extends RandomStreamBase {
     * @return random int in [i, j]
     */
    public int nextInt(int i, int j) {
-      return (int) nextLong(i, j);    
+      return (int) nextLong(i, j);
    }
 
    /**
