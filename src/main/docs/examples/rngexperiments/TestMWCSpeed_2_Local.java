@@ -1,4 +1,8 @@
+package rngexperiments;
+
 import java.util.function.LongSupplier;
+import java.io.PrintStream;
+import java.io.FileNotFoundException;
 
 /**
  * Java mirror of TestMWCSpeed.cc with local 128-bit temporaries.
@@ -6,6 +10,11 @@ import java.util.function.LongSupplier;
  * Generator state remains static, as in the original benchmark, but the
  * simulated uint128 intermediates are local variables inside each generator.
  * No setTau... arithmetic helpers are used in the hot generator methods.
+ * 
+ * 
+ * "if condition" is never used to increment the high", the ternary operation (condition< 0 ? 1L : 0L) is faster in these tests.  
+ * Genarators that use more math.unsignedMultiplyHigh are more slow.
+ * For Vigna extra is added to handle big coefficient, otherwise if math.unsignedMultiplyHigh handle this it become slow.
  */
 public final class TestMWCSpeed_2_Local {
     static long x, y, z, c;
@@ -729,13 +738,15 @@ public final class TestMWCSpeed_2_Local {
 
     // *************************************************************************
 
-    public static void main(String[] args) {
+    public static void main (String[] args) throws java.io.FileNotFoundException {
+    	//PrintStream out = new PrintStream("C:/Users/cherrato/Documents/GitHub/Data/o-MWC-test/MWCSpeed10JavaLoc.res");
+    	//System.setOut(out);
         // long n = 4;
         // long n = 1000L * 1000L; // One million
-         long n = 1000L * 1000L * 1000L; // One billion
-        //long n = 1000L * 1000L * 10000L; // Ten billions
+        // long n = 1000L * 1000L * 1000L; // One billion
+        long n = 1000L * 1000L * 10000L; // Ten billions
 
-        System.out.println("\n=========JAVA LOCAL TEMPS========");
+        System.out.println("\n=========JAVA WITH LOCAL FIELDS NO HELPERS========");
         System.out.printf("Time to generate n = %d = %.6e numbers.%n", n, (double) n);
         System.out.println("    Generator     Time (seconds)      Sum mod 2^{64} ");
         tottmp = System.nanoTime();
@@ -748,6 +759,7 @@ public final class TestMWCSpeed_2_Local {
         testLoop("mwc64k3a2 given as a parameter to testLoop ", TestMWCSpeed_2_Local::mwc64k3a2, n);
         System.out.println();
 
+        
         x = c = 12345L;
         sum = 0L;
         tmp = System.nanoTime();
@@ -756,6 +768,7 @@ public final class TestMWCSpeed_2_Local {
         }
         tmp = System.nanoTime() - tmp;
         printResults("MWC128", tmp, sum);
+        
 
         x1 = x2 = x3 = c = 12345L;
         sum = 0L;
@@ -765,6 +778,7 @@ public final class TestMWCSpeed_2_Local {
         }
         tmp = System.nanoTime() - tmp;
         printResults("mwc64k1", tmp, sum);
+
 
         // *******   k = 2  *********************************************
         System.out.println("k = 2 ");

@@ -2,7 +2,8 @@ package rngexperiments;
 
 import java.math.BigInteger;
 import java.util.function.LongSupplier;
-
+import java.io.PrintStream;
+import java.io.FileNotFoundException;
 /**
  * This is a  Java mirror of the C++ TestMWCSpeed.cc.
  *The only difference with the cpp file is how we handle multiplication and addition overlflow and sotre unit128.
@@ -10,6 +11,11 @@ import java.util.function.LongSupplier;
  *We store unsigned 64-bit values in long variables and represents the C++ __uint128_t variable tau with the pair (tauHigh, tauLow). 
  *Another pair pHigh and pLow is used to handles the other products a2x2, a3x3.
  *Additionnaly, each time an addition is performed we check for overflow and update the high part.
+ *
+ *Findings :
+ *"if condition" is never used to increment the high", the ternary operation (condition< 0 ? 1L : 0L) is faster in these tests.  
+ * Genarators that use more math.unsignedMultiplyHigh are more slow.
+ * For Vigna extra is added to handle big coefficient, otherwise if math.unsignedMultiplyHigh handle this it become slow.
  */
 public final class TestMWCSpeed_2 {
     static long x, y, z, c; 
@@ -78,8 +84,7 @@ public final class TestMWCSpeed_2 {
         tauHigh = Math.unsignedMultiplyHigh(a1, x1Value);
         oldLow = tauLow;
         tauLow += carry;
-        if (Long.compareUnsigned(tauLow, oldLow) < 0)
-            tauHigh++;
+        tauHigh += Long.compareUnsigned(tauLow, oldLow)  < 0 ? 1L : 0L;
     }
     
     
@@ -120,8 +125,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         tauHigh += pHigh + (Long.compareUnsigned(tauLow, oldLow) < 0 ? 1L : 0L);
         oldLow = tauLow;
         tauLow += carry;
-        if (Long.compareUnsigned(tauLow, oldLow) < 0)
-            tauHigh++;
+        tauHigh += Long.compareUnsigned(tauLow, oldLow) < 0 ? 1L : 0L;
     }
 
     /**
@@ -146,8 +150,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         
         oldLow = tauLow;
         tauLow += carry;
-        if (Long.compareUnsigned(tauLow, oldLow) < 0)
-            tauHigh++;
+        tauHigh +=  Long.compareUnsigned(tauLow, oldLow) < 0 ? 1L : 0L;
     }
 
 
@@ -160,8 +163,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         tauHigh = Math.unsignedMultiplyHigh(coefficient, sumLow) + coefficient * sumHigh;
         oldLow = tauLow;
         tauLow += carry;
-        if (Long.compareUnsigned(tauLow, oldLow) < 0)
-            tauHigh++;
+        tauHigh +=  Long.compareUnsigned(tauLow, oldLow) < 0 ? 1L : 0L;
     }
 
     /**
@@ -203,6 +205,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         if (v >= 0L)
             return (double) v;
         return (double) (v & Long.MAX_VALUE) + 0x1.0p63;
+        
     }
 
     // *******   k = 1  ********************************************** The rest is exactly as the cc file : generators definition + the main method
@@ -760,12 +763,15 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
     /**
      * Runs the same sections as the cc file.
      */
-    public static void main(String[] args) {
-        // long n = 4;
+    public static void main(String[] args) throws FileNotFoundException {
+    	PrintStream out = new PrintStream("C:/Users/cherrato/Documents/GitHub/Data/o-MWC-test/MWCSpeed10JavUdpVigNoIf.res");
+    	System.setOut(out);
+    	
+         //long n = 4;
          //long n = 1000L * 1000L; // One million
-        long n = 1000L * 1000L * 1000L; // Number of generated values per benchmark: one billion
-         //long n = 1000L * 1000L * 10000L; // Ten billions
-        System.out.println("\n=========JAVA========Same positive coefficients for each pair of MWC64kxax et mwcxxx==========");
+        //long n = 1000L * 1000L * 1000L; // Number of generated values per benchmark: one billion
+         long n = 1000L * 1000L * 10000L; // Ten billions
+        System.out.println("\n=========JAVA========updated helper for vigna + never use if inside generetors ==========");
         System.out.printf("Time to generate n = %d = %.6e numbers.%n", n, (double) n);
         System.out.println("    Generator     Time (seconds)      Sum mod 2^{64} ");
         tottmp = System.nanoTime();
@@ -796,6 +802,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         tmp = System.nanoTime() - tmp;
         printResults("mwc64k1", tmp, sum);
 
+
         // *******   k = 2  *********************************************
         System.out.println("k = 2 ");
 
@@ -816,7 +823,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         }
         tmp = System.nanoTime() - tmp;
         printResults("mwc64k2a1", tmp, sum);
-/*
+
         x1 = x2 = c = 12345L;
         sum = 0L;
         tmp = System.nanoTime();
@@ -861,7 +868,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         }
         tmp = System.nanoTime() - tmp;
         printResults("mwc64k2a2gk", tmp, sum);
-*/
+
         // *******   k = 3  *********************************************
         System.out.println("k = 3 ");
 
@@ -882,7 +889,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         }
         tmp = System.nanoTime() - tmp;
         printResults("mwc64k3a1", tmp, sum);
-/*
+
         x1 = x2 = x3 = c = 12345L;
         sum = 0L;
         tmp = System.nanoTime();
@@ -946,7 +953,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         tmp = System.nanoTime() - tmp;
         printResults("mwc64k3a3Xor", tmp, sum);
         System.out.println();
-*/
+
         // ************************************************************
         // a_0 < -1
 
@@ -967,7 +974,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         }
         tmp = System.nanoTime() - tmp;
         printResults("mwc64k3a1gk", tmp, sum);
-/*
+
         x1 = x2 = x3 = c = 12345L;
         sum = 0L;
         tmp = System.nanoTime();
@@ -1350,7 +1357,7 @@ static void setTauNegMulAddFromA(long a, long xValue, long carry) {
         }
         tmp = System.nanoTime() - tmp;
         printResultsDouble("mwc64k3a3 U(0,1) 64 ", tmp, dsum / n);
-*/
+
         System.out.println();
 
         printResultsDouble("Total computing time: ", System.nanoTime() - tottmp, 0);
