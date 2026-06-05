@@ -32,7 +32,7 @@ public class RngFixedJumpSpeed {
     static final int M = 1_000_000;
 
     /** Number of runs. Run 1 is warm-up and is not included in the average. */
-    static final int N = 5;
+    static final int N = 6;
 
     /**
      * Sink variable used to prevent the JVM from removing object creation
