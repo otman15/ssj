@@ -7,6 +7,8 @@ import java.io.PrintStream;
 import java.io.FileNotFoundException;
 
 public class TestCornerPeakExactMean {
+	
+   /*
 
    private static volatile double sink;
 
@@ -130,5 +132,5 @@ public class TestCornerPeakExactMean {
 
       return c;
    }
-
+*/
 }

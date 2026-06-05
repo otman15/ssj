@@ -34,8 +34,8 @@ public class GenzOscillatory implements MonteCarloModelDouble {
          throw new IllegalArgumentException("s must be positive");
       if (c == null || c.length != s)
          throw new IllegalArgumentException("c must have length s");
-      if (!(w1 > 0.0 && w1 < 1.0))
-         throw new IllegalArgumentException("w1 must be in (0, 1)");
+      if (!(w1 >= 0.0 && w1 < 1.0))
+         throw new IllegalArgumentException("w1 must be in [0, 1)");
 
       for (int j = 0; j < s; j++) {
          if (!(c[j] > 0.0))

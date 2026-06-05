@@ -147,5 +147,10 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    public String getTag() {
       return "GenzCornerPeak";
    }
+   
+   /////////for test
+   public double getExactMean() {
+	   return exactMean;
+	}
 
 }
