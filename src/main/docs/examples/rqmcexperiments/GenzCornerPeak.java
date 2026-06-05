@@ -28,42 +28,21 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
     * @param s dimension of the function
     * @param c scale parameters, all strictly positive
     */
-//   public GenzCornerPeak(int s, double[] c) {
-//      if (s <= 0)
-//         throw new IllegalArgumentException("s must be positive");
-//      if (c == null || c.length != s)
-//         throw new IllegalArgumentException("c must have length s");
-//
-//      for (int j = 0; j < s; j++) {
-//         if (!(c[j] > 0.0))
-//            throw new IllegalArgumentException("c[" + j + "] must be positive");
-//      }
-//
-//      this.s = s;
-//      this.c = c.clone();
-//      this.exactMean = computeExactMean();
-//   }
-   
-   //// for test:
    public GenzCornerPeak(int s, double[] c) {
-	   this(s, c, true);
-	}
+      if (s <= 0)
+         throw new IllegalArgumentException("s must be positive");
+      if (c == null || c.length != s)
+         throw new IllegalArgumentException("c must have length s");
 
-	public GenzCornerPeak(int s, double[] c, boolean computeMean) {
-	   if (s <= 0)
-	      throw new IllegalArgumentException("s must be positive");
-	   if (c == null || c.length != s)
-	      throw new IllegalArgumentException("c must have length s");
+      for (int j = 0; j < s; j++) {
+         if (!(c[j] > 0.0))
+            throw new IllegalArgumentException("c[" + j + "] must be positive");
+      }
 
-	   for (int j = 0; j < s; j++) {
-	      if (!(c[j] > 0.0))
-	         throw new IllegalArgumentException("c[" + j + "] must be positive");
-	   }
-
-	   this.s = s;
-	   this.c = c.clone();
-	   this.exactMean = computeMean ? computeExactMean() : Double.NaN;
-	}
+      this.s = s;
+      this.c = c.clone();
+      this.exactMean = computeExactMean();
+   }
 
    /**
     * Simulates one observation of the model.
@@ -168,9 +147,5 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    public String getTag() {
       return "GenzCornerPeak";
    }
-   
-   /////////for test
-   public double getExactMean() {
-	   return exactMean;
-	}
+
 }

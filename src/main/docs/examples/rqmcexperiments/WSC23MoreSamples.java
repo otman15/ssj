@@ -187,8 +187,8 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       statReps.setName(modelTag + "-" + s + "-Sob-RDS-" + k + "-" + m);
       simulRepsRQMCSort(model, p, rds, m, statReps);
 
-      // Sob-RDST System.out.println("* Sobol with RDS + tent transform");
-      statReps.setName(modelTag + "-" + s + "-Sob-RDST-" + k + "-" + m);
+      // Sob-RDSB System.out.println("* Sobol with RDS + baker transform");
+      statReps.setName(modelTag + "-" + s + "-Sob-RDSB-" + k + "-" + m);
       simulRepsRQMCSort(model, ptent, rds, m, statReps);
 
       // Sob-LMS System.out.println("* Sobol with LMS alone, no shift");
@@ -228,17 +228,70 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
    }
 
    /**
+    * Same thing, but for just a few selected types of RQMC method.
+    */
+   public static void simulRepsSelectedTypes(MonteCarloModelDouble model, int s, int k, int m) throws IOException {
+      String modelTag = model.getTag();
+      // String ident; // Identifies the case, used in file names.
+      int n = (int) Num.TWOEXP[k];
+      RandomStream stream = new LFSR258();
+      Chrono timer = new Chrono();
+      System.out.println("WSC23MoreSamples program, RQMC replicates with model: " + model.toString() + "\n");
+      TallyStore statReps = new TallyStore(m);
+
+      // --------------------------
+      // Objects for lattice points
+      System.out.println("***  Lattice points ");
+      Rank1Lattice pLat = new Rank1Lattice(n, a18, s);
+      RandomShift randShift = new RandomShift(stream);
+      BakerTransformedPointSet ptent = new BakerTransformedPointSet(pLat);
+      RandomLatticeParams randLatPar = new RandomLatticeParams(true, stream); // Randomizes a for n =
+      RandomLatticeParams randLatPar2 = new RandomLatticeParams(n / 2, n, stream); // This one also randomizes n.
+
+      // Lat-Rv, random a
+      System.out.println("*   Lattice with random gen vector a, no shift");
+      randLatPar.setRandShift(false);
+      statReps.setName(modelTag + "-" + s + "-Lat-Rv-" + k + "-" + m);
+      // simulRepsRQMCSort(model, pLat, randLatPar, m, statReps);
+
+      // Lat-Rpv, random n and a, no shift
+      System.out.println("*   Lattice with random n and random gen vector a, no shift");
+      randLatPar2.setRandShift(false);
+      statReps.setName(modelTag + "-" + s + "-Lat-Rpv-" + k + "-" + m);
+      // simulRepsRQMCSort(model, pLat, randLatPar2, m, statReps);
+
+      // -------------------------
+      // Objects for Sobol' points
+      System.out.println("*** Sobol points ");
+      DigitalNetBase2 p = new SobolSequence(k, 53, s); // n = 2^{k} points in s dim.
+      ptent = new BakerTransformedPointSet(p);
+      // PointSetRandomization norand = new EmptyRandomization(); // No randomization
+      PointSetRandomization rds = new RandomShift(stream); // Digital shift
+      PointSetRandomization lms = new LMScramble(stream);
+      PointSetRandomization lmsrds = new LMScrambleShift(stream);
+
+      // Sob-RDSB System.out.println("* Sobol with RDS + baker transform");
+      statReps.setName(modelTag + "-" + s + "-Sob-RDSB-" + k + "-" + m);
+      simulRepsRQMCSort(model, ptent, rds, m, statReps);
+
+      System.out.println(
+            "Total time for simulRepsSelectedTypes: " + timer.format() + "\n=========================================== \n");
+   }
+
+   
+   /**
     * For one model, perform m RQMC runs for all point set sizes k from mink to
     * maxk, by steps of 2, and puts the results in arrays. After that, the arrays
     * are used to output data sets in files.
     */
    public static void simulRepsAllSizes(MonteCarloModelDouble model, int s, int mink, int maxk, int m)
          throws IOException {
-      redirectToFile(model.getTag() + "-" + s + "-" + m);
+      // redirectToFile(model.getTag() + "-" + s + "-" + m);
       System.out.println("RQMC replicates with model: " + model.toString() + ", s = " + s + "\n");
       Chrono timer = new Chrono();
       for (int k = mink; k <= maxk; k += 2) { // For each point set size
-         simulRepsAllTypes(model, s, k, m);
+         // simulRepsAllTypes(model, s, k, m);
+         simulRepsSelectedTypes(model, s, k, m);
       }
       System.out.println(
             "\nTotal time for simulAllSizes: " + timer.format() + "\n=========================================== \n");

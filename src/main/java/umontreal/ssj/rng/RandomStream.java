@@ -177,6 +177,20 @@ public interface RandomStream {
    public double nextDouble();
 
    /**
+    * Same as `nextDouble`, except that in subclasses, this one should be 
+    * guaranteed to never return zero.
+    * 
+    * @return the next generated nonzero uniform
+    */
+   default public double nextDoubleNonzero() {
+      double u;
+      do {
+         u = nextDouble();
+      } while (u == 0.0);  // Reject 0.0.
+      return u;
+   }
+
+   /**
     * Generates `n` (pseudo)random numbers from the uniform distribution and stores
     * them into the array `u` starting at index `start`.
     * 
@@ -236,4 +250,13 @@ public interface RandomStream {
     */
    public void nextArrayOfLong(long i, long j, long[] u, int start, int n);
 
+   /**
+    * Can be faster than calling `nextLong` by using just a right shift.
+    * 
+    * @return a random `b`-bit integer.
+    */
+   default public long nextBitsLong(int b) {
+      return nextLong (0, (1 << b) - 1);
+   }
+   
 }

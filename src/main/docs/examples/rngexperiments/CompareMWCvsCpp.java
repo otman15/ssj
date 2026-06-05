@@ -5,9 +5,7 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import umontreal.ssj.rng.MWC64k2a2;
 import umontreal.ssj.rng.MWC64k3a2;
-import umontreal.ssj.rng.MWC64k3a3;
-import umontreal.ssj.rng.MRG32k3a;
-import umontreal.ssj.rng.LFSR258;;
+
 
 
 public class CompareMWCvsCpp {
