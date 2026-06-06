@@ -72,8 +72,8 @@ public class TestMWC64k3a2Jump {
     */
    public static void main(String[] args) {
       testJumpAgainstGeneration();
-//      testSubstreamJump();// needs big integer as params of advanceStateByJump
-//      testStreamJump(); // needs big integer as params of advanceStateByJump
+      testSubstreamJump();// needs big integer as params of advanceStateByJump
+      testStreamJump(); // needs big integer as params of advanceStateByJump
 
       System.out.println();
       System.out.println("======================================");
@@ -110,7 +110,7 @@ public class TestMWC64k3a2Jump {
                byGeneration.nextRaw();
 
             // Jump path: advance the state directly by n steps.
-            byJump.advanceStateByJump(n); // must be updated if advanceStateByJump takes BigInteger
+            byJump.advanceStateByJump(BigInteger.valueOf(n)); // must be updated if advanceStateByJump takes BigInteger
 
             long[] expected = byGeneration.getState();
             long[] actual = byJump.getState();
@@ -145,7 +145,7 @@ public class TestMWC64k3a2Jump {
     *
     * This checks that the hardcoded/precomputed substream jump constants are correct.
     */
-  /* private static void testSubstreamJump() {
+   private static void testSubstreamJump() {
       System.out.println();
       System.out.println("======================================");
       System.out.println("TEST 2: resetNextSubstream() vs jump(2^" + SUBSTREAM_ADVANCE_EXPONENT + ")");
@@ -193,13 +193,13 @@ public class TestMWC64k3a2Jump {
          );
       }
    }
-*/
+
    /**
     * Tests that stream creation advances the package seed by 2^169 each time.
     *
     * This checks that the fixed stream jump used in the constructor is correct.
     */
-   /*private static void testStreamJump() {
+   private static void testStreamJump() {
       System.out.println();
       System.out.println("======================================");
       System.out.println("TEST 3: stream creation vs jump(2^" + STREAM_ADVANCE_EXPONENT + ")");
@@ -256,7 +256,7 @@ public class TestMWC64k3a2Jump {
                Arrays.equals(expected3.getState(), stream3State)
          );
       }
-   }*/
+   }
 
    /**
     * Prints one comparison result and updates the GOOD/BAD counters.
