@@ -197,8 +197,6 @@ public class MWC64k2a2 extends RandomStreamBase {
    /**
     * Returns the next uniform in (0,1).
     *
-    * This follows the C style:
-    *
     * <pre>
     * block53 = nextNumber() >>> 11
     * if block53 == 0, try again
@@ -207,28 +205,47 @@ public class MWC64k2a2 extends RandomStreamBase {
     *
     * @return next uniform in (0,1)
     */
-   protected double nextValue() {
-      long block53;                       // Will contain the top 53 bits.
-
-      do {
-         block53 = nextNumber() >>> 11;   // Keep top 53 bits of 64-bit output.
-      } while (block53 == 0L);            // Reject 0 to avoid returning 0.0.
-
-      return block53 * NORM53;            // Convert to double.
-   }
+//   protected double nextValue() {
+//      long block53;                       // Will contain the top 53 bits.
+//
+//      do {
+//         block53 = nextNumber() >>> 11;   // Keep top 53 bits of 64-bit output.
+//      } while (block53 == 0L);            // Reject 0 to avoid returning 0.0.
+//
+//      return block53 * NORM53;            // Convert to double.
+//   }
    
    /**
-    * Returns a random long in [i, j].
+    * Returns the next uniform in [0, 1).
     *
-    * @param i lower bound
-    * @param j upper bound
-    * @return random long in [i, j]
+    * <p>
+    * This method keeps the top 53 bits of the 64-bit output and multiplies
+    * by 2^(-53). It may return 0.0, but it never returns 1.0.
+    * The RandomStream interface provides nextDoubleNonzero() when a nonzero
+    * uniform is needed.
+    * </p>
+    *
+    * <pre>
+    * return (nextNumber() >>> 11) * 2^(-53)
+    * </pre>
+    *
+    * @return the next uniform in [0, 1)
     */
-   
-   // This method implements the "unbiased bounded integer generation" algorithm used by java.util.Random.nextint, which is based on rejection sampling to avoid modulo bias.
-   //It handles the case where the range size may exceed 2^63 by using a different approach (n <= 0 due to overflow). 
-   //also includes optimizations for power-of-two range sizes.
-   // uses 63 bits entropy in the case of n >0
+   protected double nextValue() {
+      return (nextNumber() >>> 11) * NORM53;
+   }
+ 
+   /**
+    * Returns a random long in the inclusive range {@code [i, j]}.
+    *
+    * Uses 63 random bits and rejection sampling when the range size fits in a
+    * positive long. For larger ranges, it samples full 64-bit values until one
+    * falls inside the interval.
+    *
+    * @param i lower bound, inclusive
+    * @param j upper bound, inclusive
+    * @return a random long in {@code [i, j]}
+    */
    public long nextLong(long i, long j) {
       if (i > j)
          throw new IllegalArgumentException(i + " is larger than " + j + ".");
@@ -273,7 +290,15 @@ public class MWC64k2a2 extends RandomStreamBase {
 	      return i + (res / q);
 	   }
    
-   // return a block of b bits (int):
+   /**
+    * Returns the top b bits of the next 64-bit output.
+    *
+    * The selected bits are shifted to the right, so the result is stored in the
+    * least significant b bits of the returned long.
+    *
+    * @param b number of bits to return, between 1 and 64
+    * @return the top b bits of the next 64-bit output
+    */
    public long nextBitsLong(int b) {
 	    return nextNumber() >>> (64 - b);
 	}
