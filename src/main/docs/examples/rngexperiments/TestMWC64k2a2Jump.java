@@ -3,7 +3,7 @@ package rngexperiments;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import umontreal.ssj.rng.MWC64k2a2new;
+import umontreal.ssj.rng.MWC64k2a2;
 
 /**
  * Tests the jump implementation of MWC64k2a2.
@@ -97,10 +97,10 @@ public class TestMWC64k2a2Jump {
 
       for (long[] seed : SEEDS) {
          for (int n : SMALL_JUMPS) {
-        	 MWC64k2a2new byGeneration = new MWC64k2a2new();
+        	 MWC64k2a2 byGeneration = new MWC64k2a2();
             byGeneration.setSeed(seed.clone());
 
-            MWC64k2a2new byJump = new MWC64k2a2new();
+            MWC64k2a2 byJump = new MWC64k2a2();
             byJump.setSeed(seed.clone());
 
             long[] start = seed.clone();
@@ -152,10 +152,10 @@ public class TestMWC64k2a2Jump {
       System.out.println("======================================");
 
       for (long[] seed : SEEDS) {
-         MWC64k2a2new fixed = new MWC64k2a2new();
+         MWC64k2a2 fixed = new MWC64k2a2();
          fixed.setSeed(seed.clone());
 
-         MWC64k2a2new generic = new MWC64k2a2new();
+         MWC64k2a2 generic = new MWC64k2a2();
          generic.setSeed(seed.clone());
 
          long[] start = seed.clone();
@@ -207,12 +207,12 @@ public class TestMWC64k2a2Jump {
 
       for (long[] seed : SEEDS) {
          // Set the package seed so the next created stream starts from this seed.
-    	  MWC64k2a2new.setPackageSeed(seed.clone());
+    	  MWC64k2a2.setPackageSeed(seed.clone());
 
          // The constructor should create streams separated by the stream jump.
-    	  MWC64k2a2new stream1 = new MWC64k2a2new();
-    	  MWC64k2a2new stream2 = new MWC64k2a2new();
-    	  MWC64k2a2new stream3 = new MWC64k2a2new();
+    	  MWC64k2a2 stream1 = new MWC64k2a2();
+    	  MWC64k2a2 stream2 = new MWC64k2a2();
+    	  MWC64k2a2 stream3 = new MWC64k2a2();
 
          long[] stream1State = stream1.getState();
          long[] stream2State = stream2.getState();
@@ -228,7 +228,7 @@ public class TestMWC64k2a2Jump {
                firstOk
          );
 
-         MWC64k2a2new expected2 = new MWC64k2a2new();
+         MWC64k2a2 expected2 = new MWC64k2a2();
          expected2.setSeed(seed.clone());
 
          // Expected second stream = initial seed advanced by one stream jump.
@@ -242,7 +242,7 @@ public class TestMWC64k2a2Jump {
                Arrays.equals(expected2.getState(), stream2State)
          );
 
-         MWC64k2a2new expected3 = new MWC64k2a2new();
+         MWC64k2a2 expected3 = new MWC64k2a2();
          expected3.setSeed(seed.clone());
 
          // Expected third stream = initial seed advanced by two stream jumps.

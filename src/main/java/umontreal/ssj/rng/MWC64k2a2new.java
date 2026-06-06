@@ -28,8 +28,8 @@ import java.math.BigInteger;
  * carry = c_{n-1}
  * </pre>
  */
-public class MWC64k2a2 extends RandomStreamBase {
-   
+public class MWC64k2a2new extends RandomStreamBase {
+	
    private static final long serialVersionUID = 20260518L;
    
    // State components x_{n-1}, x_{n-2} and c_{n-1} interpreted as unsigned 64-bit. 
@@ -44,22 +44,22 @@ public class MWC64k2a2 extends RandomStreamBase {
    private static final double NORM53 = 0x1.0p-53;
    // Stream spacing: 2^113 generated values. 
    private static final int STREAM_ADVANCE_EXPONENT =  113;
-   // Substream spacing: 2^62   generated values. 
+   // Substream spacing: 2^62	 generated values. 
    private static final int SUBSTREAM_ADVANCE_EXPONENT = 62;
 
    // Seed used for the next created stream: {x_{n-2}, x_{n-1}, carry}. 
    private static long[] nextSeed = {12345L, 12345L, 12345L}; 
-   // LCG state corresponding to nextSeed.
-   private static BigInteger nextSeedY;
    //Initial state of this stream. 
    private long[] Ig;
-   // LCG state corresponding to the beginning of this stream.
-   private BigInteger IgY;
    // Beginning state of the current substream of stream. 
    private long[] Bg;
-   // LCG state corresponding to the beginning of the current substream.
-   private BigInteger BgY;
   
+   // ARTICLE JUMP UPDATE: LCG state corresponding to nextSeed.
+   private static BigInteger nextSeedY;
+   // ARTICLE JUMP UPDATE: LCG state at the beginning of this stream.
+   private BigInteger IgY;
+   // ARTICLE JUMP UPDATE: LCG state at the beginning of the current substream.
+   private BigInteger BgY;
    
     // Precomputed BigInteger constants for the MWC-to-LCG jump transformation.
     
@@ -75,7 +75,7 @@ public class MWC64k2a2 extends RandomStreamBase {
    private static final BigInteger STREAM_JUMP_MULTIPLIER = BI_B_INV.modPow(BigInteger.ONE.shiftLeft(STREAM_ADVANCE_EXPONENT), BI_M); // J = (b^(-1))^(2^STREAM_JUMP_EXPONENT) mod m
    private static final BigInteger SUBSTREAM_JUMP_MULTIPLIER = BI_B_INV.modPow(BigInteger.ONE.shiftLeft(SUBSTREAM_ADVANCE_EXPONENT), BI_M); // J = (b^(-1))^(2^SUBSTREAM_JUMP_EXPONENT) mod m
 
-   // Initialize the LCG state corresponding to the default package seed.
+   // ARTICLE JUMP UPDATE: initialize the stored LCG state for the default package seed.
    static {
       nextSeedY = stateToLCG(nextSeed);
    }
@@ -83,22 +83,23 @@ public class MWC64k2a2 extends RandomStreamBase {
    /**
     * Constructs a new stream.
     */
-   public MWC64k2a2() {
-      Ig = nextSeed.clone();              // Save the start MWC state of this stream.
-      IgY = nextSeedY;                    // Save the matching LCG state.
-      Bg = new long[3];                   // Allocate the substream state.
+   public MWC64k2a2new() {
+	   Ig = nextSeed.clone();
+	   IgY = nextSeedY;
 
-      resetStartStream();                 // Set Bg and current state from Ig.
+	   Bg = new long[3];
+	   resetStartStream();
 
-      nextSeedY = advanceLCGState(nextSeedY, STREAM_JUMP_MULTIPLIER, nextSeed); // Prepare the next stream seed.
-   }        
+	   nextSeedY = STREAM_JUMP_MULTIPLIER.multiply(nextSeedY).mod(BI_M);
+	   stateFromLCG(nextSeedY, nextSeed);
+	}       
 
    /**
     * Constructs a new stream with a name.
     *
     * @param name stream name
     */
-   public MWC64k2a2(String name) {
+   public MWC64k2a2new(String name) {
       this();                            
       this.name = name;                  
    }
@@ -111,7 +112,9 @@ public class MWC64k2a2 extends RandomStreamBase {
    public static void setPackageSeed(long[] seed) {
       checkSeed(seed);                    // Validate seed.
       nextSeed = seed.clone();            // Copy seed to avoid external mutation.
-      nextSeedY = stateToLCG(nextSeed);   // Store the matching LCG state.
+
+      // ARTICLE JUMP UPDATE: memorize the corresponding LCG state y.
+      nextSeedY = stateToLCG(nextSeed);
    }
 
    /**
@@ -122,7 +125,9 @@ public class MWC64k2a2 extends RandomStreamBase {
    public void setSeed(long[] seed) {
       checkSeed(seed);                    // Validate seed.
       Ig = seed.clone();                  // Replace initial stream state.
-      IgY = stateToLCG(Ig);               // Store the matching LCG state.
+
+      // ARTICLE JUMP UPDATE: memorize the LCG state y for the stream start.
+      IgY = stateToLCG(Ig);
       resetStartStream();                 // Restart stream from new seed.
    }
 
@@ -139,13 +144,15 @@ public class MWC64k2a2 extends RandomStreamBase {
     * Resets this stream to the beginning of its stream.
     */
    public void resetStartStream() {
-      Bg[0] = Ig[0];                      // Substream start = stream start.
-      Bg[1] = Ig[1];
-      Bg[2] = Ig[2];
-      BgY = IgY;                          // Substream LCG state = stream LCG state.
+	   Bg[0] = Ig[0];
+	   Bg[1] = Ig[1];
+	   Bg[2] = Ig[2];
 
-      resetStartSubstream();              // Current state = substream start.
-   }
+	   // current substream starts at the stream LCG state.
+	   BgY = IgY;
+
+	   resetStartSubstream();
+	}
 
    /**
     * Resets this stream to the beginning of its current substream.
@@ -160,7 +167,11 @@ public class MWC64k2a2 extends RandomStreamBase {
     * Moves this stream to the beginning of the next substream.
     */
    public void resetNextSubstream() {
-      BgY = advanceLCGState(BgY, SUBSTREAM_JUMP_MULTIPLIER, Bg); // Advance the substream LCG state.
+      // ARTICLE JUMP UPDATE: substream LCG state y = A*y mod m.
+      BgY = SUBSTREAM_JUMP_MULTIPLIER.multiply(BgY).mod(BI_M);
+
+      // ARTICLE JUMP UPDATE: recover MWC state from the new LCG state.
+      stateFromLCG(BgY, Bg);
       resetStartSubstream();   
    }
 
@@ -197,6 +208,8 @@ public class MWC64k2a2 extends RandomStreamBase {
    /**
     * Returns the next uniform in (0,1).
     *
+    * This follows the C style:
+    *
     * <pre>
     * block53 = nextNumber() >>> 11
     * if block53 == 0, try again
@@ -205,47 +218,28 @@ public class MWC64k2a2 extends RandomStreamBase {
     *
     * @return next uniform in (0,1)
     */
-//   protected double nextValue() {
-//      long block53;                       // Will contain the top 53 bits.
-//
-//      do {
-//         block53 = nextNumber() >>> 11;   // Keep top 53 bits of 64-bit output.
-//      } while (block53 == 0L);            // Reject 0 to avoid returning 0.0.
-//
-//      return block53 * NORM53;            // Convert to double.
-//   }
+   protected double nextValue() {
+      long block53;                       // Will contain the top 53 bits.
+
+      do {
+         block53 = nextNumber() >>> 11;   // Keep top 53 bits of 64-bit output.
+      } while (block53 == 0L);            // Reject 0 to avoid returning 0.0.
+
+      return block53 * NORM53;            // Convert to double.
+   }
    
    /**
-    * Returns the next uniform in [0, 1).
+    * Returns a random long in [i, j].
     *
-    * <p>
-    * This method keeps the top 53 bits of the 64-bit output and multiplies
-    * by 2^(-53). It may return 0.0, but it never returns 1.0.
-    * The RandomStream interface provides nextDoubleNonzero() when a nonzero
-    * uniform is needed.
-    * </p>
-    *
-    * <pre>
-    * return (nextNumber() >>> 11) * 2^(-53)
-    * </pre>
-    *
-    * @return the next uniform in [0, 1)
+    * @param i lower bound
+    * @param j upper bound
+    * @return random long in [i, j]
     */
-   protected double nextValue() {
-      return (nextNumber() >>> 11) * NORM53;
-   }
- 
-   /**
-    * Returns a random long in the inclusive range {@code [i, j]}.
-    *
-    * Uses 63 random bits and rejection sampling when the range size fits in a
-    * positive long. For larger ranges, it samples full 64-bit values until one
-    * falls inside the interval.
-    *
-    * @param i lower bound, inclusive
-    * @param j upper bound, inclusive
-    * @return a random long in {@code [i, j]}
-    */
+   
+   // This method implements the "unbiased bounded integer generation" algorithm used by java.util.Random.nextint, which is based on rejection sampling to avoid modulo bias.
+   //It handles the case where the range size may exceed 2^63 by using a different approach (n <= 0 due to overflow). 
+   //also includes optimizations for power-of-two range sizes.
+   // uses 63 bits entropy in the case of n >0
    public long nextLong(long i, long j) {
       if (i > j)
          throw new IllegalArgumentException(i + " is larger than " + j + ".");
@@ -277,31 +271,23 @@ public class MWC64k2a2 extends RandomStreamBase {
    
    // LRSR version: range only up to 2^62  : should add guard to handle case where range is bigger
    public long nextLongssj(long i, long j) { 
-         if (i > j)
-            throw new IllegalArgumentException(i + " is larger than " + j + ".");
-         long d = j - i + 1;
-         long q = 0x4000000000000000L / d;  // 0x4000000000000000L = 2^{62} in hexadecimal.
-         long r = 0x4000000000000000L % d;
-         long res;
-         do {
-            res = nextNumber() >>> 2;   // Integer smaller than 2^{62}.
-         } while (res >= 0x4000000000000000L - r);
+	      if (i > j)
+	         throw new IllegalArgumentException(i + " is larger than " + j + ".");
+	      long d = j - i + 1;
+	      long q = 0x4000000000000000L / d;  // 0x4000000000000000L = 2^{62} in hexadecimal.
+	      long r = 0x4000000000000000L % d;
+	      long res;
+	      do {
+	         res = nextNumber() >>> 2;   // Integer smaller than 2^{62}.
+	      } while (res >= 0x4000000000000000L - r);
 
-         return i + (res / q);
-      }
+	      return i + (res / q);
+	   }
    
-   /**
-    * Returns the top b bits of the next 64-bit output.
-    *
-    * The selected bits are shifted to the right, so the result is stored in the
-    * least significant b bits of the returned long.
-    *
-    * @param b number of bits to return, between 1 and 64
-    * @return the top b bits of the next 64-bit output
-    */
+   // return a block of b bits (int):
    public long nextBitsLong(int b) {
-      return nextNumber() >>> (64 - b);
-   }
+	    return nextNumber() >>> (64 - b);
+	}
 
    /**
     * Returns a random int in [i, j].
@@ -322,7 +308,7 @@ public class MWC64k2a2 extends RandomStreamBase {
    public String toString() {
       StringBuilder sb = new StringBuilder();
 
-      sb.append("The current state of MWC64k2a2");
+      sb.append("The current state of MWC64k2a2new");
 
       if (name != null && name.length() > 0)
          sb.append(" ").append(name);
@@ -344,7 +330,7 @@ public class MWC64k2a2 extends RandomStreamBase {
       String nl = System.lineSeparator();
       StringBuilder sb = new StringBuilder();
 
-      sb.append("MWC64k2a2 stream");
+      sb.append("MWC64k2a2new stream");
 
       if (name != null && name.length() > 0)
          sb.append(" ").append(name);
@@ -374,13 +360,15 @@ public class MWC64k2a2 extends RandomStreamBase {
     *
     * @return independent copy of this stream
     */
-   public MWC64k2a2 clone() {
-      MWC64k2a2 copy = (MWC64k2a2) super.clone();
+   public MWC64k2a2new clone() {
+      MWC64k2a2new copy = (MWC64k2a2new) super.clone();
 
       copy.Ig = Ig.clone();               // Copy stream-start state.
       copy.Bg = Bg.clone();               // Copy substream-start state.
-      copy.IgY = IgY;                     // BigInteger is immutable; assignment is safe.
-      copy.BgY = BgY;                     // Keep cloned substream LCG state consistent.
+
+      // ARTICLE JUMP UPDATE: BigInteger is immutable, so direct assignment is safe.
+      copy.IgY = IgY;
+      copy.BgY = BgY;
 
       return copy;
    }
@@ -414,71 +402,46 @@ public class MWC64k2a2 extends RandomStreamBase {
    /**
     * Advances the current stream state by n steps.
     *
-    * This method is for a general jump size n. It maps the current MWC
-    * state to the equivalent LCG state, applies
-    * the LCG jump, then converts the result back to the MWC state.
+    * This method is for a general jump size n. It does not use
+    * fixed stream/substream states. It maps the current MWC state
+    * to the equivalent LCG state, applies the LCG jump, then converts
+    * the result back to the MWC state.
     *
     * @param n number of steps to jump
     */
-   public void advanceStateByJump(BigInteger n) {
+   public void advanceStateByJump(BigInteger n) { 
       if (n.signum() < 0)
          throw new IllegalArgumentException("Jump step n cannot be negative.");
 
       if (n.signum() == 0)
          return;
 
-      BigInteger stateX2 = toUnsignedBigInt(x2);
-      BigInteger stateX1 = toUnsignedBigInt(x1);
-      BigInteger stateCarry = BigInteger.valueOf(carry);
-
-//       Map the current MWC state to the equivalent LCG state:
-//        y =   (1 - A1*b)*x2 + b*x1 + b^2*carry mod m
-
-      BigInteger y =
-            BI_MAP_X2.multiply(stateX2)
-          .add(BI_B.multiply(stateX1))
-          .add(BI_B2.multiply(stateCarry))
-          .mod(BI_M);
+      BigInteger y = stateToLCG(getState());
 
       // Apply the LCG jump: y_new = (b^(-1))^n * y mod m.
       BigInteger sigma =
-            BI_B_INV.modPow(n, BI_M)
+            BI_B_INV.modPow(n, BI_M)// // BigInteger.valueOf(n)
           .multiply(y)
           .mod(BI_M);
 
-       // Convert the jumped LCG state back to the MWC state.
-      long newX2 = sigma.longValue();
-      sigma = sigma.shiftRight(64);
+      // Convert the jumped LCG state back to the MWC state.
+      long[] state = new long[3];
+      stateFromLCG(sigma, state);
 
-      sigma = sigma.add(BI_A1.multiply(toUnsignedBigInt(newX2)));
-
-      long newX1 = sigma.longValue();
-      long newCarry = sigma.shiftRight(64).longValue();
-
-      x2 = newX2;
-      x1 = newX1;
-      carry = newCarry;
+      x2 = state[0];
+      x1 = state[1];
+      carry = state[2];
    }
+   
+   //for test
+   public long nextRaw()
+   { return nextNumber();}
 
    /**
-    * Advances a stored LCG state by a fixed stream or substream jump.
+    * ARTICLE JUMP UPDATE: maps MWC state {x2, x1, carry} to LCG state y.
     *
-    * @param y stored LCG state to advance
-    * @param jumpMultiplier precomputed fixed jump multiplier
-    * @param state MWC state to receive the recovered value
-    * @return advanced LCG state
-    */
-   private static BigInteger advanceLCGState(BigInteger y, BigInteger jumpMultiplier, long[] state) {
-      BigInteger newY = jumpMultiplier.multiply(y).mod(BI_M);
-      stateFromLCG(newY, state);
-      return newY;
-   }
-
-   /**
-    * Maps a MWC state {x_{n-2}, x_{n-1}, carry} to its LCG state.
-    *
-    * @param state MWC state
-    * @return corresponding LCG state
+    * @param state MWC state {x_{n-2}, x_{n-1}, carry}
+    * @return corresponding LCG state y
     */
    private static BigInteger stateToLCG(long[] state) {
       BigInteger stateX2 = toUnsignedBigInt(state[0]);
@@ -492,10 +455,10 @@ public class MWC64k2a2 extends RandomStreamBase {
    }
 
    /**
-    * Recovers a MWC state {x_{n-2}, x_{n-1}, carry} from an LCG state.
+    * ARTICLE JUMP UPDATE: recovers MWC state {x2, x1, carry} from LCG state y.
     *
     * @param y LCG state
-    * @param state MWC state to update
+    * @param state MWC state to fill
     */
    private static void stateFromLCG(BigInteger y, long[] state) {
       BigInteger sigma = y;
@@ -512,10 +475,6 @@ public class MWC64k2a2 extends RandomStreamBase {
       state[1] = newX1;
       state[2] = newCarry;
    }
-   
-   //for test
-   public long nextRaw()
-   { return nextNumber();}
    
    /**
     * Converts an unsigned 64-bit long to a positive BigInteger.
