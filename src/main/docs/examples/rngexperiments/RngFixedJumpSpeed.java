@@ -4,9 +4,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import umontreal.ssj.rng.MRG32k3a;
+import umontreal.ssj.rng.MWC64k3a2;
 import umontreal.ssj.rng.MWC64k2a2;
-import umontreal.ssj.rng.MWC64k3a2;
-import umontreal.ssj.rng.MWC64k3a2;
+
 import umontreal.ssj.rng.LFSR258;
 import umontreal.ssj.rng.RandomStream;
 
@@ -50,6 +50,7 @@ public class RngFixedJumpSpeed {
         out.append("Jump speed test\n");
         out.append("M = ").append(M).append(" jumps per run\n");
         out.append("N = ").append(N).append(" runs\n");
+        out.append("Times are reported as total milliseconds per run.\n");
         out.append("Run 1 is a warm-up run and is not included in the average.\n");
         out.append("Average is computed over runs 2 to ").append(N).append(".\n\n");
 
@@ -58,19 +59,20 @@ public class RngFixedJumpSpeed {
 
         System.out.println(out);
 
-//        FileWriter writer = new FileWriter("/home/otman/Documents/GitHub/Data/o-MWC-test/MRGJumpSpeedTest.res");
-//        writer.write(out.toString());
-//        writer.close();
+        FileWriter writer = new FileWriter("/home/otman/Documents/GitHub/Data/o-MWC-test/RngFixedJumpSpeedTest.res");
+        writer.write(out.toString());
+        writer.close();
     }
 
     /**
      * Tests stream jumps by repeatedly creating new stream objects.
      */
     static void testStreamJump(StringBuilder out) {
-        out.append("===== Stream jump: new object =====\n\n");
+        out.append("===== Stream jump: constructor + stream jump + object allocation =====\n\n");
 
-//        runStreamJumpMRG32k3a(out);
-//        runStreamJumpLFSR258(out);
+        runStreamJumpMRG32k3a(out);
+        runStreamJumpLFSR258(out);
+        
         runStreamJumpMWC64k2a2(out);
         runStreamJumpMWC64k3a2(out);
 
@@ -85,8 +87,8 @@ public class RngFixedJumpSpeed {
 
         runSubstreamJump("MRG32k3a", new MRG32k3a(), out);
         runSubstreamJump("LFSR258", new LFSR258(), out);
-        runSubstreamJump("MWC64k2a2", new MWC64k2a2(), out);
         runSubstreamJump("MWC64k3a2", new MWC64k3a2(), out);
+        runSubstreamJump("MWC64k2a2", new MWC64k2a2(), out);
 
         out.append("\n");
     }
@@ -123,10 +125,10 @@ public class RngFixedJumpSpeed {
     }
 
     /**
-     * Measures stream jumps for MWC64k2a2 by repeatedly creating new objects.
+     * Measures stream jumps for MWC64k3a2 by repeatedly creating new objects.
      */
-    static void runStreamJumpMWC64k2a2(StringBuilder out) {
-        out.append("MWC64k2a2\n");
+    static void runStreamJumpMWC64k3a2(StringBuilder out) {
+        out.append("MWC64k3a2\n");
 
         double total = 0.0;
 
@@ -134,7 +136,7 @@ public class RngFixedJumpSpeed {
             long start = System.nanoTime();
 
             for (int i = 0; i < M; i++)
-                streamSink = new MWC64k2a2();
+                streamSink = new MWC64k3a2();
 
             double time = (System.nanoTime() - start) / 1_000_000.0;
 
@@ -154,10 +156,10 @@ public class RngFixedJumpSpeed {
     }
 
     /**
-     * Measures stream jumps for MWC64k3a2 by repeatedly creating new objects.
+     * Measures stream jumps for MWC64k2a2 by repeatedly creating new objects.
      */
-    static void runStreamJumpMWC64k3a2(StringBuilder out) {
-        out.append("MWC64k3a2\n");
+    static void runStreamJumpMWC64k2a2(StringBuilder out) {
+        out.append("MWC64k2a2\n");
 
         double total = 0.0;
 
@@ -165,7 +167,7 @@ public class RngFixedJumpSpeed {
             long start = System.nanoTime();
 
             for (int i = 0; i < M; i++)
-                streamSink = new MWC64k3a2();
+                streamSink = new MWC64k2a2();
 
             double time = (System.nanoTime() - start) / 1_000_000.0;
 

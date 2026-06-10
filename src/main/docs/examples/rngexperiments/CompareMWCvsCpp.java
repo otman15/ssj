@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.io.IOException;
 import umontreal.ssj.rng.MWC64k2a2;
-import umontreal.ssj.rng.MWC64k3a2;
+//import umontreal.ssj.rng.MWC64k3a2;
 
 
 
@@ -39,7 +39,7 @@ public class CompareMWCvsCpp {
     *   x1 = x_{n-1}
     *   carry = c
     */
-   private static final long[] SEED = {12345L, 12345L, 12345L};
+   private static final long[] SEED = {12345L, 12345L, 12345L, 12345L};
 
    public static void main(String[] args) throws IOException {
 	   
@@ -78,12 +78,12 @@ public class CompareMWCvsCpp {
    
 
    /*
-    * Same idea as the mwc64k2a2 raw speed block in TestMWCSpeed.cc:
+    * Same idea as the MWC64k2a2 raw speed block in TestMWCSpeed.cc:
     *
     * x1 = x2 = c = 12345;
     * sum = 0;
     * for i = 0 to n-1:
-    *     sum += mwc64k2a2();
+    *     sum += MWC64k2a2();
     *
     * Java long overflow automatically wraps modulo 2^64.
     */
@@ -111,7 +111,7 @@ public class CompareMWCvsCpp {
     *
     * dsum = 0;
     * for i = 0 to n-1:
-    *     dsum += mwc64k2a2U01();
+    *     dsum += MWC64k2a2U01();
     * Java nextValue() uses the top 53 bits and rejects 0.
     */
    private static void runSpeedU01Test() {
@@ -232,7 +232,8 @@ public class CompareMWCvsCpp {
       return "[" +
          Long.toUnsignedString(s[0]) + " " +
          Long.toUnsignedString(s[1]) + " " +
-         Long.toUnsignedString(s[2]) +
+         Long.toUnsignedString(s[2]) + " " +
+         Long.toUnsignedString(s[3]) +
       "]";
    }
 
