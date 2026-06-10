@@ -15,7 +15,7 @@ import umontreal.ssj.stat.Tally;
 /**
  * Phase 1 basic goodness-of-fit tests for the MWC64 generators.
  *
- * This class tests only the standard SSJ output stream.nextDouble().
+ * This class tests only the standard SSJ output stream.nextDoubleNonzero().
  * It does not test:
  * - raw bits,
  * - reversed bits,
@@ -48,13 +48,13 @@ public class RngPhase1BasicGOF {
     // Threshold used to flag extreme p-values.
     static final double SUSPICIOUS_P = 1.0e-6;
 
-    // The target distribution for nextDouble().
+    // The target distribution for nextDoubleNonzero().
     static final UniformDist U01 = new UniformDist(0.0, 1.0);
 
     /**
      * Runs Phase 1 tests on the two MWC64 generators.
      *
-     * Each run is a consecutive block of nextDouble() values.
+     * Each run is a consecutive block of nextDoubleNonzero() values.
      * We do not call resetNextSubstream() here because stream/substream
      * behavior is tested later in Phase 5.
      */
@@ -85,7 +85,7 @@ public class RngPhase1BasicGOF {
     static void testGenerator(String name, RandomStream stream, StringBuilder out) {
     	out.append("========================================\n");
         out.append(name + "\n");
-        out.append("Phase 1: SSJ Basic GOF on nextDouble() \n");
+        out.append("Phase 1: SSJ Basic GOF on nextDoubleNonzero() \n");
         out.append("M = " + M + " values per run \n");
         out.append("N = " + N + " consecutive runs \n");
         out.append("======================================== \n");
@@ -111,7 +111,7 @@ public class RngPhase1BasicGOF {
     }
 
     /**
-     * Generates one consecutive block of uniforms from stream.nextDouble().
+     * Generates one consecutive block of uniforms from stream.nextDoubleNonzero().
      *
      * @param stream SSJ random stream
      * @param n number of uniforms to generate
@@ -153,15 +153,15 @@ public class RngPhase1BasicGOF {
 
         double pMean = twoSidedNormalPValue(zMean);
 
-        System.out.printf("Mean: %.12f, z: %.6f, p-value: %.12g", ///////////////////////////////////
-                mean, zMean, pMean);
+        out.append(String.format("Mean: %.12f, z: %.6f, p-value: %.12g \n", ///////////////////////////////////
+                mean, zMean, pMean));
         printPValueFlag(pMean, out);
 
-        System.out.printf("Variance: %.12f, expected: %.12f%n",
-                variance, expectedVariance);
+        out.append(String.format("Variance: %.12f, expected: %.12f%n \n",
+                variance, expectedVariance));
 
-        System.out.printf("Min: %.12f, Max: %.12f%n",
-                tally.min(), tally.max());
+        out.append(String.format("Min: %.17f, Max: %.17f%n \n",
+                tally.min(), tally.max()));
     }
 
     /**
@@ -183,8 +183,8 @@ public class RngPhase1BasicGOF {
         int degreesFreedom = K1D - 1;
         double p = chiSquareUpperTail(degreesFreedom, chi2);
 
-        System.out.printf("Chi-square 1D: %.6f, df: %d, p-value: %.12g",
-                chi2, degreesFreedom, p);
+        out.append(String.format("Chi-square 1D: %.6f, df: %d, p-value: %.12g \n",
+                chi2, degreesFreedom, p));
         printPValueFlag(p, out);
     }
 
@@ -205,16 +205,16 @@ public class RngPhase1BasicGOF {
 
         GofStat.kolmogorovSmirnov(data, U01, stat, pval);
 
-        System.out.printf("KS D+ : %.8f, p-value: %.12g",
-                stat[0], pval[0]);
+        out.append(String.format("KS D+ : %.8f, p-value: %.12g \n",
+                stat[0], pval[0]));
         printPValueFlag(pval[0], out);
 
-        System.out.printf("KS D- : %.8f, p-value: %.12g",
-                stat[1], pval[1]);
+        out.append(String.format("KS D- : %.8f, p-value: %.12g \n",
+                stat[1], pval[1]));
         printPValueFlag(pval[1], out);
 
-        System.out.printf("KS D  : %.8f, p-value: %.12g",
-                stat[2], pval[2]);
+        out.append(String.format("KS D  : %.8f, p-value: %.12g \n",
+                stat[2], pval[2]));
         printPValueFlag(pval[2], out);
     }
 
@@ -232,8 +232,8 @@ public class RngPhase1BasicGOF {
         double statistic = result[0];
         double p = result[1];
 
-        System.out.printf("Anderson-Darling: %.8f, p-value: %.12g",
-                statistic, p);
+        out.append(String.format("Anderson-Darling: %.8f, p-value: %.12g \n",
+                statistic, p));
         printPValueFlag(p, out);
     }
 
@@ -264,8 +264,8 @@ public class RngPhase1BasicGOF {
         double z = corr * Math.sqrt(n);
         double p = twoSidedNormalPValue(z);
 
-        System.out.printf("Autocorrelation lag %d: %.12f, z: %.6f, p-value: %.12g",
-                lag, corr, z, p);
+        out.append(String.format("Autocorrelation lag %d: %.12f, z: %.6f, p-value: %.12g \n",
+                lag, corr, z, p));
         printPValueFlag(p, out);
     }
 
@@ -295,8 +295,8 @@ public class RngPhase1BasicGOF {
         int degreesFreedom = numberBins - 1;
         double p = chiSquareUpperTail(degreesFreedom, chi2);
 
-        System.out.printf("Chi-square 2D: %.6f, df: %d, p-value: %.12g",
-                chi2, degreesFreedom, p);
+        out.append(String.format("Chi-square 2D: %.6f, df: %d, p-value: %.12g \n",
+                chi2, degreesFreedom, p));
         printPValueFlag(p, out);
     }
 
@@ -327,8 +327,8 @@ public class RngPhase1BasicGOF {
         int degreesFreedom = numberBins - 1;
         double p = chiSquareUpperTail(degreesFreedom, chi2);
 
-        System.out.printf("Chi-square 3D: %.6f, df: %d, p-value: %.12g",
-                chi2, degreesFreedom, p);
+        out.append(String.format("Chi-square 3D: %.6f, df: %d, p-value: %.12g \n",
+                chi2, degreesFreedom, p));
         printPValueFlag(p, out);
     }
 

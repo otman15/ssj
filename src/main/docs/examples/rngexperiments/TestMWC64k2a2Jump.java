@@ -48,7 +48,7 @@ public class TestMWC64k2a2Jump {
          {1L, 3L, 4L},
          {12345L, 67890L, 13579L},
          {-1L, 1L, 2L},
-         {Long.MIN_VALUE, Long.MAX_VALUE, 190000000000000000L},
+         {Long.MIN_VALUE, Long.MAX_VALUE, 999999999999L},
          {-1L, -1L, 6459908096439L}
    };
 

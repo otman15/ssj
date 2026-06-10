@@ -21,7 +21,8 @@ public class TestGenzFunctions {
    private static double[]wOs;
    private static double w1 ;
    private static double[] wDisc = {0.2, 0.6};
-
+// add exact mean method to the class before executing
+   /**
    public static void main(String[] args)  throws IOException {
 	   
 	   try (PrintWriter out = new PrintWriter(new FileWriter("/home/otman/Documents/GitHub/Data/o-Genz-test/genz-test_results.res"))) {
@@ -137,4 +138,5 @@ public class TestGenzFunctions {
 
 	   return w;
 	}
+	*/
 }

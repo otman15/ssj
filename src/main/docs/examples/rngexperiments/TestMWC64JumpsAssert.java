@@ -2,12 +2,12 @@ package rngexperiments;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import umontreal.ssj.rng.MWC64k3a2;
+import umontreal.ssj.rng.MWC64k2a2;
 
 public class TestMWC64JumpsAssert {
 
-   private static final int STREAM_ADVANCE_EXPONENT = 169;
-   private static final int SUBSTREAM_ADVANCE_EXPONENT = 118;
+   private static final int STREAM_ADVANCE_EXPONENT = 113;//113
+   private static final int SUBSTREAM_ADVANCE_EXPONENT = 62; //62
 
    private static final BigInteger STREAM_JUMP =
          BigInteger.ONE.shiftLeft(STREAM_ADVANCE_EXPONENT);
@@ -16,11 +16,11 @@ public class TestMWC64JumpsAssert {
          BigInteger.ONE.shiftLeft(SUBSTREAM_ADVANCE_EXPONENT);
 
    private static final long[][] SEEDS = {
-         {1L, 3L, 4L, 5L},
-         {12345L, 67890L, 13579L, 24680L},
-         {-1L, 1L, 2L, 3L},
-         {Long.MIN_VALUE, Long.MAX_VALUE, -123456789L, 999999999999L},
-         {-1L, -1L, -1L, 184000000000000000L}
+         {1L, 3L, 4L},
+         {12345L, 67890L, 13579L},
+         {-1L, 1L, 2L},
+         {Long.MIN_VALUE, Long.MAX_VALUE,999999999999L},
+         { -1L, -1L, 184000000000000000L }
    };
 
    private static final int[] SMALL_JUMPS = {
@@ -28,18 +28,18 @@ public class TestMWC64JumpsAssert {
    };
 
    public static void main(String[] args) {
-//      testJumpAgainstGeneration();
-   //   testSubstreamJump();
-//      testStreamJump();
+      testJumpAgainstGeneration();
+      testSubstreamJump();
+      testStreamJump();
 
-      System.out.println("All MWC64k3a2 jump tests passed.");
+      System.out.println("All MWC64k2a2 jump tests passed.");
    }
 
-  /* private static void testJumpAgainstGeneration() {
+   private static void testJumpAgainstGeneration() {
       for (long[] seed : SEEDS) {
          for (int n : SMALL_JUMPS) {
-            MWC64k3a2 byGeneration = newStream(seed);
-            MWC64k3a2 byJump = newStream(seed);
+            MWC64k2a2 byGeneration = newStream(seed);
+            MWC64k2a2 byJump = newStream(seed);
 
             for (int i = 0; i < n; i++)
                byGeneration.nextRaw();
@@ -66,12 +66,12 @@ public class TestMWC64JumpsAssert {
       }
 
       System.out.println("jump(n) vs repeated generation: OK");
-   }*/
+   }
 
-   /* static void testSubstreamJump() {
+    static void testSubstreamJump() {
       for (long[] seed : SEEDS) {
-         MWC64k3a2 fixed = newStream(seed);
-         MWC64k3a2 generic = newStream(seed);
+         MWC64k2a2 fixed = newStream(seed);
+         MWC64k2a2 generic = newStream(seed);
 
          fixed.resetNextSubstream();
          generic.advanceStateByJump(SUBSTREAM_JUMP);
@@ -97,11 +97,11 @@ public class TestMWC64JumpsAssert {
 
    private static void testStreamJump() {
       for (long[] seed : SEEDS) {
-         MWC64k3a2.setPackageSeed(seed.clone());
+         MWC64k2a2.setPackageSeed(seed.clone());
 
-         MWC64k3a2 stream1 = new MWC64k3a2();
-         MWC64k3a2 stream2 = new MWC64k3a2();
-         MWC64k3a2 stream3 = new MWC64k3a2();
+         MWC64k2a2 stream1 = new MWC64k2a2();
+         MWC64k2a2 stream2 = new MWC64k2a2();
+         MWC64k2a2 stream3 = new MWC64k2a2();
 
          assertStateEquals(
                "first stream should start at package seed",
@@ -109,7 +109,7 @@ public class TestMWC64JumpsAssert {
                stream1.getState()
          );
 
-         MWC64k3a2 expected2 = newStream(seed);
+         MWC64k2a2 expected2 = newStream(seed);
          expected2.advanceStateByJump(STREAM_JUMP);
 
          assertStateEquals(
@@ -118,7 +118,7 @@ public class TestMWC64JumpsAssert {
                stream2.getState()
          );
 
-         MWC64k3a2 expected3 = newStream(seed);
+         MWC64k2a2 expected3 = newStream(seed);
          expected3.advanceStateByJump(STREAM_JUMP.multiply(BigInteger.valueOf(2L)));
 
          assertStateEquals(
@@ -129,10 +129,10 @@ public class TestMWC64JumpsAssert {
       }
 
       System.out.println("fixed stream jump: OK");
-   }*/
+   }
 
-   private static MWC64k3a2 newStream(long[] seed) {
-      MWC64k3a2 stream = new MWC64k3a2();
+   private static MWC64k2a2 newStream(long[] seed) {
+      MWC64k2a2 stream = new MWC64k2a2();
       stream.setSeed(seed.clone());
       return stream;
    }

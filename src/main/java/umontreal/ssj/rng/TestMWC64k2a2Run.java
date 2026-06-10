@@ -1,6 +1,7 @@
 package umontreal.ssj.rng;
 
 import java.io.FileWriter;
+import java.math.BigInteger;
 import java.io.PrintWriter;
 import java.io.IOException;
 
@@ -168,7 +169,7 @@ public class TestMWC64k2a2Run {
       long start = System.nanoTime();
 
       for (int i = 1; i <= 4; i++) {
-         rng.advanceStateByJump(JUMP_SIZE);
+         rng.advanceStateByJump(BigInteger.valueOf(JUMP_SIZE));
          out.append("after jump " + i + " = " + state(rng.getState()) + "\n");
       }
 
@@ -186,7 +187,7 @@ public class TestMWC64k2a2Run {
 
       start = System.nanoTime();
 
-      rng.advanceStateByJump(4L * JUMP_SIZE);
+      rng.advanceStateByJump(BigInteger.valueOf(4L * JUMP_SIZE));
 
       end = System.nanoTime();
 
@@ -207,7 +208,7 @@ public class TestMWC64k2a2Run {
       start = System.nanoTime();
 
       for (long i = 0; i < N_JUMPS; i++) {
-    	  rng.advanceStateByJump(JUMP_SIZE);
+    	  rng.advanceStateByJump(BigInteger.valueOf(JUMP_SIZE));
       }
 
       end = System.nanoTime();

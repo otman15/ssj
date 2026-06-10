@@ -1,6 +1,7 @@
 package umontreal.ssj.rng;
 
 import java.util.Arrays;
+import java.math.BigInteger;
 /*
  * This class test the jumps for mwc
  */
@@ -29,7 +30,7 @@ public class TestMWC643a2 {
             for (long i = 0; i < n; i++)
                repeated.nextRaw();
 
-            jumped.advanceStateByJump(n);
+            jumped.advanceStateByJump(BigInteger.valueOf(n));
 
             long[] stateRepeated = repeated.getState();
             long[] stateJumped = jumped.getState();
