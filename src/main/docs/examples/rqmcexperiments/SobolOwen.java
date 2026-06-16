@@ -59,6 +59,7 @@ public class SobolOwen {
    };
 // The C++ code uses uint32_t, which is an unsigned 32-bit integer.
 // Java's int is signed, but we can still match the bitwise behavior by treating it as unsigned when needed.
+  
    /**
     * Hash the user seed to produce a more uniformly distributed internal seed.
     * @param x
@@ -84,15 +85,6 @@ public class SobolOwen {
       return seed ^ (v + (seed << 6) + (seed >>> 2));
    }
 /**
- * Reverse the bits of an integer, matching the behavior of reverse_bits in sobol.h.
- * @param x
- * @return the integer with its bits reversed
- */
-   static int reverseBits(int x) {
-      // Integer.reverse is the direct Java equivalent of reverse_bits.
-      return Integer.reverse(x);
-   }
-/**
  * Apply the Laine-Karras permutation to an integer with a given seed.
  * @param x
  * @param seed
@@ -115,9 +107,9 @@ public class SobolOwen {
  */
    static int nestedUniformScrambleBase2(int x, int seed) {
       // Same pipeline as nested_uniform_scramble_base2 in sobol.h.
-      x = reverseBits(x);
+      x = Integer.reverse(x);
       x = laineKarrasPermutation(x, seed);
-      x = reverseBits(x);
+      x = Integer.reverse(x);
       return x;
    }
 /**
@@ -157,18 +149,6 @@ public class SobolOwen {
       return nestedUniformScrambleBase2(sobol(index, dim), hashCombine(hashedSeed, dim));
    }
 
-   static int sobolOwenScrambleOnly(int i, int dim, int hashedSeed) {
-      return nestedUniformScrambleBase2(
-         sobol(i, dim),
-         hashCombine(hashedSeed, dim)
-      );
-   }
-
-   static int laine_karras(int i, int dim, int dimSeed) {
-      // Same branch as genpoints.cpp after seed = hash_combine(seed, hash(dim)).
-      return laineKarrasPermutation(reverseBits(i), dimSeed);
-   }
-
    static void help() {
       // Same argument order and defaults as main.cpp.
       //System.err.println("Usage: java rqmcexperiments.SobolOwen [seq] [N=16] [dim=0] [seed=1]");
@@ -176,7 +156,6 @@ public class SobolOwen {
       System.err.println("   sobol");
       System.err.println("   sobol_rds");
       System.err.println("   sobol_owen");
-      System.err.println("   sobol_owen_scramble_only");
       System.err.println("   laine_karras");
    }
 
@@ -223,18 +202,11 @@ public class SobolOwen {
                               value, Integer.toUnsignedLong(value) * 0x1.0p-32);
          }
       }
-      else if (seq.equals("sobol_owen_scramble_only")) {
-         for (int i = 0; i < n; i++) {
-            int value = sobolOwenScrambleOnly(i, dim, hashedSeed);
-            // Print the raw 32-bit value, then convert it directly to [0, 1).
-            System.out.printf(Locale.ROOT, "%08x    %.17g%n",
-                              value, Integer.toUnsignedLong(value) * 0x1.0p-32);
-         }
-      }
+
       else if (seq.equals("laine_karras")) {
          int dimSeed = hashCombine(hashedSeed, hash(dim));
          for (int i = 0; i < n; i++) {
-            int value = laine_karras(i, dim, dimSeed);
+            int value = laineKarrasPermutation(Integer.reverse(i), dimSeed);
             // Print the raw 32-bit value, then convert it directly to [0, 1).
             System.out.printf(Locale.ROOT, "%08x    %.17g%n",
                               value, Integer.toUnsignedLong(value) * 0x1.0p-32);

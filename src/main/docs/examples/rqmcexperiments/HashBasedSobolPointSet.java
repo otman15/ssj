@@ -9,12 +9,10 @@ public class HashBasedSobolPointSet extends PointSet {
       INDEPENDENT_SEEDS
    }
 
-   private final int k;
    private final int n;
    private final int s;
    private final boolean shuffleIndex;
    private final SeedMode seedMode;
-   private int seed;
    private int hashedSeed;
    private int indexSeed;
    private final int[] dimSeeds;
@@ -31,7 +29,6 @@ public class HashBasedSobolPointSet extends PointSet {
       if (seedMode == null)
          throw new NullPointerException("seedMode");
 
-      this.k = k;
       this.n = 1 << k;
       this.s = s;
       this.shuffleIndex = shuffleIndex;
@@ -42,20 +39,8 @@ public class HashBasedSobolPointSet extends PointSet {
       setSeed(seed);
    }
 
-   public int getK() {
-      return k;
-   }
-
-   public int getN() {
-      return n;
-   }
-
    public int getS() {
       return s;
-   }
-
-   public int getSeed() {
-      return seed;
    }
 
    public SeedMode getSeedMode() {
@@ -63,7 +48,6 @@ public class HashBasedSobolPointSet extends PointSet {
    }
 
    public void setSeed(int seed) {
-      this.seed = seed;
       this.hashedSeed = SobolOwen.hash(seed);
       this.indexSeed = hashedSeed;
       for (int j = 0; j < s; j++)
