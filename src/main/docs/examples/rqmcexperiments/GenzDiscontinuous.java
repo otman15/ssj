@@ -29,7 +29,7 @@ public class GenzDiscontinuous implements MonteCarloModelDouble {
     *
     * @param s dimension of the function
     * @param c scale parameters, all strictly positive
-    * @param w discontinuity parameters, of length 2, both in @f$(0,1)@f$
+    * @param w discontinuity parameters, of length 2, both in @f$[0,1)@f$
     */
    public GenzDiscontinuous(int s, double[] c, double[] w) {
       if (s < 2)
@@ -108,9 +108,8 @@ public class GenzDiscontinuous implements MonteCarloModelDouble {
    public String getTag() {
       return "GenzDiscontinuous";
    }
-   /////////for test
+   // for testing
    public double getExactMean() {
-	   return exactMean;
-	}
-   
+      return exactMean;
+   }
 }

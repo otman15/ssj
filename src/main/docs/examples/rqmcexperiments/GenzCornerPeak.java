@@ -86,7 +86,7 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
     * @throws IllegalArgumentException if @f$s \ge 63@f$, since @f$2^s@f$ subsets
     *         cannot be represented safely with a `long`
     */
-   public double computeExactMean() {
+   private double computeExactMean() {
 	   if (s >= 63) {
 	      throw new IllegalArgumentException(
 	         "Exact subset enumeration needs 2^s subsets; s is too large."
@@ -147,10 +147,10 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    public String getTag() {
       return "GenzCornerPeak";
    }
-   
-   /////////for test
+
+   // for testing
    public double getExactMean() {
-	   return exactMean;
-	}
+      return exactMean;
+   }
 
 }

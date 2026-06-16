@@ -17,7 +17,7 @@ import umontreal.ssj.util.Num;
 public class GenzGaussian implements MonteCarloModelDouble {
 
    private final int s;
-   private final double[] cSquared; // Precomputed (C_j)^2 for simulate. C_j are needed only for exacte value
+   private final double[] cSquared; // Precomputed (C_j)^2 for simulate. C_j are needed only for exact value
    private final double[] w;
    private final double exactMean;
 
@@ -28,7 +28,7 @@ public class GenzGaussian implements MonteCarloModelDouble {
     *
     * @param s dimension of the function
     * @param c scale parameters, all strictly positive
-    * @param w location parameters, all in the open interval @f$(0,1)@f$
+    * @param w location parameters, all in @f$[0,1)@f$
     */
    public GenzGaussian(int s, double[] c, double[] w) {
       if (s <= 0)
