@@ -157,7 +157,7 @@ public class CompareNUS {
    public static void main(String[] args) throws IOException {
       int s = 2;
       int k = 10;
-      int m = 100000;
+      int m = 10000;
       int n = 1 << k;
 
       DiagnosticModel[] models = {

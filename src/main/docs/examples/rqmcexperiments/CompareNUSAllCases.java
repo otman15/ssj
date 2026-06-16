@@ -19,7 +19,7 @@ import umontreal.ssj.stat.TallyStore;
 
 public class CompareNUSAllCases {
    private static final String RESULT_DIR =
-         "/home/otman/Documents/GitHub/Data/o-test/nus/";
+         "/home/otman/Documents/GitHub/Data/o-test/nus/30bt/";
    private static final int[] DIMENSIONS = {1, 2, 3, 4};
    private static final int[] K_VALUES = {8, 10, 12, 14, 16};
 
@@ -101,6 +101,15 @@ private static class X2Model implements MonteCarloModelDouble {
       return runReplications("Burley shuffle + scramble", pointSet, nus, model, n, m);
    }
 
+   // SSJ 30-bit version: same hash-based shuffle + scramble idea,
+   // but using SSJ Sobol generator columns instead of Burley's 32-bit table.
+   private static MethodResult runBurleySSJ30BitFull(MonteCarloModelDouble model,
+                                                     RandomStream stream, int s, int k, int n, int m) {
+      HashBasedSobolSSJ30BitPointSet pointSet = new HashBasedSobolSSJ30BitPointSet(k, s, 1);
+      PointSetRandomization nus = new HashBasedSobolSSJ30BitRandomization(stream);
+      return runReplications("Burley SSJ 30-bit shuffle + scramble", pointSet, nus, model, n, m);
+   }
+
    // private static MethodResult runBurleyOriginalScrambleOnly(MonteCarloModelDouble model,
    //                                                           int s, int k, int n, int m) {
    //    RandomStream stream = new MWC64k3a2();
@@ -164,6 +173,12 @@ private static class X2Model implements MonteCarloModelDouble {
 
                writeMethod(out, "Burley shuffle + scramble",
                      runBurleyFull(factory.create(s), stream, s, k, n, m));
+
+               // SSJ 30-bit version: explicit label in the output because it is
+               // not expected to match Burley's 32-bit C++ output bit-for-bit.
+               stream.resetStartStream();
+               writeMethod(out, "Burley SSJ 30-bit shuffle + scramble",
+                     runBurleySSJ30BitFull(factory.create(s), stream, s, k, n, m));
 
                stream.resetStartStream();
                writeMethod(out, "SSJ NUS",
