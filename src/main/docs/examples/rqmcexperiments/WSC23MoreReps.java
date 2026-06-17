@@ -18,13 +18,13 @@ public class WSC23MoreReps extends RQMCExperiment64 {
    public static void main(String[] args) throws IOException {
       // WSC26RQMCSamples64.directory = "C:/Users/Lecuyer/Dropbox/wsc26/data64/"; // Retained for 64 bits
       // WSC23MoreSamples.directory = "C:/Users/Lecuyer/Dropbox/wsc23/test/";        // For testing
-      WSC23MoreSamples.directory = "C:/Users/cherrato/Documents/GitHub/Data/small-tests/";        // For Samo paper
+      WSC23MoreSamples.directory = "/home/otman/Documents/GitHub/Data/o-test/nus/padded/";        // For Samo paper
 
       MonteCarloModelDouble model;
       Chrono timerTotal = new Chrono();
       RandomStream noise = new LFSR258();
 
-      for (int s = 2; s <= 2; s *= 2) {
+      for (int s = 4; s <= 16; s *= 2) {
       // for (int s = 4; s <= 32; s *= 2) {
          System.out.println("WSC23MoreReps, run with s = " + s);
          // Uncomment the model you want below. ***
@@ -45,7 +45,7 @@ public class WSC23MoreReps extends RQMCExperiment64 {
          //  RQMCSamples23.redirectToFile((model.getTag() + "-" + s));
          // WSC26RQMCSamples64.simulAllSizes(model, s, 8, 18, 1000);
          
-         int m = 100000; // Number of RQMC randomizations.
+         int m = 10000; // Number of RQMC randomizations.
          // int m = 10; // Number of RQMC randomizations.
          int mink = 14;
          int maxk = 16;
@@ -54,7 +54,7 @@ public class WSC23MoreReps extends RQMCExperiment64 {
            WSC23MoreSamples.simulRepsAllSizes(new MC2(s), s, mink, maxk, m);
 //         WSC23MoreSamples.simulRepsAllSizes(new Polynomial(s), s, mink, maxk, m);
 //         WSC23MoreSamples.simulRepsAllSizes(new Oscillatory(s), s, mink, maxk, m);
-//         WSC23MoreSamples.simulRepsAllSizes(new Gaussian(s), s, mink, maxk, m);
+//         WSC23MoreSamples.simulRepsAllSizes(new GenzGaussian(s), s, mink, maxk, m);
 //         WSC23MoreSamples.simulRepsAllSizes(new SmoothGauss(s), s, mink, maxk, m);
 //         WSC23MoreSamples.simulRepsAllSizes(new PieceLinGauss(s), s, mink, maxk, m);
          //WSC23MoreSamples.simulRepsAllSizes(new IndSumNormal(s), s, mink, maxk, m);

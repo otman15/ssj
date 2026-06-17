@@ -119,7 +119,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       Chrono timer = new Chrono();
       System.out.println("WSC23MoreSamples program, RQMC replicates with model: " + model.toString() + "\n");
       TallyStore statReps = new TallyStore(m);
-
+/*
       // --------------------------
       // Objects for lattice points
       System.out.println("***  Lattice points ");
@@ -133,12 +133,12 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("*   Lattice with RS");
       statReps.setName(modelTag + "-" + s + "-Lat-RS-" + k + "-" + m);
       simulRepsRQMCSort(model, pLat, randShift, m, statReps);
-/*
+
       // Lat-RSB
       System.out.println("*   Lattice with RS + tent transform");
       statReps.setName(modelTag + "-" + s + "-Lat-RSB-" + k + "-" + m);
       simulRepsRQMCSort(model, ptent, randShift, m, statReps);
-/*
+
       // Lat-Rv, random a
       System.out.println("*   Lattice with random gen vector a, no shift");
       randLatPar.setRandShift(false);
@@ -156,7 +156,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       randLatPar.setRandShift(true);
       statReps.setName(modelTag + "-" + s + "-Lat-RvRS-" + k + "-" + m);
       simulRepsRQMCSort(model, pLat, randLatPar, m, statReps);
-*/
+
       // Lat-RvRSB, random a and RS + tent
       System.out.println("*   Lattice with random gen vector a and RS + tent");
       statReps.setName(modelTag + "-" + s + "-Lat-RvRSB-" + k + "-" + m);
@@ -172,11 +172,12 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("*   Lattice with random n, random gen vector a, and RS + tent");
       statReps.setName(modelTag + "-" + s + "-Lat-RpvRSB-" + k + "-" + m);
       simulRepsRQMCSort(model, ptent, randLatPar2, m, statReps);
-/*
+*/
       // -------------------------
       // Objects for Sobol' points
       System.out.println("*** Sobol points ");
       DigitalNetBase2 p = new SobolSequence(k, 53, s); // n = 2^{k} points in s dim.
+/*    
       ptent = new BakerTransformedPointSet(p);
       // PointSetRandomization norand = new EmptyRandomization(); // No randomization
       PointSetRandomization rds = new RandomShift(stream); // Digital shift
@@ -205,13 +206,23 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       p.addIndepRandomBits(new LFSR258());
       simulRepsRQMCSort(model, p, lmsrds, m, statReps);
       p.clearIndepRandomBits();
-
+*/
       // Sob-NUS
       System.out.println("* Sobol with NUS");
       statReps.setName(modelTag + "-" + s + "-Sob-NUS-" + k + "-" + m);
       CachedPointSet cp = new CachedPointSet(p);
       PointSetRandomization nus = new NestedUniformScrambling(stream, 53);
       simulRepsRQMCSort(model, cp, nus, m, statReps);
+
+      // Sob Burley padded
+      stream.resetStartStream();
+      System.out.println("* Burley padded Sobol with hash-based NUS");
+      statReps.setName(modelTag + "-" + s + "-BurleyPadded-" + k + "-" + m);
+      BurleyPaddedSobol.PaddedPointSet pBurley =
+            new BurleyPaddedSobol.PaddedPointSet(k, s, 1);
+      PointSetRandomization burleyNus =
+            new BurleyPaddedSobol.Randomization(stream);
+      simulRepsRQMCSort(model, pBurley, burleyNus, m, statReps);
 
       /*
        * // Sob-Int2 Sob-interlaced-order2
@@ -290,8 +301,8 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("RQMC replicates with model: " + model.toString() + ", s = " + s + "\n");
       Chrono timer = new Chrono();
       for (int k = mink; k <= maxk; k += 2) { // For each point set size
-         // simulRepsAllTypes(model, s, k, m);
-         simulRepsSelectedTypes(model, s, k, m);
+         simulRepsAllTypes(model, s, k, m);
+         // simulRepsSelectedTypes(model, s, k, m);
       }
       System.out.println(
             "\nTotal time for simulAllSizes: " + timer.format() + "\n=========================================== \n");
