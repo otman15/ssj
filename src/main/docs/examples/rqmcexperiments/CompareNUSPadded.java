@@ -17,11 +17,11 @@ import umontreal.ssj.rng.MWC64k3a2;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.TallyStore;
 
-public class CompareNUSAllCases {
+public class CompareNUSPadded {
    private static final String RESULT_DIR =
-         "/home/otman/Documents/GitHub/Data/o-test/nus/30bt/";
-   private static final int[] DIMENSIONS = {1, 2, 3, 4};
-   private static final int[] K_VALUES = {8, 10, 12, 14, 16};
+         "/home/otman/Documents/GitHub/Data/o-test/nus/padded/";
+   private static final int[] DIMENSIONS = {4, 8, 16};
+   private static final int[] K_VALUES = {8, 12, 16};
 
    private interface ModelFactory {
       MonteCarloModelDouble create(int s);
@@ -30,28 +30,28 @@ public class CompareNUSAllCases {
       String fileName();
    }
 
-private static class X2Model implements MonteCarloModelDouble {
-   private final int s;
-   private double value;
+   private static class X2Model implements MonteCarloModelDouble {
+      private final int s;
+      private double value;
 
-   X2Model(int s) {
-      this.s = s;
-   }
+      X2Model(int s) {
+         this.s = s;
+      }
 
-   @Override
-   public void simulate(RandomStream stream) {
-      value = 0.0;
-      for (int j = 0; j < s; j++) {
-         double u = stream.nextDouble();
-         value += u * u;
+      @Override
+      public void simulate(RandomStream stream) {
+         value = 0.0;
+         for (int j = 0; j < s; j++) {
+            double u = stream.nextDouble();
+            value += u * u;
+         }
+      }
+
+      @Override
+      public double getPerformance() {
+         return value - s / 3.0;
       }
    }
-
-   @Override
-   public double getPerformance() {
-      return value - s / 3.0;
-   }
-}
 
    private static class MethodResult {
       private final TallyStore estimates;
@@ -92,21 +92,13 @@ private static class X2Model implements MonteCarloModelDouble {
       PointSetRandomization nus = new NestedUniformScrambling(stream, 32);
       return runReplications("SSJ NUS", cachedSobol, nus, model, n, m);
    }
-   
-   private static MethodResult runBurleyFull(MonteCarloModelDouble model,
-                                             RandomStream stream, int s, int k, int n, int m) {
-      HashBasedSobolPointSet pointSet = new HashBasedSobolPointSet(k, s, 1);
-      PointSetRandomization nus = new HashBasedSobolRandomization(stream);
-      return runReplications("Burley shuffle + scramble", pointSet, nus, model, n, m);
-   }
 
-   // SSJ 30-bit version: same hash-based shuffle + scramble idea,
-   // but using SSJ Sobol generator columns instead of Burley's 32-bit table.
-   private static MethodResult runBurleySSJ30BitFull(MonteCarloModelDouble model,
-                                                     RandomStream stream, int s, int k, int n, int m) {
-      HashBasedSobolSSJ30BitPointSet pointSet = new HashBasedSobolSSJ30BitPointSet(k, s, 1);
-      PointSetRandomization nus = new HashBasedSobolSSJ30BitRandomization(stream);
-      return runReplications("Burley SSJ 30-bit shuffle + scramble", pointSet, nus, model, n, m);
+   private static MethodResult runBurleyPadded(MonteCarloModelDouble model,
+                                               RandomStream stream, int s, int k, int n, int m) {
+      BurleyPaddedSobol.PaddedPointSet pointSet =
+            new BurleyPaddedSobol.PaddedPointSet(k, s, 1);
+      PointSetRandomization nus = new BurleyPaddedSobol.Randomization(stream);
+      return runReplications("Burley padded shuffle + scramble", pointSet, nus, model, n, m);
    }
 
    private static void writeMethod(PrintWriter out, String label, MethodResult result) {
@@ -144,18 +136,23 @@ private static class X2Model implements MonteCarloModelDouble {
 
                RandomStream stream = new MWC64k3a2();
 
-               writeMethod(out, "Burley shuffle + scramble",
-                     runBurleyFull(factory.create(s), stream, s, k, n, m));
+               // Warm-up Burley
+               runBurleyPadded(factory.create(s), stream, s, k, n, 100);
 
-               // SSJ 30-bit version: explicit label in the output because it is
-               // not expected to match Burley's 32-bit C++ output bit-for-bit.
                stream.resetStartStream();
-               writeMethod(out, "Burley SSJ 30-bit shuffle + scramble",
-                     runBurleySSJ30BitFull(factory.create(s), stream, s, k, n, m));
+               writeMethod(out, "Burley padded shuffle + scramble",
+                     runBurleyPadded(factory.create(s), stream, s, k, n, m));
+
+               // Warm-up SSJ
+               runSSJNUS(factory.create(s), stream, s, k, n, 100);
 
                stream.resetStartStream();
                writeMethod(out, "SSJ NUS",
                      runSSJNUS(factory.create(s), stream, s, k, n, m));
+
+
+
+
             }
          }
       }
@@ -178,7 +175,7 @@ private static class X2Model implements MonteCarloModelDouble {
             }
 
             public String fileName() {
-               return "CompareNUS-x2.res";
+               return "CompareNUSPadded-x2.res";
             }
          },
          new ModelFactory() {
@@ -200,7 +197,7 @@ private static class X2Model implements MonteCarloModelDouble {
             }
 
             public String fileName() {
-               return "CompareNUS-GenzOscillatory.res";
+               return "CompareNUSPadded-GenzOscillatory.res";
             }
          },
          new ModelFactory() {
@@ -217,7 +214,7 @@ private static class X2Model implements MonteCarloModelDouble {
             }
 
             public String fileName() {
-               return "CompareNUS-SmoothPerB4.res";
+               return "CompareNUSPadded-SmoothPerB4.res";
             }
          },
          new ModelFactory() {
@@ -234,23 +231,15 @@ private static class X2Model implements MonteCarloModelDouble {
             }
 
             public String fileName() {
-               return "CompareNUS-MC2.res";
+               return "CompareNUSPadded-MC2.res";
             }
          }
       };
    }
 
    public static void main(String[] args) throws IOException {
-      // if (args.length != 1) {
-      //    System.err.println("Usage: java rqmcexperiments.CompareNUSAllCases m");
-      //    return;
-      // }
 
-      // int m = Integer.parseInt(args[0]);
-      // if (m <= 0)
-      //    throw new IllegalArgumentException("m must be positive");
-
-      int m = 1000; // default number of replications
+      int m = 10000;
 
       for (ModelFactory factory : factories())
          writeFunctionFile(factory, m);

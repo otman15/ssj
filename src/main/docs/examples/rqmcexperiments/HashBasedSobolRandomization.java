@@ -18,16 +18,7 @@ public class HashBasedSobolRandomization implements PointSetRandomization {
                "HashBasedSobolRandomization requires a HashBasedSobolPointSet");
 
       HashBasedSobolPointSet pointSet = (HashBasedSobolPointSet) p;
-      if (pointSet.getSeedMode() == HashBasedSobolPointSet.SeedMode.ORIGINAL_BURLEY) {
-         pointSet.setSeed((int) stream.nextLong(0, 0xffffffffL));
-      }
-      else {
-         int indexSeed = (int) stream.nextLong(0, 0xffffffffL);
-         int[] dimSeeds = new int[pointSet.getS()];
-         for (int j = 0; j < pointSet.getS(); j++)
-            dimSeeds[j] = (int) stream.nextLong(0, 0xffffffffL);
-         pointSet.setIndependentSeeds(indexSeed, dimSeeds);
-      }
+      pointSet.setSeed((int) stream.nextLong(0, 0xffffffffL));
    }
 
    @Override

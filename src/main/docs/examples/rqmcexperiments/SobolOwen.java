@@ -161,7 +161,7 @@ public class SobolOwen {
 
    public static void main(String[] args) {
       // Edit these values manually, then press Run in VS Code or Eclipse.
-      String seq = "sobol_owen";//sobol sobol_owen sobol_rds sobol_owen_scramble_only laine_karras
+      String seq = "sobol_owen";//sobol sobol_owen sobol_rds laine_karras
       int n = 4;
       int dim = 0;
       int seed = 1;

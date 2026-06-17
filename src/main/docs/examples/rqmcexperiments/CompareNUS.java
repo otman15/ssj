@@ -94,56 +94,23 @@ public class CompareNUS {
       CachedPointSet cachedSobol = new CachedPointSet(sobol);
       PointSetRandomization nus = new NestedUniformScrambling(streamNus, 32);
 
-      // RandomStream streamHashOriginalScrambleOnly = new MWC64k3a2();
-      // HashBasedSobolPointSet hashOriginalScrambleOnly =
-      //       new HashBasedSobolPointSet(k, s, 1, false);
-      // PointSetRandomization hashOriginalScrambleOnlyNus =
-      //       new HashBasedSobolRandomization(streamHashOriginalScrambleOnly);
-
-      // RandomStream streamHashIndependentScrambleOnly = new MWC64k3a2();
-      // HashBasedSobolPointSet hashIndependentScrambleOnly =
-      //       new HashBasedSobolPointSet(k, s, 1, false,
-      //             HashBasedSobolPointSet.SeedMode.INDEPENDENT_SEEDS);
-      // PointSetRandomization hashIndependentScrambleOnlyNus =
-      //       new HashBasedSobolRandomization(streamHashIndependentScrambleOnly);
-
       RandomStream streamHashOriginalFull = new MWC64k3a2();
       HashBasedSobolPointSet hashOriginalFull =
-            new HashBasedSobolPointSet(k, s, 1, true,
-                  HashBasedSobolPointSet.SeedMode.ORIGINAL_BURLEY);
+            new HashBasedSobolPointSet(k, s, 1);
       PointSetRandomization hashOriginalFullNus =
             new HashBasedSobolRandomization(streamHashOriginalFull);
-
-      // RandomStream streamHashIndependentFull = new MWC64k3a2();
-      // HashBasedSobolPointSet hashIndependentFull =
-      //       new HashBasedSobolPointSet(k, s, 1, true,
-      //             HashBasedSobolPointSet.SeedMode.INDEPENDENT_SEEDS);
-      // PointSetRandomization hashIndependentFullNus =
-      //       new HashBasedSobolRandomization(streamHashIndependentFull);
 
       TallyStore hashBasedOriginalFull = runRQMC("Burley shuffle + scramble",
                                                 hashOriginalFull, hashOriginalFullNus, model, n, m);
 
       TallyStore ssjNus = runRQMC("SSJ NUS", cachedSobol, nus, model, n, m);
-      // TallyStore hashBasedOriginalScrambleOnly = runRQMC("Burley original scramble-only",
-      //                                                   hashOriginalScrambleOnly,
-      //                                                   hashOriginalScrambleOnlyNus, model, n, m);
-      // TallyStore hashBasedIndependentScrambleOnly = runRQMC("Burley independent-seeds scramble-only",
-      //                                                      hashIndependentScrambleOnly,
-      //                                                      hashIndependentScrambleOnlyNus, model, n, m);
-      // TallyStore hashBasedIndependentFull = runRQMC("Burley independent-seeds shuffle + scramble",
-      //                                              hashIndependentFull, hashIndependentFullNus, model, n, m);
-
       out.println();
       out.println("============================================================");
       out.println(model);
       out.println("============================================================");
       out.println("theoretical mean = " + model.expectedValue());
       printReport(out, "SSJ NUS", ssjNus);
-      // printReport("Burley original scramble-only", hashBasedOriginalScrambleOnly);
-      // printReport("Burley independent-seeds scramble-only", hashBasedIndependentScrambleOnly);
       printReport(out, "Burley shuffle + scramble", hashBasedOriginalFull);
-      // printReport("Burley independent-seeds shuffle + scramble", hashBasedIndependentFull);
    }
 
    private static void printReport(PrintWriter out, String label, TallyStore estimates) {
