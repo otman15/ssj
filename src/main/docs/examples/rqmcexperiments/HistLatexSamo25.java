@@ -45,14 +45,14 @@ public class HistLatexSamo25 {
       //String[] modelTags = {"Gaussian","MC2"};
       
       int[] sDims = {2, 4, 8, 16, 32};
-      int m = 10000;
+      int m = 10000; // mettre cela au début 
       int mExp = (int) Math.log10(m);
       int[] ks = {10, 12, 14, 16};
 
       String[][] pages = {
          {"Rank-1 lattice", "Lat-RS,Lat-RSB,Lat-Rv,Lat-Rpv,Lat-RvRS,Lat-RvRSB,Lat-RpvRS,Lat-RpvRSB"},
          {"Sobol", "Sob-RDS,Sob-RDSB,Sob-LMS,Sob-LMS-RDS,Sob-LMS-RDS-IRB,Sob-NUS"}
-      };
+      }; // a coté de modeltags, dans un seul tableau si possible
 
       File outputFolder = new File(latexDir);
       outputFolder.mkdirs();
@@ -66,7 +66,7 @@ public class HistLatexSamo25 {
 
 
 
-   private static Map<String, File> buildFileMap(String dataDir) {
+   private static Map<String, File> buildFileMap(String dataDir) {// à enlever
       File inputFolder = new File(dataDir);
       File[] files = inputFolder.listFiles((dir, name) -> name.endsWith(".dat"));
 
@@ -141,7 +141,7 @@ public class HistLatexSamo25 {
             ) throws IOException {
 
       String baseTag = model + "-" + s;
-      double shift = getCenteringShift(model, s);
+      double shift = getCenteringShift(model, s);// à enlever
 
       for (String[] page : pages) {
          writeHistogramPageBody(
@@ -157,7 +157,7 @@ public class HistLatexSamo25 {
          out.println();
       }
    }
-
+// mettre a cote autre part si possible
    private static String makePageTitle(String[] page, String model, int s, int mExp, double shift) {
       String centered = shift == 0.0 ? "" : " (Data centered)";
       return "RQMC " + page[0] + " comparison: "
@@ -396,7 +396,7 @@ public class HistLatexSamo25 {
     * @param fileName name of the input data file
     * @return cleaned title string
     */
-   private static String cleanTitle(String fileName) {
+   private static String cleanTitle(String fileName) { // peut etre construire en lisant le fichier ? 
       String title = fileName.substring(0, fileName.length() - 4);
       title = title.replaceFirst("-\\d+$", "");
       return title;
@@ -413,7 +413,7 @@ public class HistLatexSamo25 {
     * @return tally store containing the centered observations
     * @throws IOException if the file cannot be read or contains no observations
     */
-   private static TallyStore getFileStats(File file, double shift) throws IOException {
+   private static TallyStore getFileStats(File file, double shift) throws IOException {// plus besoin tally peut faire ce ? ajouter la version avec comment ou ligne vide à tally
 
       TallyStore fileStats = new TallyStore();
 
@@ -450,7 +450,7 @@ public class HistLatexSamo25 {
     * @param line raw input line
     * @return cleaned line, or an empty string if the line has no data
     */
-   private static String cleanDataLine(String line) {
+   private static String cleanDataLine(String line) {// dans tally just les lignes qui commence par comment.
       line = line.trim();
 
       if (line.isEmpty())
@@ -537,7 +537,7 @@ public class HistLatexSamo25 {
     * @param s dimension
     * @return exact integral used as centering shift
     */
-   private static double getCenteringShift(String model, int s) {
+   private static double getCenteringShift(String model, int s) { /////////// depreciated
 	   if (model.equals("Oscillatory"))
 	      return exactOscillatoryGenz(s);
 
@@ -553,7 +553,7 @@ public class HistLatexSamo25 {
     * @param s dimension
     * @return exact integral in dimension `s`
     */
-   private static double exactIntegralGaussian(int s) {
+   private static double exactIntegralGaussian(int s) { /////////// depreciated
 	   	return Math.pow(1.462651745907181, s);
    }
    
@@ -563,7 +563,7 @@ public class HistLatexSamo25 {
     * @param s dimension
     * @return exact integral in dimension `s`
     */
-	private static double exactOscillatoryGenz(int s) {
+	private static double exactOscillatoryGenz(int s) { /////////// depreciated
 	   double prod = 1.0;
 
 	   for (int j = 1; j <= s; j++) {
