@@ -28,6 +28,10 @@ import umontreal.ssj.util.PrintfFormat;
 import umontreal.ssj.probdist.StudentDist;
 import umontreal.ssj.probdist.NormalDist;
 import umontreal.ssj.probdist.ChiSquareDist;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -103,6 +107,73 @@ public class Tally extends StatProbe implements Cloneable {
       curSum2 = 0.0;
       numObs = 0;
    }
+
+   /**
+    * Fills this object from the first numObs observations in array obs.
+    */
+   public void fillFromArray(double[] obs, int numObs) {
+      init();   // In subclasses, this will call the `init` of the subclass.
+      for (int i = 0; i < numObs; i++)
+         add(obs[i]);
+   }
+
+   /**
+    * Fills this object from the entire array obs.
+    */
+   public void fillFromArray(double[] obs) {
+      fillFromArray(obs, obs.length);
+   }
+
+   /**
+    * Fills this object from the observations in a TallyStore object.
+    */
+   public void fillFromTallyStore(TallyStore ts) {
+      fillFromArray(ts.getArray(), ts.numberObs());
+   }
+
+   /**
+    * Fills this object by reading the observations from the file `filename`.
+    * This file should contain only a set of real numbers separated by a white space
+    * or a new line. Each one will be one observation.
+    */
+   public void fillFromFile(String filename) {
+      init();
+      try {
+         File file = new File(filename);
+         Scanner scanner = new Scanner(file);
+         while (scanner.hasNextDouble())
+             add(scanner.nextDouble());
+         scanner.close();
+      } catch (FileNotFoundException e) {
+         System.out.println("fillFromFile: File not found");
+      }
+   } 
+
+   /***
+    * Same as `fillFromFile(String)`, except that all lines starting with the 
+    * String `skip` are skipped. Usually, `skip` will be a single character, 
+    * e.g., `%` or `#`.
+    */
+   public void fillFromFile(String filename, String skip) {
+      init();
+      try {
+         File file = new File(filename);
+         Scanner scanner = new Scanner(file);
+         while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            if (line.startsWith(skip))
+               continue;
+
+            Scanner lineScanner = new Scanner(line);
+            while (lineScanner.hasNextDouble())
+               add(lineScanner.nextDouble());
+            lineScanner.close();
+         }
+         scanner.close();
+      } catch (FileNotFoundException e) {
+         System.out.println("fillFromFile: File not found");
+      }
+   } 
 
    /**
     * Gives a new observation `x` to the statistical collector. If broadcasting to
