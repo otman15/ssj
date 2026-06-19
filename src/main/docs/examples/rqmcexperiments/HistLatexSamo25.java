@@ -38,8 +38,8 @@ public class HistLatexSamo25 {
 
    public static void main(String[] args) throws IOException {
 
-      String dataDir = "/home/otman/Dropbox/samo25/datapl/"; // dat files source directory 
-      String latexDir = "/home/otman/Documents/GitHub/Data/samo25-test/latex-files/"; // latex output dir
+      String dataDir = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/"; // dat files source directory 
+      String latexDir = "/home/otman/Documents/GitHub/Data/samo25-test/latex-files-test/"; // latex output dir
 
       String[] modelTags = {"SmoothPerB4","SumUeU","MC2","Polynomial","Oscillatory","Gaussian","SmoothGauss","PieceLinGauss","IndSumNormal"}; // choose models to include
       //String[] modelTags = {"Gaussian","MC2"};
@@ -54,15 +54,25 @@ public class HistLatexSamo25 {
          {"Sobol", "Sob-RDS,Sob-RDSB,Sob-LMS,Sob-LMS-RDS,Sob-LMS-RDS-IRB,Sob-NUS"}
       };
 
-      File inputFolder = new File(dataDir);
       File outputFolder = new File(latexDir);
       outputFolder.mkdirs();
 
+      Map<String, File> fileMap = buildFileMap(dataDir);
+      if (fileMap == null)
+         return;
+
+      generateLatexFiles(outputFolder, fileMap, modelTags, sDims, pages, ks, m, mExp);
+   }
+
+
+
+   private static Map<String, File> buildFileMap(String dataDir) {
+      File inputFolder = new File(dataDir);
       File[] files = inputFolder.listFiles((dir, name) -> name.endsWith(".dat"));
 
       if (files == null || files.length == 0) {
          System.out.println("No .dat files found in " + dataDir);
-         return;
+         return null;
       }
 
       Map<String, File> fileMap = new HashMap<>(); // HashMap is used to avoid scanning all the files at every histogram
@@ -71,47 +81,89 @@ public class HistLatexSamo25 {
          fileMap.put(file.getName(), file);
       }
 
+      return fileMap;
+   }
+
+   private static void generateLatexFiles(
+            File outputFolder,
+            Map<String, File> fileMap,
+            String[] modelTags,
+            int[] sDims,
+            String[][] pages,
+            int[] ks,
+            int m,
+            int mExp
+            ) throws IOException {
+
       for (String model : modelTags) {
-
-         File outFile = new File(outputFolder, model + "-hist.tex");
-
-         try (PrintWriter out = new PrintWriter(new FileWriter(outFile))) {
-
-            writeLatexHeader(out);
-
-            for (int s : sDims) {
-               String baseTag = model + "-" + s;
-               String titleTag = model + " s = " + s;
-               double shift = getCenteringShift(model, s);
-               String centered = shift == 0.0 ? "" : " (Data centered)";
-               
-
-               for (String[] page : pages) {
-                  String pageTitle =
-                     "RQMC " + page[0] + " comparison: "
-                     + titleTag + " ($10^{" + mExp + "}$ samples)" + centered;
-
-                  writeHistogramPageBody(
-                     out,
-                     fileMap,
-                     baseTag,
-                     pageTitle,
-                     page[1].split(","),
-                     ks,
-                     m, shift //shift added only for centering data, if no  centering shift is 0
-                  );
-
-                  out.println();
-               }
-            }
-
-            writeLatexFooter(out);
-         }
-
-         System.out.println("LaTeX file created:");
-         System.out.println(outFile.getAbsolutePath());
+         writeModelFile(outputFolder, fileMap, model, sDims, pages, ks, m, mExp);
       }
    }
+
+   private static void writeModelFile(
+            File outputFolder,
+            Map<String, File> fileMap,
+            String model,
+            int[] sDims,
+            String[][] pages,
+            int[] ks,
+            int m,
+            int mExp
+            ) throws IOException {
+
+      File outFile = new File(outputFolder, model + "-hist.tex");
+
+      try (PrintWriter out = new PrintWriter(new FileWriter(outFile))) {
+
+         writeLatexHeader(out);
+
+         for (int s : sDims) {
+            writePagesForDimension(out, fileMap, model, s, pages, ks, m, mExp);
+         }
+
+         writeLatexFooter(out);
+      }
+
+      System.out.println("LaTeX file created:");
+      System.out.println(outFile.getAbsolutePath());
+   }
+
+
+   private static void writePagesForDimension(
+            PrintWriter out,
+            Map<String, File> fileMap,
+            String model,
+            int s,
+            String[][] pages,
+            int[] ks,
+            int m,
+            int mExp
+            ) throws IOException {
+
+      String baseTag = model + "-" + s;
+      double shift = getCenteringShift(model, s);
+
+      for (String[] page : pages) {
+         writeHistogramPageBody(
+            out,
+            fileMap,
+            baseTag,
+            makePageTitle(page, model, s, mExp, shift),
+            page[1].split(","),
+            ks,
+            m, shift //shift added only for centering data, if no  centering shift is 0
+         );
+
+         out.println();
+      }
+   }
+
+   private static String makePageTitle(String[] page, String model, int s, int mExp, double shift) {
+      String centered = shift == 0.0 ? "" : " (Data centered)";
+      return "RQMC " + page[0] + " comparison: "
+            + model + " s = " + s + " ($10^{" + mExp + "}$ samples)" + centered;
+   }
+
       
    /**
     * Writes the LaTeX document header.

@@ -176,7 +176,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       // -------------------------
       // Objects for Sobol' points
       System.out.println("*** Sobol points ");
-      DigitalNetBase2 p = new SobolSequence(k, 53, s); // n = 2^{k} points in s dim.
+      DigitalNetBase2 p = new SobolSequence(k, 32, s); // n = 2^{k} points in s dim.
 /*    
       ptent = new BakerTransformedPointSet(p);
       // PointSetRandomization norand = new EmptyRandomization(); // No randomization
@@ -211,7 +211,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("* Sobol with NUS");
       statReps.setName(modelTag + "-" + s + "-Sob-NUS-" + k + "-" + m);
       CachedPointSet cp = new CachedPointSet(p);
-      PointSetRandomization nus = new NestedUniformScrambling(stream, 53);
+      PointSetRandomization nus = new NestedUniformScrambling(stream, 32);
       simulRepsRQMCSort(model, cp, nus, m, statReps);
 
       // Sob Burley padded

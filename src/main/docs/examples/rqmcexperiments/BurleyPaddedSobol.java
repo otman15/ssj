@@ -92,7 +92,7 @@ public class BurleyPaddedSobol {
    static int value(int index, int dim, int seed) {
       int group = dim / 4;
       int localDim = dim % 4;
-      int seedGroup = group == 0 ? seed : hashCombine(seed, group);
+      int seedGroup = group == 0 ? seed : hash(hashCombine(seed, group));
       int shuffledIndex = nestedUniformScramble(index, seedGroup);
       int x = sobol4d(shuffledIndex, localDim);
       return nestedUniformScramble(x, hashCombine(seedGroup, localDim));

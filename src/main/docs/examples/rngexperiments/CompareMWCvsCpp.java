@@ -3,7 +3,6 @@ package rngexperiments;
 import java.io.FileWriter;
 import java.math.BigInteger;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.io.IOException;
 import umontreal.ssj.rng.MWC64k2a2;
 //import umontreal.ssj.rng.MWC64k3a2;
