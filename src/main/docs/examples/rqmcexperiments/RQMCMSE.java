@@ -182,12 +182,12 @@ public class RQMCMSE {
       int r = 11;
       int numObs = 10000;
 
-      String[] functionNames = {"MC2", "Oscillatory"};
-      int[] dimensions = {4, 8};
+      String[] functionNames = {"MC2"};
+      int[] dimensions = {4};
       int[] ks = {8, 10, 12, 14, 16};
       String[] methods = { "Lat-RS", "Lat-RSB",  "Lat-Rv",  "Lat-Rpv",  
                            "Lat-RvRS",  "Lat-RvRSB",  "Lat-RpvRS",  "Lat-RpvRSB",     
-                           "Sob-RDS",  "Sob-RDSB",  "Sob-LMS",  "Sob-LMS-RDS",  "Sob-NUS"
+                           "Sob-RDS",  "Sob-RDSB",  "Sob-LMS",  "Sob-LMS-RDS", "Sob-NUS"
       };
       
 
