@@ -396,7 +396,7 @@ public class HistLatexSamo25 {
     * @param fileName name of the input data file
     * @return cleaned title string
     */
-   private static String cleanTitle(String fileName) { // peut etre construire en lisant le fichier ? 
+   private static String cleanTitle(String fileName) { // peut etre le construire en lisant le fichier ? 
       String title = fileName.substring(0, fileName.length() - 4);
       title = title.replaceFirst("-\\d+$", "");
       return title;
