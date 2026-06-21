@@ -1,15 +1,11 @@
 package rqmcexperiments;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.HashMap;
-import java.util.Map;
 
 import umontreal.ssj.stat.TallyHistogram;
 import umontreal.ssj.stat.TallyStore;
@@ -62,13 +58,11 @@ public class HistCollectionLatex {
 
    // Very long main function.  Say what it does.
 	public static void main(String[] args) throws IOException {
-	   
-      // These directory names must be changed to the desired ones. 
+	    
       String dataDir = "/home/otman/Dropbox/samo25/datapl/"; // dat files source directory 
       String latexDir = "/home/otman/Documents/GitHub/Data/samo25-test/latex-files/"; // latex output dir
 
-      String[] modelTags = {"SmoothPerB4","SumUeU","MC2","Polynomial","Oscillatory","Gaussian","SmoothGauss","PieceLinGauss","IndSumNormal"}; // choose models to include
-      //String[] modelTags = {"MC2"};
+      String[] modelTags = {"SmoothPerB4","SumUeU","MC2","Polynomial","Oscillatory","Gaussian","SmoothGauss","PieceLinGauss","IndSumNormal"};
       
       int[] sDims = {2, 4, 8, 16, 32};
       int m = 10000;
@@ -84,20 +78,6 @@ public class HistCollectionLatex {
       File outputFolder = new File(latexDir);
       outputFolder.mkdirs();
 
-      //  Are we sure we always want to treat all the .dat files that are there?   ******
-      File[] files = inputFolder.listFiles((dir, name) -> name.endsWith(".dat"));
-
-      if (files == null || files.length == 0) {
-         System.out.println("No .dat files found in " + dataDir);
-         return;
-      }
-
-      Map<String, File> fileMap = new HashMap<>(); // HashMap is used to avoid scanning all the files at every histogram
-
-      for (File file : files) {
-         fileMap.put(file.getName(), file);
-      }
-
       for (String model : modelTags) {
 
          File outFile = new File(outputFolder, model + "-hist.tex");
@@ -109,7 +89,6 @@ public class HistCollectionLatex {
             for (int s : sDims) {
                String baseTag = model + "-" + s;
                String titleTag = model + " s = " + s;
-               double shift = getCenteringShift(model, s);
 
                for (String[] page : pages) {
                   String pageTitle =
@@ -118,12 +97,12 @@ public class HistCollectionLatex {
 
                   writeHistogramPageBody(
                      out,
-                     fileMap,
+                     inputFolder,
                      baseTag,
                      pageTitle,
                      page[1].split(","),
                      ks,
-                     m, shift //shift added only for centering data, if no  centering shift is 0
+                     m
                   );
 
                   out.println();
@@ -174,7 +153,7 @@ public class HistCollectionLatex {
     * fixed-width box to keep the page layout aligned across method groups.
     *
     * @param out output writer for the LaTeX file
-    * @param fileMap map from file names to data files
+    * @param inputFolder dir containing the files
     * @param baseTag common file-name prefix for the current model and dimension
     * @param pageTitle title printed above the histogram grid
     * @param methods method names to show as rows
@@ -185,13 +164,12 @@ public class HistCollectionLatex {
     */
    private static void writeHistogramPageBody(
          PrintWriter out,
-         Map<String, File> fileMap,
+         File inputFolder,
          String baseTag,
          String pageTitle,
          String[] methods,
          int[] ks,
-         int m,
-         double shift
+         int m
          ) throws IOException {
 
       out.print("\\begin{tabular}{@{}c");
@@ -215,7 +193,7 @@ public class HistCollectionLatex {
     	   out.print("\\raisebox{0.7cm}{\\rotatebox{90}{\\scriptsize "
     		      + escapeLatex(method) + "}}");
          for (int k : ks) {
-            File file = findFile(fileMap, baseTag, method, k, m);
+            File file = findFile(inputFolder, baseTag, method, k, m);
 
             if (file == null) {
             	out.print(" & \\makebox[" + HIST_CELL_WIDTH + "][c]{{\\tiny Missing}}");
@@ -223,7 +201,7 @@ public class HistCollectionLatex {
             }
 
             out.print(" & \\makebox[" + HIST_CELL_WIDTH + "][c]{");
-            out.print(makeHistogramLatex(file, shift));
+            out.print(makeHistogramLatex(file));
             out.println("}");
          }
 
@@ -240,19 +218,19 @@ public class HistCollectionLatex {
     * The expected file name has the form
     * `baseTag-method-k-m.dat`.
     *
-    * @param fileMap map from file names to data files
+    * @param dataDir directory containing the files
     * @param baseTag model and dimension tag
     * @param method RQMC method tag
     * @param k exponent defining \(n=2^k\)
     * @param m number of observations in the file
     * @return matching file, or `null` if no file is found
     */
-   private static File findFile(Map<String, File> fileMap, String baseTag, String method, int k, int m) {
+   private static File findFile(File dataDir, String baseTag, String method, int k, int m) {
 	   String exactName = baseTag + "-" + method + "-" + k + "-" + m + ".dat";
 
-	   File file = fileMap.get(exactName);
+	   File file = new File(dataDir, exactName);
 
-	   if (file == null)
+	   if (!file.exists())
 	      System.out.println("Missing file: " + exactName);
 
 	   return file;
@@ -270,9 +248,12 @@ public class HistCollectionLatex {
     * @return LaTeX code for the histogram
     * @throws IOException if the data file cannot be read
     */
-   private static String makeHistogramLatex(File file, double shift) throws IOException {
+   private static String makeHistogramLatex(File file) throws IOException {
 
-      TallyStore fileStats = getFileStats(file, shift);
+      TallyStore fileStats = new TallyStore();
+      fileStats.fillFromFile(file.getAbsolutePath());
+      if (fileStats.numberObs() == 0)
+         throw new IOException("No observations found in " + file.getAbsolutePath());
 
       double xmin = fileStats.min();
       double xmax = fileStats.max();
@@ -297,7 +278,7 @@ public class HistCollectionLatex {
       hist.fillFromTallyStore(fileStats); 
       ScaledHistogram scHist = new ScaledHistogram(hist, 1.0);
       
-      int[] counts = hist.getCounters(); // for legend position
+      int[] counts = hist.getCounters(); 
 
       int leftSum = 0;
       int rightSum = 0;
@@ -314,8 +295,7 @@ public class HistCollectionLatex {
       if (rightSum > legendMoveRatio * Math.max(1, leftSum))
          legendPos = "north west";
       
-      String centered = shift == 0.0 ? "" : " (centered)";
-      String title = cleanTitle(file.getName()) + centered;
+      String title = cleanTitle(file.getName());
       
       String legend =
     		   "\\parbox[c][0.35cm][c]{1.1cm}{\\centering"
@@ -378,68 +358,6 @@ public class HistCollectionLatex {
       String title = fileName.substring(0, fileName.length() - 4);
       title = title.replaceFirst("-\\d+$", "");
       return title;
-   }
-   
-   /**
-    * Reads a data file into a `TallyStore`.
-    *
-    * Blank lines and comments are ignored. Each numeric value is parsed,
-    * centered by subtracting `shift`, and added to the tally store.
-    *
-    * @param file input data file
-    * @param shift value subtracted from each observation
-    * @return tally store containing the centered observations
-    * @throws IOException if the file cannot be read or contains no observations
-    */
-   private static TallyStore getFileStats(File file, double shift) throws IOException {
-
-      TallyStore fileStats = new TallyStore();
-
-      try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-         String line;
-
-         while ((line = reader.readLine()) != null) {
-            line = cleanDataLine(line);
-
-            if (line.isEmpty())
-               continue;
-
-            String[] values = line.split("\\s+");
-
-            for (String value : values) {
-               double x = Double.parseDouble(value);
-               fileStats.add(x-shift);
-            }
-         }
-      }
-
-      if (fileStats.numberObs() == 0)
-         throw new IOException("No observations found in " + file.getAbsolutePath());
-
-      return fileStats;
-   }
-   
-   /**
-    * Cleans one input data line.
-    *
-    * Leading and trailing whitespace are removed, and any text after `#`
-    * is treated as a comment and discarded.
-    *
-    * @param line raw input line
-    * @return cleaned line, or an empty string if the line has no data
-    */
-   private static String cleanDataLine(String line) {
-      line = line.trim();
-
-      if (line.isEmpty())
-         return "";
-
-      int commentIndex = line.indexOf('#');
-
-      if (commentIndex >= 0)
-         line = line.substring(0, commentIndex).trim();
-
-      return line;
    }
 
    /**
@@ -524,51 +442,6 @@ public class HistCollectionLatex {
 	         + "};";
 	}
    
-   /**
-    * Returns the exact centering shift for models with known nonzero integral.
-    *
-    * For models that do not require centering, the shift is zero.
-    *
-    * @param model model name
-    * @param s dimension
-    * @return exact integral used as centering shift
-    */
-   private static double getCenteringShift(String model, int s) {
-	   if (model.equals("Oscillatory"))
-	      return exactOscillatoryGenz(s);
-
-	   if (model.equals("Gaussian"))
-		      return exactIntegralGaussian(s);
-
-	   return 0.0;
-	}
-   
-   /**
-    * Computes the exact integral of the Gaussian test function.
-    *
-    * @param s dimension
-    * @return exact integral in dimension `s`
-    */
-   private static double exactIntegralGaussian(int s) {
-	   	return Math.pow(1.462651745907181, s);
-   }
-   
-   /**
-    * Computes the exact integral of the oscillatory Genz test function.
-    *
-    * @param s dimension
-    * @return exact integral in dimension `s`
-    */
-	private static double exactOscillatoryGenz(int s) {
-	   double prod = 1.0;
-
-	   for (int j = 1; j <= s; j++) {
-	      double a = (double) j / s;     
-	      prod *= 2.0 * Math.sin(a / 2.0) / a;
-	   } 
-
-	   return prod * Math.cos((s + 1.0) / 4.0);
-	}
 }
 
 
