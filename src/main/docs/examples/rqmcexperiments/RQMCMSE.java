@@ -4,19 +4,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
 
 import umontreal.ssj.rng.LFSR258;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.Tally;
 import umontreal.ssj.stat.TallyStore;
+import umontreal.ssj.util.Misc;
 
 /**
  * Estimates the mean square error (MSE) of two estimators from stored RQMC
  * simulation results. For each configured function, dimension, method, and
  * value of @f$k@f$, the experiment draws @f$m@f$ bootstrap samples of size
  * @f$r@f$ with replacement. It collects the sample average @f$A_r@f$ and
- * sample median @f$M_r@f$, then writes their MSE values to result tables.
+ * sample median @f$M_r@f$, then writes result tables for their MSE values and
+ * the ratio @f$\mathrm{MSE}[A_r] / \mathrm{MSE}[M_r]@f$.
  */
 public class RQMCMSE {
 
@@ -27,33 +28,40 @@ public class RQMCMSE {
     *
     * @param tally tally containing the estimator values
     * @return estimated MSE relative to {@link #TARGET}
-    */
+   */
    private static double mse(Tally tally) {
       double bias = tally.average() - TARGET;
-   //   return tally.sumSquares() / tally.numberObs() + bias * bias;
       return tally.variance() + bias * bias;
    }
 
    /**
-    * Computes the bootstrap MSE of @f$A_r@f$ and @f$M_r@f$ from one data file.
+    * Reads simulation observations from a data file.
     *
     * @param filename input data file
+    * @return array containing the simulation observations
+    * @throws IllegalArgumentException if the file contains no observations
+   */
+   private static double[] readSimulationValues(String filename) {
+      TallyStore simulations = new TallyStore();
+      // Use fillFromFile(filename, skip) if the file contains comments.
+      simulations.fillFromFile(filename);
+      if (simulations.numberObs() == 0)
+         throw new IllegalArgumentException("No simulation values found in " + filename);
+      return simulations.getArray();
+   }
+
+   /**
+    * Computes the bootstrap MSE of @f$A_r@f$ and @f$M_r@f$ from simulation
+    * observations.
+    *
+    * @param values simulation observations
     * @param m number of bootstrap samples
     * @param r size of each bootstrap sample
-    * @param stream random stream; its current substream is restarted before sampling
+    * @param stream random stream used for sampling
     * @return array containing the MSE of @f$A_r@f$ and @f$M_r@f$
-    * @throws IllegalArgumentException if the file contains no observations
-    */
-   private static double[] computeMseFromFile(String filename, int m, int r, RandomStream stream) {
-      // Restart the current substream before generating the bootstrap samples.
-      stream.resetStartSubstream();
-      TallyStore simulations = new TallyStore();
-      simulations.fillFromFile(filename); //use fillFromFile(filename, skip) if file contains comments
-      int numSim = simulations.numberObs();
-      if (numSim == 0)
-         throw new IllegalArgumentException("No simulation values found in " + filename);
-
-      double[] values = simulations.getArray();
+   */
+   private static double[] computeMseArMr(double[] values, int m, int r, RandomStream stream) {
+      int numSim = values.length;
       double[] sample = new double[r];
       Tally statAver = new Tally("A_r");
       Tally statMed = new Tally("M_r");
@@ -67,11 +75,7 @@ public class RQMCMSE {
          }
 
          statAver.add(sum / r);
-         Arrays.sort(sample); 
-         if ((r & 1) == 0) 
-            statMed.add((sample[r / 2 - 1] + sample[r / 2]) / 2.0);
-         else
-            statMed.add(sample[r / 2]);
+         statMed.add(Misc.getMedian(sample, r));
       }
 
       double arMse = mse(statAver);
@@ -95,7 +99,31 @@ public class RQMCMSE {
    }
 
    /**
-    * Computes and writes the MSE tables for one function and dimension.
+    * Returns the simulation file for one function, dimension, method, and
+    * value of @f$k@f$.
+    *
+    * @param dataDir directory containing the simulation files
+    * @param functionName function name used in the filename
+    * @param s function dimension
+    * @param method RQMC method name
+    * @param k value of @f$k@f$
+    * @param numObs number of observations identified in the filename
+    * @return the simulation file, or `null` if it is missing
+    */
+   private static File getSimulationFile(String dataDir, String functionName,
+         int s, String method, int k, int numObs) {
+      String fileName = functionName + "-" + s + "-" + method
+            + "-" + k + "-" + numObs + ".dat";
+      File file = new File(dataDir, fileName);
+      if (!file.isFile()) {
+         System.out.println("Missing file: " + file.getAbsolutePath());
+         return null;
+      }
+      return file;
+   }
+
+   /**
+    * Computes and writes the three MSE tables for one function and dimension.
     * Missing input files are reported and skipped.
     *
     * @param dataDir directory containing the simulation files
@@ -108,6 +136,7 @@ public class RQMCMSE {
     * @param m number of bootstrap samples
     * @param r size of each bootstrap sample
     * @param stream random stream used for sampling
+    * @throws IllegalArgumentException if the result directory cannot be created
     */
    private static void computeFolderMse(String dataDir, String resultDir,
          String functionName, int s,
@@ -117,7 +146,7 @@ public class RQMCMSE {
       File resultFolder = new File(resultDir);
       if (!resultFolder.exists() && !resultFolder.mkdirs())
          throw new IllegalArgumentException(
-               "Could not create result folder " + resultFolder.getAbsolutePath()); 
+               "Could not create result folder " + resultFolder.getAbsolutePath());
 
       StringBuilder header = new StringBuilder(" k ");
       for (String method : methods)
@@ -126,58 +155,70 @@ public class RQMCMSE {
 
       StringBuilder arRows = new StringBuilder();
       StringBuilder mrRows = new StringBuilder();
+      StringBuilder ratioRows = new StringBuilder();
       for (int i = 0; i < ks.length; i++) {
          int k = ks[i];
 
-         // New bootstrap sequence for this k. Each method will restart this substream.
+         // Use a new substream for this k.
          stream.resetNextSubstream();
 
          arRows.append(k).append("  ");
          mrRows.append(k).append("  ");
+         ratioRows.append(k).append("  ");
 
          for (String method : methods) {
-            String fileName = functionName + "-" + s + "-" + method
-                  + "-" + k + "-" + numObs + ".dat";
-            File file = new File(dataDir, fileName);
+            File file = getSimulationFile(
+                  dataDir, functionName, s, method, k, numObs);
 
-            if (!file.isFile()) {
+            if (file == null) {
                arRows.append("Missing  ");
                mrRows.append("Missing  ");
-               System.out.println("Missing file: " + file.getAbsolutePath());
+               ratioRows.append("Missing  ");
                continue;
             }
 
-            double[] result = computeMseFromFile(file.getAbsolutePath(), m, r, stream);
+            double[] values = readSimulationValues(file.getAbsolutePath());
+            // Reuse the same substream for every method at this k.
+            stream.resetStartSubstream();
+            double[] result = computeMseArMr(values, m, r, stream);
             arRows.append(result[0]).append("  ");
             mrRows.append(result[1]).append("  ");
+            ratioRows.append(result[0] / result[1]).append("  ");
          }
          arRows.append("\n");
          mrRows.append("\n");
+         ratioRows.append("\n");
       }
 
       String arTable = header.toString() + arRows.toString();
       String mrTable = header.toString() + mrRows.toString();
+      String ratioTable = header.toString() + ratioRows.toString();
 
-      System.out.println();
-      System.out.println("A_r MSE - " + functionName + ", s=" + s);
-      System.out.println(arTable);
-      System.out.println();
-      System.out.println("M_r MSE - " + functionName + ", s=" + s);
-      System.out.println(mrTable);
+      File arFile = new File(resultFolder,
+            functionName + "-" + s + "-" + r + "-MSE-Ar.res");
+      File mrFile = new File(resultFolder,
+            functionName + "-" + s + "-" + r + "-MSE-Mr.res");
+      File ratioFile = new File(resultFolder,
+            functionName + "-" + s + "-" + r + "-MSE-Ratio-ArOverMr.res");
 
-      writeTable(new File(resultFolder,
-            functionName + "-" + s + "-" + r + "-MSE-Ar.res"), arTable);
-      writeTable(new File(resultFolder,
-            functionName + "-" + s + "-" + r + "-MSE-Mr.res"), mrTable);
+      writeTable(arFile, arTable);
+      writeTable(mrFile, mrTable);
+      writeTable(ratioFile, ratioTable);
+
+      System.out.println("MSE result tables written to:");
+      System.out.println("  " + arFile.getAbsolutePath());
+      System.out.println("  " + mrFile.getAbsolutePath());
+      System.out.println("  " + ratioFile.getAbsolutePath());
    }
 
    /**
     * Configures and runs the MSE experiments.
     */
    public static void main(String[] args) {
+      // Configure these paths for the local data and result directories.
       String dataDir = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
       String resultDir = "/home/otman/Documents/GitHub/Data/o-test/testNewC/";
-      
+
       int m = 100000;
       int r = 11;
       int numObs = 10000;
@@ -185,11 +226,12 @@ public class RQMCMSE {
       String[] functionNames = {"MC2"};
       int[] dimensions = {4};
       int[] ks = {8, 10, 12, 14, 16};
-      String[] methods = { "Lat-RS", "Lat-RSB",  "Lat-Rv",  "Lat-Rpv",  
-                           "Lat-RvRS",  "Lat-RvRSB",  "Lat-RpvRS",  "Lat-RpvRSB",     
-                           "Sob-RDS",  "Sob-RDSB",  "Sob-LMS",  "Sob-LMS-RDS", "Sob-NUS"
+      String[] methods = {
+            "Lat-RS", "Lat-RSB", "Lat-Rv", "Lat-Rpv",
+            "Lat-RvRS", "Lat-RvRSB", "Lat-RpvRS", "Lat-RpvRSB",
+            "Sob-RDS", "Sob-RDSB", "Sob-LMS", "Sob-LMS-RDS",
+            "Sob-LMS-RDS-IRB", "Sob-NUS"
       };
-      
 
       RandomStream stream = new LFSR258();
       for (String functionName : functionNames)
