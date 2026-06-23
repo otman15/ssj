@@ -12,7 +12,15 @@ import umontreal.ssj.util.Num;
  *   f(u_1,\dots,u_s) =
  *   \left(1 + \sum_{j=1}^s c_j u_j\right)^{-(s+1)},
  * @f]
- * for @f$\bm u = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ * for @f$\boldsymbol{u} = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ *
+ * The exact solution is taken from @cite iKAA25a and is given by
+ * @f[
+ *   \int_{[0,1]^s} f(\boldsymbol{u})\,\mathrm{d}\boldsymbol{u}
+ *   = \frac{1}{s!\prod_{j=1}^s c_j}
+ *     \sum_{v\subseteq\{1,\dots,s\}}
+ *     \frac{(-1)^{|v|}}{1+\sum_{j\in v}c_j}.
+ * @f]
  */
 public class GenzCornerPeak implements MonteCarloModelDouble {
 
@@ -69,18 +77,22 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    /**
     * Computes the exact mean of the Genz corner peak function.
     *
-    * The exact formula contains a sum over all @f$2^s@f$ subsets of the
-    * scale parameters. This implementation enumerates the subsets using a
-    * Gray-code ordering. Since two consecutive Gray codes differ by only one bit,
-    * the current subset sum can be updated by adding or removing one @f$c_j@f$,
-    * instead of recomputing the sum from scratch for each subset.
+    * The implementation enumerates the @f$2^s@f$ subsets using a Gray-code
+    * ordering. Since two consecutive Gray codes differ by only one bit, the
+    * current subset sum is updated by adding or removing one @f$c_j@f$ instead
+    * of being recomputed from scratch.
     *
     * Kahan summation is used separately from the Gray-code enumeration to reduce
     * floating-point roundoff in the alternating subset sum.
     *
-    * A recursive include/exclude implementation gives the same mathematical result
-    * and is shorter and easier to read, but this iterative Gray-code version is relatively
-    * faster for larger dimensions. The cost remains @f$O(2^s)@f$.
+    * A recursive include/exclude implementation is simpler and has the same
+    * @f$O(2^s)@f$ complexity, but this iterative Gray-code implementation is
+    * relatively faster in high dimensions.
+    *
+    * @warning Although Kahan summation reduces roundoff, this computation can be
+    * numerically unstable when the scale parameters are small or the dimension is
+    * large. The alternating subset sum may suffer severe cancellation, and division
+    * by the product of the scale parameters may amplify the error.
     *
     * @return exact integral over @f$[0,1]^s@f$
     * @throws IllegalArgumentException if @f$s \ge 63@f$, since @f$2^s@f$ subsets

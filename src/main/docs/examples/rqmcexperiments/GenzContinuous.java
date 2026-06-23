@@ -11,7 +11,24 @@ import umontreal.ssj.rng.RandomStream;
  *   f(u_1,\dots,u_s) =
  *   \exp\left(-\sum_{j=1}^s c_j |u_j - w_j|\right),
  * @f]
- * for @f$\bm u = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ * for @f$\boldsymbol{u} = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ *
+ * The exact solution is discussed in @cite iKAA25a. However, the formula
+ * printed there,
+ * @f[
+ *   \int_{[0,1]^s} f(\boldsymbol{u})\,\mathrm{d}\boldsymbol{u}
+ *   = \prod_{j=1}^s
+ *     \frac{\exp(c_j w_j-c_j)-\exp(-c_j w_j)}{c_j},
+ * @f]
+ * appears to contain an error. The corrected exact solution is
+ * @f[
+ *   \int_{[0,1]^s} f(\boldsymbol{u})\,\mathrm{d}\boldsymbol{u}
+ *   = \prod_{j=1}^s
+ *     \frac{2-\exp(-c_j w_j)-\exp(-c_j(1-w_j))}{c_j}.
+ * @f]
+ * @cite iKAA25a assumes @f$0 < w_j < 1@f$, whereas this implementation also
+ * permits @f$w_j = 0@f$. The corrected formula remains valid at this boundary
+ * value.
  */
 public class GenzContinuous implements MonteCarloModelDouble {
 
@@ -73,18 +90,8 @@ public class GenzContinuous implements MonteCarloModelDouble {
    /**
     * Computes the exact mean of the Genz continuous function.
     *
-    * This uses the corrected formula for the continuous case. The formula
-    * printed in the article "Explicit solutions of Genz test integrals"
-    *  appears to contain an error: per coordinate, it
-    * gives : (exp(c_j * w_j - c_j) - exp(-c_j * w_j)) / c_j.
-    *
-    * For the integrand exp(-c_j * abs(u_j - w_j)), the correct
-    * one-dimensional integral is
-    *
-    *    (2 - exp(-c_j * w_j) - exp(-c_j * (1 - w_j))) / c_j.
-    *
-    * The implementation below uses the equivalent expm1 form for better
-    * numerical accuracy.
+    * The computation multiplies the one-dimensional integral factors and uses
+    * `expm1` to improve numerical accuracy when its arguments are near zero.
     *
     * @return exact integral over @f$[0,1]^s@f$
     */

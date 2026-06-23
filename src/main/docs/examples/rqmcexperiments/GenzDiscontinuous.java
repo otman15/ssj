@@ -12,7 +12,19 @@ import umontreal.ssj.rng.RandomStream;
  *   \chi_{[0,w_1]\times[0,w_2]\times[0,1]^{s-2}}(u_1,\dots,u_s)
  *   \exp\left(\sum_{j=1}^s c_j u_j\right),
  * @f]
- * for @f$\bm u = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ * for @f$\boldsymbol{u} = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ *
+ * The exact solution is taken from @cite iKAA25a and is given by
+ * @f[
+ *   \int_{[0,1]^s} f(\boldsymbol{u})\,\mathrm{d}\boldsymbol{u}
+ *   = \left(\prod_{j=1}^2
+ *       \frac{\exp(c_j w_j)-1}{c_j}\right)
+ *     \left(\prod_{j=3}^s
+ *       \frac{\exp(c_j)-1}{c_j}\right).
+ * @f]
+ * @cite iKAA25a assumes @f$0 < w_1,w_2 < 1@f$, whereas this implementation
+ * also permits @f$w_1 = 0@f$ or @f$w_2 = 0@f$. The exact formula remains valid
+ * at these boundary values.
  */
 public class GenzDiscontinuous implements MonteCarloModelDouble {
 
@@ -86,6 +98,10 @@ public class GenzDiscontinuous implements MonteCarloModelDouble {
 
    /**
     * Computes the exact mean of the Genz discontinuous function.
+    *
+    * The computation multiplies the one-dimensional factors over the two
+    * truncated coordinates and then over the remaining full-range coordinates.
+    * `expm1` is used for numerical accuracy when an exponent is near zero.
     *
     * @return exact integral over @f$[0,1]^s@f$
     */

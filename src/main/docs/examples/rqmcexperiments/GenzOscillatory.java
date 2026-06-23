@@ -11,7 +11,17 @@ import umontreal.ssj.rng.RandomStream;
  *   f(u_1,\dots,u_s) =
  *   \cos\left(2\pi w_1 + \sum_{j=1}^s c_j u_j\right),
  * @f]
- * for @f$\bm u = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ * for @f$\boldsymbol{u} = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ *
+ * The exact solution is taken from @cite iKAA25a and is given by
+ * @f[
+ *   \int_{[0,1]^s} f(\boldsymbol{u})\,\mathrm{d}\boldsymbol{u}
+ *   = \cos\left(2\pi w_1 + \frac{1}{2}\sum_{j=1}^s c_j\right)
+ *     \prod_{j=1}^s \frac{2\sin(c_j/2)}{c_j}.
+ * @f]
+ * @cite iKAA25a assumes @f$0 < w_1 < 1@f$, whereas this implementation also
+ * permits @f$w_1 = 0@f$. The exact formula remains valid at this boundary
+ * value.
  */
 public class GenzOscillatory implements MonteCarloModelDouble {
 
@@ -72,6 +82,9 @@ public class GenzOscillatory implements MonteCarloModelDouble {
 
    /**
     * Computes the exact mean of the Genz oscillatory function.
+    *
+    * The computation accumulates the phase shift and the product of the
+    * one-dimensional factors in a single pass over the coordinates.
     *
     * @return exact integral over @f$[0,1]^s@f$
     */

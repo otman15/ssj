@@ -11,7 +11,18 @@ import umontreal.ssj.rng.RandomStream;
  *   f(u_1,\dots,u_s) =
  *   \prod_{j=1}^s \left(c_j^{-2} + (u_j - w_j)^2\right)^{-1},
  * @f]
- * for @f$\bm u = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ * for @f$\boldsymbol{u} = (u_1,\dots,u_s) \in [0,1]^s@f$.
+ *
+ * The exact solution is taken from @cite iKAA25a and is given by
+ * @f[
+ *   \int_{[0,1]^s} f(\boldsymbol{u})\,\mathrm{d}\boldsymbol{u}
+ *   = \prod_{j=1}^s c_j\left(
+ *       \arctan(c_j w_j) + \arctan(c_j(1-w_j))
+ *     \right).
+ * @f]
+ * @cite iKAA25a assumes @f$0 < w_j < 1@f$, whereas this implementation also
+ * permits @f$w_j = 0@f$. The exact formula remains valid at this boundary
+ * value.
  */
 public class GenzProductPeak implements MonteCarloModelDouble {
 
@@ -79,6 +90,9 @@ public class GenzProductPeak implements MonteCarloModelDouble {
 
    /**
     * Computes the exact mean of the Genz product peak function.
+    *
+    * The computation multiplies the one-dimensional integral factors for all
+    * coordinates.
     *
     * @return exact integral over @f$[0,1]^s@f$
     */
