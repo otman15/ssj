@@ -73,7 +73,7 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    public double getPerformance() {
       return Math.pow(1.0 + sum, -(s + 1)) - exactMean;
    }
-   
+
    /**
     * Computes the exact mean of the Genz corner peak function.
     *
@@ -97,58 +97,57 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
     * @return exact integral over @f$[0,1]^s@f$
     * @throws IllegalArgumentException if @f$s \ge 63@f$, since @f$2^s@f$ subsets
     *         cannot be represented safely with a `long`
-    */
+   */
    private double computeExactMean() {
-	   if (s >= 63) {
-	      throw new IllegalArgumentException(
-	         "Exact subset enumeration needs 2^s subsets; s is too large."
-	      );
-	   }
+      if (s >= 63) {
+         throw new IllegalArgumentException(
+               "Exact subset enumeration needs 2^s subsets; s is too large."
+         );
+      }
 
-	   double prod = 1.0;
-	   for (int j = 0; j < s; j++)
-	      prod *= c[j];
+      double prod = 1.0;
+      for (int j = 0; j < s; j++)
+         prod *= c[j];
 
-	   double subsetSum = 0.0;
-	   double compensation = 0.0; // Kahan compensation
+      double subsetSum = 0.0;
+      double compensation = 0.0; // Kahan compensation
 
-	   long previousGray = 0L;
-	   double partialSum = 0.0;
-	   int cardinality = 0;
+      long previousGray = 0L;
+      double partialSum = 0.0;
+      int cardinality = 0;
 
-	   long nSubsets = 1L << s;
+      long nSubsets = 1L << s;
 
-	   for (long mask = 0; mask < nSubsets; mask++) {
-	      long gray = mask ^ (mask >> 1);
+      for (long mask = 0; mask < nSubsets; mask++) {
+         long gray = mask ^ (mask >> 1);
 
-	      if (mask != 0) {
-	         long changedBit = gray ^ previousGray;
-	         int j = Long.numberOfTrailingZeros(changedBit);
+         if (mask != 0) {
+            long changedBit = gray ^ previousGray;
+            int j = Long.numberOfTrailingZeros(changedBit);
 
-	         if ((gray & changedBit) != 0L) {
-	            partialSum += c[j];
-	            cardinality++;
-	         } else {
-	            partialSum -= c[j];
-	            cardinality--;
-	         }
-	      }
+            if ((gray & changedBit) != 0L) {
+               partialSum += c[j];
+               cardinality++;
+            } else {
+               partialSum -= c[j];
+               cardinality--;
+            }
+         }
 
-	      double sign = (cardinality % 2 == 0) ? 1.0 : -1.0;
-	      double term = sign / (1.0 + partialSum);
+         double sign = (cardinality % 2 == 0) ? 1.0 : -1.0;
+         double term = sign / (1.0 + partialSum);
 
-	      // Kahan summation
-	      double y = term - compensation;
-	      double t = subsetSum + y;
-	      compensation = (t - subsetSum) - y;
-	      subsetSum = t;
+         // Kahan summation
+         double y = term - compensation;
+         double t = subsetSum + y;
+         compensation = (t - subsetSum) - y;
+         subsetSum = t;
 
-	      previousGray = gray;
-	   }
+         previousGray = gray;
+      }
 
-	   return subsetSum / (Num.factorial(s) * prod);
-	}
-
+      return subsetSum / (Num.factorial(s) * prod);
+   }
 
    @Override
    public String toString() {
@@ -164,5 +163,4 @@ public class GenzCornerPeak implements MonteCarloModelDouble {
    public double getExactMean() {
       return exactMean;
    }
-
 }

@@ -44,7 +44,7 @@ public class GenzContinuous implements MonteCarloModelDouble {
     *
     * @param s dimension of the function
     * @param c scale parameters, all strictly positive
-    * @param w location parameters, all in @f$[0,1)@f$
+    * @param w location parameters, all in the half-open interval @f$[0,1)@f$
     */
    public GenzContinuous(int s, double[] c, double[] w) {
       if (s <= 0)

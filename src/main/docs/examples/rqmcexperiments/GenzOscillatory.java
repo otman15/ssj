@@ -37,7 +37,7 @@ public class GenzOscillatory implements MonteCarloModelDouble {
     *
     * @param s dimension of the function
     * @param c scale parameters, all strictly positive
-    * @param w1 phase parameter in @f$[0,1)@f$
+    * @param w1 phase parameter in the half-open interval @f$[0,1)@f$
     */
    public GenzOscillatory(int s, double[] c, double w1) {
       if (s <= 0)
