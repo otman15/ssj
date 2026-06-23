@@ -13,13 +13,13 @@ import umontreal.ssj.stat.ScaledHistogram;
 
 
 /**
- * Generates standalone LaTeX/PGFPlots documents containing collections of
+ * Generates LaTeX/PGFPlots documents containing collections of
  * histograms for QMC or RQMC estimators. One LaTeX file is written for each
  * configured model. For every model and dimension {@code s}, the document
  * contains comparison pages for configured groups of methods. Methods appear
  * as rows and values of {@code k}, representing sample sizes {@code n = 2^k},
- * appear as columns. A comparison page can be divided into several tabular
- * pages according to {@code maxRowsPerPage}.
+ * appear as columns. LaTeX automatically computes histogram widths and breaks
+ * long comparison tables across letter pages.
  *
  * <p>Input {@code .dat} files are not discovered by scanning the input
  * directory. Their expected names are constructed with
@@ -31,31 +31,34 @@ import umontreal.ssj.stat.ScaledHistogram;
  * <p>The {@link #main(String[])} method is the configuration entry point. It
  * specifies the input and output folders, the models or functions to process,
  * dimensions {@code s}, values of {@code k}, the observation count {@code m},
- * comparison-page titles and method lists, and {@code maxRowsPerPage} for
- * splitting large method groups. It also configures {@code leftExtMark} and
+ * and comparison-page titles and method lists. It also configures {@code leftExtMark} and
  * {@code rightExtMark}, the {@code dataFileNameMaker} input naming rule, and
  * {@code outputFileNamePattern} for generated {@code .tex} file names.</p>
  */
 
-public class HistCollectionLatex {
+public class HistCollectionLatex2 {
 
    private static final int NUM_BINS = 100; // Number of bins used for every histogram.
-   private static final String HIST_CELL_WIDTH = "5.2cm"; // Fixed histogram-column width for table alignment.
-   private static final String AXIS_WIDTH = "6.5cm"; // LaTeX plot option.
-   private static final String AXIS_HEIGHT = "5.5cm"; // LaTeX plot option.
+   private static final String HIST_CELL_WIDTH = "\\histcellwidth"; // LaTeX-computed histogram-column width.
+   private static final String AXIS_WIDTH = "\\histaxiswidth"; // LaTeX-computed plot width.
+   private static final String AXIS_HEIGHT = "\\histaxisheight"; // LaTeX-computed plot height.
+   private static final String outputFileNamePattern = "%s-hist.tex";
 
    /** Configures the histogram collection and writes its LaTeX documents. */
    public static void main(String[] args) throws IOException {
       String inputFolder = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
       String outputFolder = "/home/otman/Documents/GitHub/Data/samo25-test/latexNewConfig/";
 
-     // String[] modelTags = new String[] {"Polynomial", "PieceLinGauss"};
-      //    "SmoothPerB4", "SumUeU", "MC2", "Polynomial", "Oscillatory",
-      //    "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
-      // };
-      String[] modelTags = new String[] {"Gaussian"};
+      // String[] modelTags = new String[] {"Polynomial", "PieceLinGauss",
+      //      "SmoothPerB4", "SumUeU", "MC2", "Polynomial", "Oscillatory",
+      //      "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
+      //   };
 
-      int[] sDims = new int[] {2, 4};//, 8, 16, 32};
+      String[] modelTags = new String[] {"Polynomial"};
+
+
+
+      int[] sDims = new int[] {2, 4};
       int m = 10000;
       int[] ks = new int[] {10, 12, 14, 16};
       int leftExtMark = 2;
@@ -63,26 +66,24 @@ public class HistCollectionLatex {
 
       String methodes1Title = "Rank-1 lattice";
       String methods1 = "Lat-RS,Lat-RSB,Lat-Rv,Lat-Rpv,Lat-RvRS,Lat-RvRSB,Lat-RpvRS,Lat-RpvRSB";
-      int maxRowsPerPage = 4;
 
       String methodes2Title = "Sobol";
       String methods2 = "Sob-RDS,Sob-RDSB,Sob-LMS,Sob-LMS-RDS,Sob-LMS-RDS-IRB,Sob-NUS";
 
-      ComparisonPage[] pages = new ComparisonPage[] {
-         new ComparisonPage( methodes1Title, methods1, maxRowsPerPage),
-         new ComparisonPage(methodes2Title ,methods2, maxRowsPerPage )
+      // Each row contains a page title and its comma-separated method names.
+      String[][] pages = new String[][] {
+         {methodes1Title, methods1},
+         {methodes2Title, methods2}
       };
 
       DataFileNameMaker dataFileNameMaker = (modelTag, s, method, k, numObs) ->
             modelTag + "-" + s + "-" + method + "-" + k + "-" + numObs + ".dat";
-      String outputFileNamePattern = "%s-hist.tex";
 
       HistConfig samo25Config = HistConfig.create(
          inputFolder, outputFolder,
          modelTags, sDims, ks, m,
          pages,
          leftExtMark, rightExtMark,
-         outputFileNamePattern,
          dataFileNameMaker
 
       );
@@ -106,21 +107,21 @@ public class HistCollectionLatex {
    }
 
    /**
-    * Writes the complete standalone LaTeX document for one model.
+    * Writes the complete LaTeX document for one model.
     *
     * @param config folders, naming rules, and plot settings
     * @param modelConfig model, dimensions, sample sizes, and comparison pages
     * @throws IOException if the output file or an input data file cannot be accessed
     */
    private static void writeModelFile(HistConfig config, ModelConfig modelConfig) throws IOException {
-      File outFile = new File(config.outputFolder, String.format(config.outputFileNamePattern, modelConfig.modelTag));
+      File outFile = new File(config.outputFolder, String.format(outputFileNamePattern, modelConfig.modelTag));
 
       try (PrintWriter out = new PrintWriter(new FileWriter(outFile))) {
          writeLatexHeader(out);
 
          for (int s : modelConfig.sDims) {
 
-            for (ComparisonPage page : modelConfig.pages) {
+            for (String[] page : modelConfig.pages) {
                writeComparisonPage(out, config, modelConfig, s, page);
             }
          }
@@ -133,15 +134,14 @@ public class HistCollectionLatex {
    }
 
    /**
-    * Writes the tabular page or pages for one method group at one dimension.
-    * The methods are split into chunks of at most {@code maxRowsPerPage}; a
-    * nonpositive limit leaves the group on one page.
+    * Writes one comparison table for one method group at one dimension.
+    * LaTeX handles page breaks between method rows.
     *
     * @param out output writer for the model's LaTeX file
     * @param config input naming and plot settings
     * @param modelConfig current model configuration
     * @param s current dimension
-    * @param page comparison-page title, methods, and row limit
+    * @param page two-element array containing the page title and comma-separated methods
     * @throws IOException if an input data file cannot be read
    */
    private static void writeComparisonPage(
@@ -149,51 +149,34 @@ public class HistCollectionLatex {
          HistConfig config,
          ModelConfig modelConfig,
          int s,
-         ComparisonPage page) throws IOException {
+         String[] page) throws IOException {
 
       String pageTitle = makePageTitle(
          modelConfig.modelTag,
          s,
-         page.title,
+         page[0],
          modelConfig.m
       );
 
-      // A nonpositive limit means that the method group is not split.
-      int rowsPerPage = page.maxRowsPerPage <= 0
-            ? page.methods.length
-            : page.maxRowsPerPage;
+      writeHistogramPageBody(
+         out,
+         config,
+         modelConfig,
+         s,
+         pageTitle,
+         page[1].split(",")
+      );
 
-      for (int start = 0; start < page.methods.length; start += rowsPerPage) {
-         int end = Math.min(start + rowsPerPage, page.methods.length);
-         String[] methodsChunk = Arrays.copyOfRange(page.methods, start, end);
-
-         // Later chunks hide the title with \phantom to preserve page height.
-         boolean showTitle = (start == 0);
-
-         writeHistogramPageBody(
-            out,
-            config,
-            modelConfig,
-            s,
-            pageTitle,
-            methodsChunk,
-            rowsPerPage,
-            showTitle
-         );
-
-         out.println();
-      }
+      out.println("\\clearpage");
+      out.println();
    }
 
    /**
-    * Writes the body of one tabular histogram page.
+    * Writes the body of one breakable histogram table.
     *
     * Rows correspond to the supplied methods and columns correspond to the
-    * model's values of {@code k}, where {@code n = 2^k}. Each histogram cell
-    * is placed in a fixed-width box to keep the page layout aligned across
-    * method groups.
-    * Invisible rows pad short chunks to {@code targetRows}, and a hidden title
-    * uses {@code \phantom} so split pages retain consistent dimensions.
+    * model's values of {@code k}, where {@code n = 2^k}. LaTeX computes the
+    * cell and axis widths from the page width and decides page breaks.
     *
     * @param out output writer for the LaTeX file
     * @param config input folder, naming rule, and histogram plot settings
@@ -201,8 +184,6 @@ public class HistCollectionLatex {
     * @param s current dimension used to construct input file names
     * @param pageTitle title printed above the histogram grid
     * @param methods method names to show as rows
-    * @param targetRows row count used to keep split pages the same height
-    * @param showT whether to display the title instead of a same-size phantom
     * @throws IOException if a data file cannot be read
     */
    private static void writeHistogramPageBody(
@@ -211,37 +192,49 @@ public class HistCollectionLatex {
          ModelConfig modelConfig,
          int s,
          String pageTitle,
-         String[] methods,
-         int targetRows,
-         boolean showTitle) throws IOException {
+         String[] methods) throws IOException {
 
-      out.print("\\begin{tabular}{@{}c");
+      out.println("\\sethistwidths{" + modelConfig.ks.length + "}");
+
+      out.print("\\begin{longtable}{@{}>{\\centering\\arraybackslash}p{\\histmethodwidth}");
       for (int i = 0; i < modelConfig.ks.length; i++) {
-    	  out.print("@{}c");
+         out.print("@{}>{\\centering\\arraybackslash}p{\\histcellwidth}");
       }
       out.println("@{}}");
 
       String titleLatex =
-      "\\scriptsize\\textbf{" + escapeLatex(pageTitle) + "}";
-
-      if (!showTitle)
-         titleLatex = "\\phantom{" + titleLatex + "}";
+         "\\scriptsize\\textbf{" + escapeLatex(pageTitle) + "}";
+      String phantomTitleLatex = "\\phantom{" + titleLatex + "}";
 
       out.println("\\multicolumn{" + (modelConfig.ks.length + 1)
             + "}{c}{"
             + titleLatex
             + "} \\\\[2mm]");
-      
+
       out.print("{}");
       for (int k : modelConfig.ks) {
-    	  out.print(" & \\makebox[" + HIST_CELL_WIDTH + "][c]{{\\scriptsize $n=2^{" + k + "}$}}");
+         out.print(" & \\makebox[" + HIST_CELL_WIDTH + "][c]{{\\scriptsize $n=2^{" + k + "}$}}");
       }
       out.println(" \\\\[1.5mm]");
+      out.println("\\endfirsthead");
+
+      out.println("\\multicolumn{" + (modelConfig.ks.length + 1)
+            + "}{c}{"
+            + phantomTitleLatex
+            + "} \\\\[2mm]");
+
+      out.print("{}");
+      for (int k : modelConfig.ks) {
+         out.print(" & \\makebox[" + HIST_CELL_WIDTH + "][c]{{\\scriptsize $n=2^{" + k + "}$}}");
+      }
+      out.println(" \\\\[1.5mm]");
+      out.println("\\endhead");
 
       for (String method : methods) {
 
-    	   out.print("\\raisebox{0.7cm}{\\rotatebox{90}{\\scriptsize "
-    		      + escapeLatex(method) + "}}");
+         out.print("\\raisebox{0.7cm}{\\rotatebox{90}{\\scriptsize "
+               + escapeLatex(method) + "}}");
+
          for (int k : modelConfig.ks) {
             String fileName = config.dataFileNameMaker.make(modelConfig.modelTag, s, method, k, modelConfig.m);
             File file = new File(config.inputFolder, fileName);
@@ -260,19 +253,7 @@ public class HistCollectionLatex {
          out.println("\\\\[1.5mm]");
       }
 
-      // Invisible rows keep every chunk of a split comparison at the same height.
-      for (int i = methods.length; i < targetRows; i++) {
-         out.print("\\rule{0pt}{" + AXIS_HEIGHT + "}");
-
-         for (int j = 0; j < modelConfig.ks.length; j++) {
-            out.print(" & \\makebox[" + HIST_CELL_WIDTH + "][c]{\\rule{0pt}{" + AXIS_HEIGHT + "}}");
-         }
-
-         out.println("\\\\[1.5mm]");
-      }
-
-
-      out.println("\\end{tabular}");
+      out.println("\\end{longtable}");
    }
 
    private static ModelConfig[] makeModelConfigs(
@@ -280,7 +261,7 @@ public class HistCollectionLatex {
          int[] sDims,
          int[] ks,
          int m,
-         ComparisonPage[] pages) {
+         String[][] pages) {
 
       ModelConfig[] models = new ModelConfig[modelTags.length];
 
@@ -345,6 +326,7 @@ public class HistCollectionLatex {
     		   "title={" + escapeLatex(title) + "}, " + 
     		   "title style={font=\\scriptsize}, " + 
     		   "width=" + AXIS_WIDTH + ", height="+AXIS_HEIGHT+ ","  +
+            "scale only axis, " +
     		   "xmin=" + texNum(xmin) + ", " +
     		   "xmax=" + texNum(xmax) + ", " +
     		   "scaled x ticks=true, " +
@@ -490,18 +472,33 @@ public class HistCollectionLatex {
    /**
     * Writes the LaTeX document header.
     *
-    * The generated document uses the {@code standalone} class with one cropped
-    * page per tabular environment and loads the packages required for PGFPlots
-    * histograms and basic graphical transformations.
+    * The generated document uses letter paper and loads the packages required
+    * for PGFPlots histograms, graphical transformations, and breakable tables.
     *
     * @param out output writer for the LaTeX file
     */
    private static void writeLatexHeader(PrintWriter out) {
-      out.println("\\documentclass[border=3pt,multi=tabular]{standalone}");
+      out.println("\\documentclass[letterpaper]{article}");
+      out.println("\\usepackage[margin=0.2in]{geometry}");
       out.println("\\usepackage{amsmath}");
       out.println("\\usepackage{graphicx}");
+      out.println("\\usepackage{array}");
+      out.println("\\usepackage{longtable}");
       out.println("\\usepackage{pgfplots}");
       out.println("\\pgfplotsset{compat=1.18}");
+      out.println("\\pagestyle{empty}");
+      out.println();
+      out.println("\\newlength{\\histmethodwidth}");
+      out.println("\\newlength{\\histcellwidth}");
+      out.println("\\newlength{\\histaxiswidth}");
+      out.println("\\newlength{\\histaxisheight}");
+      out.println("\\setlength{\\histmethodwidth}{0.2cm}");
+      out.println("\\newcommand{\\sethistwidths}[1]{%");
+      out.println("  \\setlength{\\histcellwidth}{\\dimexpr(\\textwidth-\\histmethodwidth)/#1\\relax}%");
+      out.println("  \\setlength{\\histaxiswidth}{0.98\\histcellwidth}%");
+      out.println("  \\setlength{\\histaxisheight}{0.86\\histaxiswidth}%");
+      out.println("}");
+      out.println();
       out.println("\\begin{document}");
       out.println();
    }
@@ -582,7 +579,6 @@ public class HistCollectionLatex {
       ModelConfig[] models;
       int rightExtMark;
       int leftExtMark;
-      String outputFileNamePattern;
 
       /** Creates a complete histogram configuration from the settings in {@code main}. */
       static HistConfig create(
@@ -592,10 +588,9 @@ public class HistCollectionLatex {
             int[] sDims,
             int[] ks,
             int m,
-            ComparisonPage[] pages,
+            String[][] pages,
             int leftExtMark,
             int rightExtMark,
-            String outputFileNamePattern,
             DataFileNameMaker dataFileNameMaker) {
 
          HistConfig config = new HistConfig();
@@ -605,7 +600,6 @@ public class HistCollectionLatex {
          config.models = makeModelConfigs(modelTags, sDims, ks, m, pages);
          config.rightExtMark = rightExtMark;
          config.leftExtMark = leftExtMark;
-         config.outputFileNamePattern = outputFileNamePattern;
          return config;
       }
    }
@@ -615,19 +609,7 @@ public class HistCollectionLatex {
       int[] sDims;
       int[] ks;
       int m;
-      ComparisonPage[] pages;
-   }
-
-   public static class ComparisonPage {
-      String title;
-      int maxRowsPerPage;
-      String[] methods;
-
-      ComparisonPage(String title, String methods, int maxRowsPerPage) {
-         this.title = title;
-         this.methods = methods.split(",");
-         this.maxRowsPerPage = maxRowsPerPage;
-      }
+      String[][] pages;
    }
 
    private static class HistogramData {
