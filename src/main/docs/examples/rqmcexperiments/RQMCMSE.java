@@ -18,6 +18,7 @@ import umontreal.ssj.util.Misc;
  * @f$r@f$ with replacement. It collects the sample average @f$A_r@f$ and
  * sample median @f$M_r@f$, then writes result tables for their MSE values and
  * the ratio @f$\mathrm{MSE}[A_r] / \mathrm{MSE}[M_r]@f$.
+ * Add comment about target =0
  */
 public class RQMCMSE {
 
