@@ -2,40 +2,41 @@ package rqmcexperiments;
 
 import java.io.IOException;
 
+/**
+ * Example that uses {@link HistCollectionLatex} to generate the SAMO 2025
+ * histogram LaTeX files. The local variables in {@link #main(String[])} set the
+ * folders, models, dimensions, values of {@code k}, observation count, and
+ * methods.
+ */
 public class HistSamo25 {
+
+   /**
+    * Sets the SAMO 2025 parameters and writes the histogram LaTeX files.
+    */
    public static void main(String[] args) throws IOException {
       String inputFolder = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
       String outputFolder = "/home/otman/Documents/GitHub/Data/samo25-test/latexNewConfig/";
 
-      String[] modelTags = new String[] {"Polynomial", "PieceLinGauss",
-           "SmoothPerB4", "SumUeU", "MC2", "Polynomial", "Oscillatory",
-           "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
-        };
-
-      int[] sDims = new int[] {2, 8, 16};
       int m = 10000;
+      int[] sDims = new int[] {2, 4, 8, 16, 32};
       int[] ks = new int[] {10, 12, 14, 16};
-      int leftExtMark = 2;
-      int rightExtMark =2;
-      int numBins = 80;
 
-      String methodesTitle = "Rank-1 lattice + sobol";
-      String methods = "Lat-RS,Lat-RSB,Lat-Rv,Lat-Rpv,Lat-RvRS,Lat-RvRSB,Lat-RpvRS,Lat-RpvRSB,"+
-      "Sob-RDS,Sob-RDSB,Sob-LMS,Sob-LMS-RDS,Sob-LMS-RDS-IRB,Sob-NUS";
-
-      // Each row contains a page title and its comma-separated method names.
-      String[][] pages = new String[][] {
-         {methodesTitle, methods}
+      String[] modelTags = new String[] {
+         "SmoothPerB4", "SumUeU", "MC2", "Polynomial", "Oscillatory",
+         "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
       };
 
-      HistCollectionLatex2 samo25Config = new HistCollectionLatex2(
+      String[] methods = new String[] {
+         "Lat-RS", "Lat-RSB", "Lat-Rv", "Lat-Rpv", "Lat-RvRS",
+         "Lat-RvRSB", "Lat-RpvRS", "Lat-RpvRSB",
+         "Sob-RDS", "Sob-RDSB", "Sob-LMS", "Sob-LMS-RDS",
+         "Sob-LMS-RDS-IRB", "Sob-NUS"
+      };
+
+      HistCollectionLatex.writeCollection(
          inputFolder, outputFolder,
          modelTags, sDims, ks, m,
-         pages,
-         leftExtMark, rightExtMark, numBins
-
+         methods
       );
-
-      samo25Config.writeCollection();
    }
 }
