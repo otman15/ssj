@@ -34,18 +34,18 @@ public class TestCollectionLatex {
 
       File sampleFile = inputFile();
 
-      String histogramLatex = HistCollectionLatex2.makeHistogramLatex(sampleFile);
+      String histogramLatex = HistCollectionLatex.makeHistogramLatex(sampleFile);
       File histogramFile = new File(outputFolder,
             "01-makeHistogramLatex-MC2-s2-Lat-RS-k10-m10000.tex");
       writeText(histogramFile, histogramLatex);
 
       String modelFileOutputFolder = OUTPUT_FOLDER + "02-writeModelFile-output/";
-      HistCollectionLatex2.writeModelFile(
+      HistCollectionLatex.writeModelFile(
             INPUT_FOLDER, modelFileOutputFolder,
             MODEL_TAG, S_DIMS, KS, M, METHODS);
 
       String collectionOutputFolder = OUTPUT_FOLDER + "03-writeCollection-output/";
-      HistCollectionLatex2.writeCollection(
+      HistCollectionLatex.writeCollection(
             INPUT_FOLDER, collectionOutputFolder,
             MODEL_TAGS, S_DIMS, KS, M, METHODS);
 
