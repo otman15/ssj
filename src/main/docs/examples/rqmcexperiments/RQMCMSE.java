@@ -15,51 +15,82 @@ import umontreal.ssj.util.Misc;
  * Estimates the mean square error (MSE) of two estimators from stored RQMC
  * simulation results. For each configured function, dimension, method, and
  * value of @f$k@f$, the experiment draws @f$m@f$ bootstrap samples of size
- * @f$r@f$ with replacement. It collects the sample average @f$A_r@f$ and
- * sample median @f$M_r@f$, then writes result tables for their MSE values and
- * the ratio @f$\mathrm{MSE}[A_r] / \mathrm{MSE}[M_r]@f$.
- * Add comment about target =0
+ * @f$r@f$ with replacement. For each bootstrap sample, it computes the sample
+ * average @f$A_r@f$ and the sample median @f$M_r@f$, then estimates their MSE
+ * values relative to the current target, which is 0.
+ *
+ * The MSE of @f$A_r@f$ is also computed directly from the stored simulation
+ * values. Since @f$A_r@f$ is a sample average, its variance is
+ * @f$\mathrm{Var}(X)/r@f$, so the direct computation uses
+ * @f$\mathrm{Var}(X)/r + \mathrm{bias}^2@f$ and avoids the extra Monte Carlo
+ * noise from bootstrap replications.
+ *
+ * The experiment writes four result tables: bootstrap
+ * @f$\mathrm{MSE}[A_r]@f$, direct @f$\mathrm{MSE}[A_r]@f$, bootstrap
+ * @f$\mathrm{MSE}[M_r]@f$, and the ratio of direct
+ * @f$\mathrm{MSE}[A_r]@f$ to bootstrap @f$\mathrm{MSE}[M_r]@f$.
  */
 public class RQMCMSE {
 
-   private static final double TARGET = 0.0;
+   /**
+    * Computes the empirical MSE of the observations summarized by a tally.
+    *
+    * @param tally tally summarizing the observations
+    * @param target exact target value
+    * @return empirical MSE relative to @f$target@f$
+   */
+   private static double mse(Tally tally, double target) {
+      double bias = tally.average() - target;
+      return tally.variance() * (tally.numberObs() - 1.0)
+          / tally.numberObs() + bias * bias;
+   }
 
    /**
-    * Computes the MSE from a tally of estimator values.
+    * Computes direct @f$\mathrm{MSE}[A_r]@f$ from the empirical distribution
+    * defined by the stored simulation values. Here, "direct" means that instead
+    * of bootstrapping @f$A_r@f$, the MSE is computed using
+    * @f$\mathrm{Var}(tally) / r@f$. @f$A_r@f$ is the average of @f$r@f$
+    * observations sampled with replacement from these stored values.
     *
-    * @param tally tally containing the estimator values
-    * @return estimated MSE relative to {@link #TARGET}
+    * @param tally tally containing the stored simulation values, usually with
+    *        more observations than r
+    * @param target exact target value
+    * @param r number of observations averaged by @f$A_r@f$
+    * @return direct MSE of @f$A_r@f$ relative to @f$target@f$
    */
-   private static double mse(Tally tally) {
-      double bias = tally.average() - TARGET;
-      return tally.variance() + bias * bias;
+   private static double directMse(Tally tally, double target, int r) {
+      double bias = tally.average() - target;
+      return tally.variance() * (tally.numberObs() - 1.0)
+          / tally.numberObs() / r + bias * bias;
    }
 
    /**
     * Reads simulation observations from a data file.
     *
     * @param filename input data file
-    * @return array containing the simulation observations
+    * @return TallyStore containing the simulation observations
     * @throws IllegalArgumentException if the file contains no observations
    */
-   private static double[] readSimulationValues(String filename) {
+   private static TallyStore readSimulationValues(String filename) {
       TallyStore simulations = new TallyStore();
       // Use fillFromFile(filename, skip) if the file contains comments.
       simulations.fillFromFile(filename);
       if (simulations.numberObs() == 0)
          throw new IllegalArgumentException("No simulation values found in " + filename);
-      return simulations.getArray();
+      return simulations;
    }
 
    /**
-    * Computes the bootstrap MSE of @f$A_r@f$ and @f$M_r@f$ from simulation
-    * observations.
+    * Computes the bootstrap MSE of @f$A_r@f$ and @f$M_r@f$. For each
+    * bootstrap sample, @f$A_r@f$ is the sample average and @f$M_r@f$ is the
+    * sample median.
     *
     * @param values simulation observations
     * @param m number of bootstrap samples
     * @param r size of each bootstrap sample
     * @param stream random stream used for sampling
-    * @return array containing the MSE of @f$A_r@f$ and @f$M_r@f$
+    * @return array containing bootstrap @f$\mathrm{MSE}[A_r]@f$ and
+    *         bootstrap @f$\mathrm{MSE}[M_r]@f$
    */
    private static double[] computeMseArMr(double[] values, int m, int r, RandomStream stream) {
       int numSim = values.length;
@@ -79,8 +110,8 @@ public class RQMCMSE {
          statMed.add(Misc.getMedian(sample, r));
       }
 
-      double arMse = mse(statAver);
-      double mrMse = mse(statMed);
+      double arMse = mse(statAver, 0);
+      double mrMse = mse(statMed, 0);
       return new double[] {arMse, mrMse};
    }
 
@@ -124,8 +155,11 @@ public class RQMCMSE {
    }
 
    /**
-    * Computes and writes the three MSE tables for one function and dimension.
-    * Missing input files are reported and skipped.
+    * Computes and writes the four MSE result tables for one function and
+    * dimension: bootstrap @f$\mathrm{MSE}[A_r]@f$, direct
+    * @f$\mathrm{MSE}[A_r]@f$, bootstrap @f$\mathrm{MSE}[M_r]@f$, and the
+    * ratio of direct @f$\mathrm{MSE}[A_r]@f$ to bootstrap
+    * @f$\mathrm{MSE}[M_r]@f$. Missing input files are reported and skipped.
     *
     * @param dataDir directory containing the simulation files
     * @param resultDir directory in which result tables are written
@@ -154,62 +188,74 @@ public class RQMCMSE {
          header.append(" ").append(method).append(" ");
       header.append("\n");
 
-      StringBuilder arRows = new StringBuilder();
-      StringBuilder mrRows = new StringBuilder();
-      StringBuilder ratioRows = new StringBuilder();
+      StringBuilder directArMseRows = new StringBuilder();
+      StringBuilder arMseRows = new StringBuilder();
+      StringBuilder mrMseRows = new StringBuilder();
+      StringBuilder ratioMseRows = new StringBuilder();
       for (int i = 0; i < ks.length; i++) {
          int k = ks[i];
 
          // Use a new substream for this k.
          stream.resetNextSubstream();
 
-         arRows.append(k).append("  ");
-         mrRows.append(k).append("  ");
-         ratioRows.append(k).append("  ");
+         directArMseRows.append(k).append("  ");
+         arMseRows.append(k).append("  ");
+         mrMseRows.append(k).append("  ");
+         ratioMseRows.append(k).append("  ");
 
          for (String method : methods) {
             File file = getSimulationFile(
                   dataDir, functionName, s, method, k, numObs);
 
             if (file == null) {
-               arRows.append("Missing  ");
-               mrRows.append("Missing  ");
-               ratioRows.append("Missing  ");
+               directArMseRows.append("Missing  ");
+               arMseRows.append("Missing  ");
+               mrMseRows.append("Missing  ");
+               ratioMseRows.append("Missing  ");
                continue;
             }
 
-            double[] values = readSimulationValues(file.getAbsolutePath());
+            TallyStore sim = readSimulationValues(file.getAbsolutePath());
+            double[] values = sim.getArray();
             // Reuse the same substream for every method at this k.
             stream.resetStartSubstream();
+            double directArMse = directMse(sim, 0, r);
             double[] result = computeMseArMr(values, m, r, stream);
-            arRows.append(result[0]).append("  ");
-            mrRows.append(result[1]).append("  ");
-            ratioRows.append(result[0] / result[1]).append("  ");
+            directArMseRows.append(directArMse).append("  ");
+            arMseRows.append(result[0]).append("  ");
+            mrMseRows.append(result[1]).append("  ");
+            ratioMseRows.append(directArMse / result[1]).append("  ");
          }
-         arRows.append("\n");
-         mrRows.append("\n");
-         ratioRows.append("\n");
+         directArMseRows.append("\n");
+         arMseRows.append("\n");
+         mrMseRows.append("\n");
+         ratioMseRows.append("\n");
       }
 
-      String arTable = header.toString() + arRows.toString();
-      String mrTable = header.toString() + mrRows.toString();
-      String ratioTable = header.toString() + ratioRows.toString();
+      String directArMseTable = header.toString() + directArMseRows.toString();
+      String arMseTable = header.toString() + arMseRows.toString();
+      String mrMseTable = header.toString() + mrMseRows.toString();
+      String ratioMseTable = header.toString() + ratioMseRows.toString();
 
-      File arFile = new File(resultFolder,
+      File directArMseFile = new File(resultFolder,
+            functionName + "-" + s + "-" + r + "-MSE-Ar-Direct.res");
+      File arMseFile = new File(resultFolder,
             functionName + "-" + s + "-" + r + "-MSE-Ar.res");
-      File mrFile = new File(resultFolder,
+      File mrMseFile = new File(resultFolder,
             functionName + "-" + s + "-" + r + "-MSE-Mr.res");
-      File ratioFile = new File(resultFolder,
-            functionName + "-" + s + "-" + r + "-MSE-Ratio-ArOverMr.res");
+      File ratioMseFile = new File(resultFolder,
+            functionName + "-" + s + "-" + r + "-MSE-Ratio-Ar-Mr.res");
 
-      writeTable(arFile, arTable);
-      writeTable(mrFile, mrTable);
-      writeTable(ratioFile, ratioTable);
+      writeTable(directArMseFile, directArMseTable);
+      writeTable(arMseFile, arMseTable);
+      writeTable(mrMseFile, mrMseTable);
+      writeTable(ratioMseFile, ratioMseTable);
 
       System.out.println("MSE result tables written to:");
-      System.out.println("  " + arFile.getAbsolutePath());
-      System.out.println("  " + mrFile.getAbsolutePath());
-      System.out.println("  " + ratioFile.getAbsolutePath());
+      System.out.println("  " + directArMseFile.getAbsolutePath());
+      System.out.println("  " + arMseFile.getAbsolutePath());
+      System.out.println("  " + mrMseFile.getAbsolutePath());
+      System.out.println("  " + ratioMseFile.getAbsolutePath());
    }
 
    /**
