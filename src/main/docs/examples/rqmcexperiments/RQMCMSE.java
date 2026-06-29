@@ -26,11 +26,12 @@ import umontreal.ssj.util.Misc;
  * simulation values instead of bootstrap samples. Since @f$A_r@f$ is an
  * average, @f$\mathrm{MSE}[A_r]@f$ is computed as
  * @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$, where the current
- * target is 0. This avoids the extra Monte Carlo noise from bootstrapping @f$A_r@f$.
+ * target is 0. This avoids the extra Monte Carlo noise from bootstrapping
+ * @f$A_r@f$.
  *
- * Since tally.variance() uses the sample variance with denominator @f$(n - 1)@f$,
- * we convert it to the empirical variance with denominator @f$n@f$ by multiplying
- * by @f$(n - 1)/n@f$.
+ * Since {@code tally.variance()} uses the sample variance with denominator
+ * @f$(n - 1)@f$, we convert it to the empirical variance with denominator
+ * @f$n@f$ by multiplying by @f$(n - 1)/n@f$.
  *
  * The experiment writes three result tables: @f$\mathrm{MSE}[A_r]@f$,
  * @f$\mathrm{MSE}[M_r]@f$, and
@@ -52,9 +53,9 @@ public class RQMCMSE {
    }
 
    /**
-    * Computes the empirical MSE of the average of @f$r@f$ observations sampled with
-    * replacement from the empirical distribution defined by the values stored
-    * in the tally.
+    * Computes the empirical MSE of the average of @f$r@f$ observations sampled
+    * with replacement from the empirical distribution defined by the values
+    * stored in the tally.
     *
     * @param tally tally containing the stored simulation values that define the
     *        empirical distribution
