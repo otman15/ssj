@@ -19,13 +19,13 @@ import umontreal.ssj.util.Misc;
  * For @f$M_r@f$, the experiment draws @f$m@f$ bootstrap samples of size
  * @f$r@f$ with replacement from the stored simulation values. For each
  * bootstrap sample, it computes the sample median @f$M_r@f$, then estimates
- * @f$\mathrm{MSE}[M_r]@f$ with repect to a target value which currenty is 0.
+ * @f$\mathrm{MSE}[M_r]@f$ with respect to the current target, which is 0.
  *
  * For @f$A_r@f$, the experiment uses the empirical variance of the stored
  * simulation values instead of bootstrap samples. Since @f$A_r@f$ is an
  * average, @f$\mathrm{MSE}[A_r]@f$ is computed as
- * @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$ (currently bias=0), 
- * which avoids the extra Monte Carlo noise from bootstrapping @f$A_r@f$.
+ * @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$, where the current 
+ * target is 0, which avoids the extra Monte Carlo noise from bootstrapping @f$A_r@f$.
  *
  * The experiment writes three result tables: @f$\mathrm{MSE}[A_r]@f$,
  * @f$\mathrm{MSE}[M_r]@f$, and
@@ -39,7 +39,7 @@ public class RQMCMSE {
     * @param tally tally summarizing the observations
     * @param target exact target value
     * @return empirical MSE relative to @f$target@f$
-   */
+    */
    private static double mse(Tally tally, double target) {
       double bias = tally.average() - target;
       return tally.variance() * (tally.numberObs() - 1.0)
@@ -69,7 +69,7 @@ public class RQMCMSE {
     * @param filename input data file
     * @return TallyStore containing the simulation observations
     * @throws IllegalArgumentException if the file contains no observations
-   */
+    */
    private static TallyStore readSimulationValues(String filename) {
       TallyStore simulations = new TallyStore();
       // Use fillFromFile(filename, skip) if the file contains comments.
