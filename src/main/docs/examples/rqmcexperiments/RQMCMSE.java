@@ -13,19 +13,19 @@ import umontreal.ssj.util.Misc;
 
 /**
  * Estimates @f$\mathrm{MSE}[A_r]@f$ and @f$\mathrm{MSE}[M_r]@f$ from stored
- * RQMC simulation results. For each configured function, dimension, method,
- * and value of @f$k@f$. The current target is 0.
+ * RQMC simulation results for each configured function, dimension, method,
+ * and value of @f$k@f$.
  *
  * For @f$M_r@f$, the experiment draws @f$m@f$ bootstrap samples of size
  * @f$r@f$ with replacement from the stored simulation values. For each
  * bootstrap sample, it computes the sample median @f$M_r@f$, then estimates
- * @f$\mathrm{MSE}[M_r]@f$.
+ * @f$\mathrm{MSE}[M_r]@f$ with repect to a target value which currenty is 0.
  *
  * For @f$A_r@f$, the experiment uses the empirical variance of the stored
  * simulation values instead of bootstrap samples. Since @f$A_r@f$ is an
  * average, @f$\mathrm{MSE}[A_r]@f$ is computed as
- * @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$, which avoids the
- * extra Monte Carlo noise from bootstrapping @f$A_r@f$.
+ * @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$ (currently bias=0), 
+ * which avoids the extra Monte Carlo noise from bootstrapping @f$A_r@f$.
  *
  * The experiment writes three result tables: @f$\mathrm{MSE}[A_r]@f$,
  * @f$\mathrm{MSE}[M_r]@f$, and
