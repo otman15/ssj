@@ -12,9 +12,10 @@ import umontreal.ssj.stat.TallyStore;
 import umontreal.ssj.util.Misc;
 
 /**
- * Estimates @f$\mathrm{MSE}[A_r]@f$ and @f$\mathrm{MSE}[M_r]@f$ from stored
- * RQMC simulation results for each configured function, dimension, method,
- * and value of @f$k@f$.
+ * Estimates the MSE of @f$A_r@f$, the average of @f$r@f$ observations sampled
+ * with replacement from stored RQMC simulation values, and @f$M_r@f$, the
+ * corresponding sample median, for each configured function, dimension,
+ * method, and value of @f$k@f$.
  *
  * For @f$M_r@f$, the experiment draws @f$m@f$ bootstrap samples of size
  * @f$r@f$ with replacement from the stored simulation values. For each
@@ -24,8 +25,12 @@ import umontreal.ssj.util.Misc;
  * For @f$A_r@f$, the experiment uses the empirical variance of the stored
  * simulation values instead of bootstrap samples. Since @f$A_r@f$ is an
  * average, @f$\mathrm{MSE}[A_r]@f$ is computed as
- * @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$, where the current 
- * target is 0, which avoids the extra Monte Carlo noise from bootstrapping @f$A_r@f$.
+ * @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$, where the current
+ * target is 0. This avoids the extra Monte Carlo noise from bootstrapping @f$A_r@f$.
+ *
+ * Since tally.variance() uses the sample variance with denominator @f$(n - 1)@f$,
+ * we convert it to the empirical variance with denominator @f$n@f$ by multiplying
+ * by @f$(n - 1)/n@f$.
  *
  * The experiment writes three result tables: @f$\mathrm{MSE}[A_r]@f$,
  * @f$\mathrm{MSE}[M_r]@f$, and
@@ -34,7 +39,7 @@ import umontreal.ssj.util.Misc;
 public class RQMCMSE {
 
    /**
-    * Computes the empirical MSE of the observations summarized by a tally.
+    * Computes the empirical MSE of all observations summarized by a tally.
     *
     * @param tally tally summarizing the observations
     * @param target exact target value
@@ -47,7 +52,7 @@ public class RQMCMSE {
    }
 
    /**
-    * Computes the MSE of the average of @f$r@f$ observations sampled with
+    * Computes the empirical MSE of the average of @f$r@f$ observations sampled with
     * replacement from the empirical distribution defined by the values stored
     * in the tally.
     *
@@ -55,7 +60,7 @@ public class RQMCMSE {
     *        empirical distribution
     * @param target exact target value
     * @param r number of observations sampled and averaged
-    * @return MSE of the average relative to @f$target@f$
+    * @return empirical MSE of the average relative to @f$target@f$
     */
    private static double mse(Tally tally, double target, int r) {
       double bias = tally.average() - target;
@@ -211,7 +216,7 @@ public class RQMCMSE {
             double mseMr = computeMseMr(values, m, r, stream);
             arMseRows.append(mseAr).append("  ");
             mrMseRows.append(mseMr).append("  ");
-            ratioMseRows.append(mseAr / mseMr).append("  ");
+            ratioMseRows.append(mseMr == 0.0 ? Double.NaN : mseAr / mseMr).append("  ");
          }
 
          arMseRows.append("\n");
