@@ -256,7 +256,7 @@ public class RQMCMSE {
 
       int m = 100000;
       int r = 11;
-      int numObs = 10000;
+      int numObs = 10000;// Must match the number of observations in each stored RQMC file.
 
       String[] functionNames = {"MC2"};
       int[] dimensions = {4};
