@@ -128,7 +128,7 @@ public class MeanMedianMSE {
     *
     * **********  Better to re-use the same collector and return it, so we can also
     *             look at the average, kurtosis, etc. if desired.***********************
-    *             
+    *      
     *
     * @param tally input data observations
     * @param m number of bootstrap samples

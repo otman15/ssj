@@ -4,12 +4,12 @@ import umontreal.ssj.rng.LFSR258;
 import umontreal.ssj.rng.RandomStream;
 
 /**
- * Example that uses {@link MeanMedianMSE} to generate tables for the MSEs of 
+ * Example that uses {@link MeanMedianMSE} to generate tables for the MSEs of
  * @f$A_r@f$, @f$M_r@f$, and their ratio. For each combination of model and
- * dimension @f$s@f$, three .res files are generated. Each file contains a 
- * data table whose columns are for the RQMC methods, the rows are for values of 
+ * dimension @f$s@f$, three .res files are generated. Each file contains a
+ * data table whose columns are for the RQMC methods, the rows are for values of
  * @f$k = \log_2 n@f$ where @f$n@f$ is the number of RQMC points,
- * and the entries are MSE or ratio values.   
+ * and the entries are MSE or ratio values.
  */
 public class MSESamo25 {
 
@@ -17,7 +17,7 @@ public class MSESamo25 {
     * Configures and runs MSE experiments with the samo25 data.
     */
    public static void main(String[] args) {
-      
+   
       String dataDir = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
       String resultDir = "/home/otman/Documents/GitHub/Data/o-test/testNewC/";
       String[] modelTags = {"MC2"};
@@ -31,7 +31,7 @@ public class MSESamo25 {
       int[] ks = {8, 10, 12, 14, 16};
 
       int numObs = 10000;   // Number of observations in the input data files.
-      int numReps = 100000; // Number of replications to estimate the MSE.
+      int numReps = 100000; // Number of replications to estimate the MSE_Mr.
       int r = 11;           // Sample size for the mean or median estimator.
 
       RandomStream stream = new LFSR258();
