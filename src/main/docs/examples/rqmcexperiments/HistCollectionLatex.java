@@ -12,43 +12,73 @@ import umontreal.ssj.stat.TallyStore;
 import umontreal.ssj.stat.ScaledHistogram;
 
 /**
- * Generates standalone LaTeX/PGFPlots histogram documents from estimator
- * observations stored in {@code .dat} files. The class writes one LaTeX file
- * for each model tag. Within each file, it creates one comparison table for every
- * configured dimension. All configured methods form the table rows, while
- * values of {@code k}, representing sample sizes {@code n = 2^k}, form the
- * columns. The tables use LaTeX {@code longtable} environments so method rows
- * can continue onto additional letter-sized pages.
+ * Suppose you have a collection of data files, each one containing a list of
+ * observations from a given distribution, and you want to create a document
+ * that shows a histogram of the empirical distribution, for each file. This
+ * class contains tools to do that. It assumes that the data files are
+ * classified with multiple parameters, and organize the histograms with a
+ * multidimensional ordering based on these parameters.
  *
- * <p>The public static entry points write a complete collection via {@link #writeCollection},
- * one model file via {@link #writeModelFile}, or one histogram via {@link #makeHistogramLatex}.
- * Use {@link #setNumBins(int)} and {@link #setExtremeMarks(int, int)}
- * to configure histogram bins and extreme marks before calling an entry
- * point.</p>
+ * This class is actually more specific. It assumes that each data file contains
+ * $m$ observations of a QMC or RQMC estimator for a given integrand (model), a
+ * given number @f$s@f$ of dimensions, a given RQMC method, and a given number
+ * of points @f$n = 2^k@f$. These four parameters classify the data sets and the
+ * histograms in a four-dimensional array. The histograms will be regrouped by
+ * model at the highest level, then by dimension @f$s@f$, by RQMC method, and by
+ * value of @f$k@f$. For each model, the program constructs a LaTeX file to
+ * produce a .pdf document that displays the histograms in that order, so we can
+ * easily visualize and compare the distributions across different methods and
+ * values of @f$k@f$ for the same function. All the histograms for a given value
+ * of @f$s@f$ are put together in a large table, usually with one row for all
+ * values of @f$k@f$ for each method. The rows of that table can cover several
+ * letter-sized pages if many RQMC methods are considered.
  *
- * <p>Configure the following values before calling the public static entry points:</p>
- * <ul>
- *   <li>the input and output folders;</li>
- *   <li>the model tags, dimensions {@code s}, values of {@code k}, and
- *       observation count {@code m};</li>
- *   <li>the histogram bin count and extreme-mark counts, using
- *       {@link #setNumBins(int)} and {@link #setExtremeMarks(int, int)}, default
- *       values are bins = 100, left marks = right marks = 2;</li>
- *   <li>the method names included as rows in every comparison table.</li>
- * </ul>
+ * The data files in the input directory are assumed to be named as follows.
+ * Each model is identified by a short string called the model tag. Each file
+ * name starts with its model tag, then the value of @f$s@f$, then the
+ * identifier of the method, then the value of @f$k@f$, then the number @f$m@f$
+ * of observations in the file. All the fields are separated by the character
+ * `-`, The file extension is `.dat`. For example,
+ * `Gaussian-2-Lat-RS-8-10000.dat` will be an input file that contains 10000
+ * observations (real numbers) and nothing else, for the model `Gaussian` in 2
+ * dimensions, obtained with the `Lat-RS` RQMC method, with @f$n = 2^8@f$ RQMC
+ * points.
  *
- * <p>Input {@code .dat} files are not scanned from the input folder; their names
- * are constructed with {@code fileNameMaker} and then checked in that folder.
- * Output file names and page titles are defined by {@code outputFileName} and
- * {@code makePageTitle}. Those helpers must be adjusted in the source code if a different
- * naming or title convention is needed.</p>
+ * The top-level entry-point method is {@link #writeCollection}. For each model
+ * in the `modelTags` list, this method calls {@link #writeModelFile}, to
+ * produce a file with all the histograms for this model. Each histogram is
+ * produced by {@link #makeHistogramLatex}. These methods take some parameters
+ * as inputs. Other parameters have default values that can be changed
+ * beforehand via `set` methods. For example, the number of bins per histogram
+ * (100 by default) can be changed by {@link #setNumBins}, and the number of
+ * extreme observations that are marked on each side of the histogram (2 by
+ * default) can be set by {@link #setExtremeMarks}.
+ *
+ * The program {@link HistSamo25} gives an example of how to use this
+ * class. Before calling any method, one must specify the input and output
+ * folders that contain the data files and the generated histograms latex files, 
+ * respectively. Then the set of model tags, the set of method names, the set of
+ * dimensions @f$s@f$, the set of values of @f$k@f$, and the number of observations
+ * per histogram, must also be defined, to be passed as parameters. The method
+ * {@code fileNameMaker} in the program will construct a file name as described
+ * above for each combination of model, dimension, method, and value of @f$k@f$,
+ * and search for that data file in the input folder. Output file names and page
+ * titles are defined by {@code outputFileName} and {@code makePageTitle}.
+ * Those helper methods can be adjusted in the source code if a different naming
+ * or title convention is desired.
+ *
+ * This class has no public constructor; it is a static utility class, and
+ * all the methods are static.
  */
+
 public class HistCollectionLatex {
 
    /**
-    * The numbers of smallest and largest observations marked in each plot.
+    * The numbers of smallest and largest observations marked in each plot. A small
+    * red mark will indicate each of these extreme observations below the
+    * histogram.
     */
-   private static int[] extremeMarks = new int[] {2, 2};
+   private static int[] extremeMarks = new int[] { 2, 2 };
 
    /**
     * Number of histogram bins.
@@ -65,25 +95,24 @@ public class HistCollectionLatex {
     * @return two-element array containing the left and right mark values
     */
    public static int[] getExtremeMarks() {
-      return new int[] {extremeMarks[0], extremeMarks[1]};
+      return new int[] { extremeMarks[0], extremeMarks[1] };
    }
 
    /**
     * Sets the numbers of smallest and largest observations marked in each plot.
     *
-    * @param left number of smallest observations to mark
+    * @param left  number of smallest observations to mark
     * @param right number of largest observations to mark
     */
    public static void setExtremeMarks(int left, int right) {
       if (left < 0 || right < 0)
          throw new IllegalArgumentException("Extreme mark counts must be nonnegative.");
-
       extremeMarks[0] = left;
       extremeMarks[1] = right;
    }
 
    /**
-    * Returns the configured histogram bin count.
+    * Returns the configured number of bins in the histogram.
     *
     * @return number of histogram bins
     */
@@ -92,41 +121,34 @@ public class HistCollectionLatex {
    }
 
    /**
-    * Sets the histogram bin count.
+    * Sets the number of bins in the histogram.
     *
     * @param bins number of histogram bins
     */
    public static void setNumBins(int bins) {
       if (bins <= 0)
          throw new IllegalArgumentException("Number of histogram bins must be positive.");
-
       numBins = bins;
    }
 
    /**
-    * Writes one complete LaTeX file for each configured model tag.
-    * The output directory is created by writeModelFile if needed.
+    * Writes one complete LaTeX file for each configured model tag. The output
+    * directory is created by writeModelFile if needed.
     *
-    * @param inputFolder directory containing the input {@code .dat} files
+    * @param inputFolder  directory containing the input {@code .dat} files
     * @param outputFolder directory in which LaTeX files are written
-    * @param modelTags model or function identifiers to process
-    * @param sDims dimensions to process for every model
-    * @param ks exponents defining the column sample sizes {@code n = 2^k}
-    * @param m observation count used in input names and page titles
-    * @param methods method names included in every comparison table
+    * @param modelTags    model or function identifiers to process
+    * @param methods      method names included in every comparison table
+    * @param sDims        dimensions to process for every model
+    * @param ks           exponents defining the column sample sizes
+    *                     {@code n = 2^k}
+    * @param m            observation count used in input names and page titles
     * @throws IOException if an output or input data file cannot be accessed
     */
-   public static void writeCollection(
-         String inputFolder,
-         String outputFolder,
-         String[] modelTags,
-         int[] sDims,
-         int[] ks,
-         int m,
-         String[] methods) throws IOException {
-
+   public static void writeCollection(String inputFolder, String outputFolder, String[] modelTags, String[] methods,
+         int[] sDims, int[] ks, int m) throws IOException {
       for (String modelTag : modelTags) {
-         writeModelFile(inputFolder, outputFolder, modelTag, sDims, ks, m, methods);
+         writeModelFile(inputFolder, outputFolder, modelTag, methods, sDims, ks, m);
       }
    }
 
@@ -134,27 +156,21 @@ public class HistCollectionLatex {
     * Writes the complete LaTeX document for one model across the supplied
     * dimensions, with one comparison table per dimension.
     *
-    * @param inputFolder directory containing the input {@code .dat} files
+    * @param inputFolder  directory containing the input {@code .dat} files
     * @param outputFolder directory in which the LaTeX file is written
-    * @param modelTag model or function identifier to process
-    * @param sDims dimensions to include in the model document
-    * @param ks exponents defining the column sample sizes {@code n = 2^k}
-    * @param m observation count used in input names and page titles
-    * @param methods method names included as table rows
-    * @throws IOException if the output file or an input data file cannot be accessed
+    * @param modelTag     model or function identifier to process
+    * @param methods      method names included as table rows
+    * @param sDims        dimensions to include in the model document
+    * @param ks           exponents defining the column sample sizes
+    *                     {@code n = 2^k}
+    * @param m            observation count used in input names and page titles
+    * @throws IOException if the output file or an input data file cannot be
+    *                     accessed
     */
-   public static void writeModelFile(
-         String inputFolder,
-         String outputFolder,
-         String modelTag,
-         int[] sDims,
-         int[] ks,
-         int m,
-         String[] methods) throws IOException {
-
+   public static void writeModelFile(String inputFolder, String outputFolder, String modelTag, String[] methods,
+         int[] sDims, int[] ks, int m) throws IOException {
       if (ks.length == 0 || sDims.length == 0)
          throw new IllegalArgumentException("ks and sDims must not be empty.");
-
       File inputDir = new File(inputFolder);
       File outputDir = new File(outputFolder);
       outputDir.mkdirs();
@@ -164,19 +180,14 @@ public class HistCollectionLatex {
 
       try (PrintWriter out = new PrintWriter(new FileWriter(outFile))) {
          writeLatexHeader(out);
-
          for (int s : sDims) {
             String pageTitle = makePageTitle(modelTag, s, m);
-
-            writeHistogramPageBody(out, inputDir, modelTag, s, ks, m, pageTitle, methods);
-
+            writeHistogramPageBody(out, inputDir, modelTag, methods, s, ks, m, pageTitle);
             out.println("\\clearpage");
             out.println();
          }
-
          writeLatexFooter(out);
       }
-
       System.out.println("LaTeX file created:");
       System.out.println(outFile.getAbsolutePath());
    }
@@ -185,9 +196,9 @@ public class HistCollectionLatex {
     * Builds the PGFPlots LaTeX code for one histogram.
     *
     * The plot includes a title derived from the input file name, summary
-    * statistics in a legend, and marks for selected extreme observations.
-    * The extreme marks and number of bins are class fields; use the setters
-    * to configure them.
+    * statistics in a legend, and marks for selected extreme observations. The
+    * extreme marks and number of bins are class fields; use the setters to
+    * configure them.
     *
     * @param file input {@code .dat} file
     *
@@ -202,68 +213,35 @@ public class HistCollectionLatex {
 
       if (fileStats.numberObs() == 0)
          throw new IOException("No observations found in " + file.getAbsolutePath());
-
       double[] bounds = getHistogramBounds(fileStats.min(), fileStats.max());
       double xmin = bounds[0];
       double xmax = bounds[1];
-
       TallyHistogram hist = new TallyHistogram(xmin, xmax, numBins);
       hist.fillFromTallyStore(fileStats);
-
       String legendPos = getLegendPos(hist.getCounters());
-
       ScaledHistogram scHist = new ScaledHistogram(hist, 1.0);
       String title = cleanTitle(file.getName());
-
-      String legend =
-            "\\parbox[c][0.35cm][c]{1.1cm}{\\centering"
-            + "\\scalebox{0.6}{\\bfseries\\boldmath"
-            + "\\begin{tabular}{@{}l@{}}"
-            + "$\\sigma^2$=" + sci(hist.variance())
-            + "\\\\[-1pt]$\\gamma$=" + sci(fileStats.skewness())
-            + "\\\\[-1pt]$\\kappa'$=" + sci(fileStats.kurtosis())
-            + "\\end{tabular}"
-            + "}}";
-      scHist.setAxisOptions(
-            "title={" + escapeLatex(title) + "}, " +
-            "title style={font=\\scriptsize}, " +
-            "width=" + "\\histaxiswidth" + ", height=" + "\\histaxisheight" + "," +
-            "scale only axis, " +  // Width and height apply only to the axis rectangle, excluding labels.
-                                   // If y-axis labels or other outer decorations are added,
-                                   // they can extend outside the cell and overlap nearby plots.
-            "xmin=" + texNum(xmin) + ", " +
-            "xmax=" + texNum(xmax) + ", " +
-            "scaled x ticks=true, " +
-            "minor x tick num=0, " +
-            "scaled y ticks=false, " +
-            "tick label style={font=\\small}, " +
-            "every x tick label/.append style={scale=0.6, transform shape}, " +
-            "every x tick scale label/.style={font={\\bfseries\\boldmath\\small}, at={(axis description cs:1,0)}, anchor=north east, xshift=2pt, yshift=-9.2pt, inner sep=0pt}, " +
-            "legend entries={{" + legend + "}}, " +
-            "legend image code/.code={}, " +
-            "legend style={"
-               + "draw=gray, "
-               + "line width=0.1pt, "
-               + "fill=none, "
-               + "font=\\small, "
-               + "cells={anchor=east}, "
-               + "inner xsep=0pt, "
-               + "inner ysep=3pt,"
-            + "}, " +
-            "legend pos=" + legendPos
-      );
+      String legend = "\\parbox[c][0.35cm][c]{1.1cm}{\\centering" + "\\scalebox{0.6}{\\bfseries\\boldmath"
+            + "\\begin{tabular}{@{}l@{}}" + "$\\sigma^2$=" + sci(hist.variance()) + "\\\\[-1pt]$\\gamma$="
+            + sci(fileStats.skewness()) + "\\\\[-1pt]$\\kappa'$=" + sci(fileStats.kurtosis()) + "\\end{tabular}" + "}}";
+      // Width and height apply only to the axis rectangle, excluding labels.
+      // If y-axis labels or other outer decorations are added, they can extend outside the cell and overlap nearby plots.
+      scHist.setAxisOptions("title={" + escapeLatex(title) + "}, " + "title style={font=\\scriptsize}, " + "width="
+            + "\\histaxiswidth" + ", height=" + "\\histaxisheight" + "," + "scale only axis, "
+            + "xmin=" + texNum(xmin) + ", " + "xmax=" + texNum(xmax) + ", " + "scaled x ticks=true, "
+            + "minor x tick num=0, " + "scaled y ticks=false, " + "tick label style={font=\\small}, "
+            + "every x tick label/.append style={scale=0.6, transform shape}, "
+            + "every x tick scale label/.style={font={\\bfseries\\boldmath\\small}, at={(axis description cs:1,0)}, anchor=north east, xshift=2pt, yshift=-9.2pt, inner sep=0pt}, "
+            + "legend entries={{" + legend + "}}, " + "legend image code/.code={}, " + "legend style={" + "draw=gray, "
+            + "line width=0.1pt, " + "fill=none, " + "font=\\small, " + "cells={anchor=east}, " + "inner xsep=0pt, "
+            + "inner ysep=3pt," + "}, " + "legend pos=" + legendPos);
 
       scHist.setAddPlotOptions("fill=blue, draw=blue!80!black, line width=0.03pt");
-
       String latex = scHist.toLatex(true, false);
-
-      String extremeMarksLatex = addExtremeMarks(fileStats.getArray(),
-            getExtremeMarks(), fileStats.numberObs());
-
+      String extremeMarksLatex = addExtremeMarks(fileStats.getArray(), getExtremeMarks(), fileStats.numberObs());
       if (!extremeMarksLatex.isEmpty()) {
          latex = latex.replace("\\end{axis}", extremeMarksLatex + "\n\\end{axis}");
       }
-
       return latex;
    }
 
@@ -271,108 +249,76 @@ public class HistCollectionLatex {
     * Writes one breakable {@code longtable} of histograms.
     *
     * Rows correspond to the supplied methods and columns correspond to the
-    * configured values of {@code k}, where {@code n = 2^k}. The first table
-    * header contains the page title; continuation pages reserve the same title
-    * space with a LaTeX phantom. Missing input files produce a labeled table
-    * cell and a console message.
+    * configured values of {@code k}, where {@code n = 2^k}. The first table header
+    * contains the page title; continuation pages reserve the same title space with
+    * a LaTeX phantom. Missing input files produce a labeled table cell and a
+    * console message.
     *
-    * @param out output writer for the LaTeX file
+    * @param out         output writer for the LaTeX file
     * @param inputFolder directory containing the input data files
-    * @param modelTag current model used to construct input file names
-    * @param s current dimension used to construct input file names
-    * @param ks exponents defining the table columns
-    * @param m observation count used to construct input file names
-    * @param pageTitle title printed above the histogram grid
-    * @param methods method names to show as rows
+    * @param modelTag    current model used to construct input file names
+    * @param s           current dimension used to construct input file names
+    * @param ks          exponents defining the table columns
+    * @param m           observation count used to construct input file names
+    * @param pageTitle   title printed above the histogram grid
+    * @param methods     method names to show as rows
     * @throws IOException if a data file cannot be read
     */
-   private static void writeHistogramPageBody(
-         PrintWriter out,
-         File inputFolder,
-         String modelTag,
-         int s,
-         int[] ks,
-         int m,
-         String pageTitle,
-         String[] methods) throws IOException {
-
+   private static void writeHistogramPageBody(PrintWriter out, File inputFolder, String modelTag, 
+         String[] methods, int s, int[] ks, int m, String pageTitle) throws IOException {
       out.println("\\sethistwidths{" + ks.length + "}");
-
       out.print("\\begin{longtable}{@{}>{\\centering\\arraybackslash}p{\\histmethodwidth}");
       for (int i = 0; i < ks.length; i++) {
          out.print("@{}>{\\centering\\arraybackslash}p{\\histcellwidth}");
       }
       out.println("@{}}");
-
-      String titleLatex =
-         "\\scriptsize\\textbf{" + pageTitle + "}";
+      String titleLatex = "\\scriptsize\\textbf{" + pageTitle + "}";
       String phantomTitleLatex = "\\phantom{" + titleLatex + "}";
-
-      out.println("\\multicolumn{" + (ks.length + 1)
-            + "}{c}{"
-            + titleLatex
-            + "} \\\\[2mm]");
-
+      out.println("\\multicolumn{" + (ks.length + 1) + "}{c}{" + titleLatex + "} \\\\[2mm]");
       writeKHeaderRow(out, ks);
       out.println("\\endfirsthead");
-
-      out.println("\\multicolumn{" + (ks.length + 1)
-            + "}{c}{"
-            + phantomTitleLatex
-            + "} \\\\[2mm]");
+      out.println("\\multicolumn{" + (ks.length + 1) + "}{c}{" + phantomTitleLatex + "} \\\\[2mm]");
 
       writeKHeaderRow(out, ks);
       out.println("\\endhead");
-
       for (String method : methods) {
-
-         out.print("\\raisebox{0.7cm}{\\rotatebox{90}{\\scriptsize "
-               + escapeLatex(method) + "}}");
-
+         out.print("\\raisebox{0.7cm}{\\rotatebox{90}{\\scriptsize " + escapeLatex(method) + "}}");
          for (int k : ks) {
             String fileName = fileNameMaker(modelTag, s, method, k, m);
             File file = new File(inputFolder, fileName);
-
             if (!file.exists()) {
                System.out.println("Missing file: " + fileName);
                out.print(" & \\makebox[" + "\\histcellwidth" + "][c]{{\\tiny Missing}}");
                continue;
             }
-
             out.print(" & \\makebox[" + "\\histcellwidth" + "][c]{");
             out.print(makeHistogramLatex(file));
             out.println("}");
          }
-
          out.println("\\\\[1.5mm]");
       }
-
       out.println("\\end{longtable}");
    }
 
    /**
-    * Builds the title displayed above one dimension table.
-    * If m is a power of 10, it is displayed as 10^n.
+    * Builds the title displayed above one dimension table. If m is a power of 10,
+    * it is displayed as 10^n.
     *
     * @param model model tag
-    * @param s dimension
-    * @param m observation count displayed in the title
+    * @param s     dimension
+    * @param m     observation count displayed in the title
     * @return formatted table title
     */
    private static String makePageTitle(String model, int s, int m) {
       String mStr = Integer.toString(m);
-      String samples = m > 0 && mStr.matches("10*")
-            ? "$10^{" + (mStr.length() - 1) + "}$ samples"
-            : m + " samples";
-
-      return "RQMC comparison: " + escapeLatex(model) + " s = " + s
-            + " (" + samples + ")";
+      String samples = m > 0 && mStr.matches("10*") ? "$10^{" + (mStr.length() - 1) + "}$ samples" : m + " samples";
+      return "RQMC comparison: " + escapeLatex(model) + " s = " + s + " (" + samples + ")";
    }
 
    /**
-    * Expands histogram bounds around the observed min and max.
-    * Uses a tiny fallback range when all observations are equal or the range is invalid.
-    * This works well for centered data; for large nearly equal data, the bounds may
+    * Expands histogram bounds around the observed min and max. Uses a tiny
+    * fallback range when all observations are equal or the range is invalid. This
+    * works well for centered data; for large nearly equal data, the bounds may
     * need manual adjustment in the generated LaTeX code.
     *
     * @param xmin minimum value of the observations
@@ -380,10 +326,8 @@ public class HistCollectionLatex {
     * @return two-element array containing the lower and upper histogram bounds
     */
    private static double[] getHistogramBounds(double xmin, double xmax) {
-
       double center = 0.5 * (xmin + xmax);
       double range = xmax - xmin;
-
       if (!(range > 0.0) || Double.isNaN(range) || Double.isInfinite(range)) {
          double fallbackRange = 1e-12 * Math.max(1.0, Math.abs(center));
          xmin = center - 0.5 * fallbackRange;
@@ -393,86 +337,69 @@ public class HistCollectionLatex {
          xmin = center - 0.5 * finalRange;
          xmax = center + 0.5 * finalRange;
       }
-
-      return new double[] {xmin, xmax};
+      return new double[] { xmin, xmax };
    }
 
    /**
-    * Places the legend on the side with fewer observations in the outer bins.
-    * It returns north west when the right outer bins
-    * are much heavier by a factor of 1.9; otherwise, it returns the default
-    * north east.
+    * Places the legend on the side with fewer observations in the outer bins. It
+    * returns north west when the right outer bins are much heavier by a factor of
+    * 1.9; otherwise, it returns the default north east.
     *
     * @param counts histogram bin counts
     * @return PGFPlots legend position
     */
    private static String getLegendPos(int[] counts) {
-
       int leftSum = 0;
       int rightSum = 0;
       int q = counts.length / 4;
-
       for (int i = 0; i < q; i++) {
          leftSum += counts[i];
          rightSum += counts[counts.length - 1 - i];
       }
-
       double legendMoveRatio = 1.9;
-
       if (rightSum > legendMoveRatio * Math.max(1, leftSum))
          return "north west";
-
       return "north east";
    }
 
    /**
     * Generates PGFPlots marks for selected extreme observations.
     *
-    * The method sorts the observations and marks the requested number of
-    * smallest and largest values with red vertical dashes at {@code y = 0}.
+    * The method sorts the observations and marks the requested number of smallest
+    * and largest values with red vertical dashes at {@code y = 0}.
     *
-    * @param values observation array
-    * @param extremeMarks two-element array containing the left and right mark counts
-    * @param n number of valid observations in the array
-    * @return LaTeX code for the extreme-value marks, or an empty string if unavailable
+    * @param values       observation array
+    * @param extremeMarks two-element array containing the left and right mark
+    *                     counts
+    * @param n            number of valid observations in the array
+    * @return LaTeX code for the extreme-value marks, or an empty string if
+    *         unavailable
     */
    private static String addExtremeMarks(double[] values, int[] extremeMarks, int n) {
       if (n < 4)
          return "";
       int left = Math.min(extremeMarks[0], n);
       int right = Math.min(extremeMarks[1], n - left);
-
       double[] sorted = Arrays.copyOf(values, n);
       Arrays.sort(sorted);
-
       StringBuilder coords = new StringBuilder();
-
       for (int i = 0; i < left; i++) {
-         coords.append("(")
-               .append(texNum(sorted[i]))
-               .append(",0) ");
+         coords.append("(").append(texNum(sorted[i])).append(",0) ");
       }
-
       for (int i = n - right; i < n; i++) {
-         coords.append("(")
-               .append(texNum(sorted[i]))
-               .append(",0) ");
+         coords.append("(").append(texNum(sorted[i])).append(",0) ");
       }
-
       if (coords.length() == 0)
          return "";
-
       return "\n\\addplot+[only marks, mark=|, mark size=2.5pt, "
-            + "mark options={red, line width=0.5pt}, forget plot] coordinates {"
-            + coords
-            + "};";
+            + "mark options={red, line width=0.5pt}, forget plot] coordinates {" + coords + "};";
    }
 
    /**
     * Writes the LaTeX document header.
     *
-    * The generated document uses letter paper and loads the packages required
-    * for PGFPlots histograms, graphical transformations, and breakable tables.
+    * The generated document uses letter paper and loads the packages required for
+    * PGFPlots histograms, graphical transformations, and breakable tables.
     *
     * @param out output writer for the LaTeX file
     */
@@ -506,7 +433,7 @@ public class HistCollectionLatex {
     * Writes the table header row containing the configured sample sizes.
     *
     * @param out output writer for the LaTeX file
-    * @param ks exponents defining the table columns
+    * @param ks  exponents defining the table columns
     */
    private static void writeKHeaderRow(PrintWriter out, int[] ks) {
       out.print("{}");
@@ -528,18 +455,16 @@ public class HistCollectionLatex {
    /**
     * Converts a data file name into a plot title.
     *
-    * The resulting title omits the {@code .dat} extension when present and
-    * removes the trailing numeric suffix.
+    * The resulting title omits the {@code .dat} extension when present and removes
+    * the trailing numeric suffix.
     *
     * @param fileName name of the input data file
     * @return cleaned title string
     */
    private static String cleanTitle(String fileName) {
       String title = fileName;
-
       if (title.endsWith(".dat"))
          title = title.substring(0, title.length() - 4);
-
       title = title.replaceFirst("-\\d+$", "");
       return title;
    }
@@ -560,10 +485,10 @@ public class HistCollectionLatex {
     * {@code modelTag-s-method-k-m.dat}.
     *
     * @param modelTag model identifier
-    * @param s dimension
-    * @param method method identifier
-    * @param k exponent defining the sample size {@code n = 2^k}
-    * @param m observation count
+    * @param s        dimension
+    * @param method   method identifier
+    * @param k        exponent defining the sample size {@code n = 2^k}
+    * @param m        observation count
     * @return input file name relative to the configured input folder
     */
    private static String fileNameMaker(String modelTag, int s, String method, int k, int m) {
@@ -580,11 +505,9 @@ public class HistCollectionLatex {
     */
    private static String sci(double x) {
       String s = String.format(Locale.US, "%.1e", x);
-
       s = s.replace("e-0", "e-");
       s = s.replace("e+0", "e");
       s = s.replace("e+", "e");
-
       return s;
    }
 
