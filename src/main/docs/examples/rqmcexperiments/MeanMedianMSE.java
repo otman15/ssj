@@ -80,17 +80,6 @@ public class MeanMedianMSE {
    }
 
    /**
-    * Computes the empirical MSE of the observations summarized by the tally.
-    *
-    * @param tally tally containing the observations
-    * @return estimated MSE relative to {@code exactMean}
-    */
-   public static double mse(Tally tally) {
-      double bias = tally.average() - exactMean;
-      return tally.variance() * (tally.numberObs() - 1.0) / tally.numberObs() + bias * bias;
-   }
-
-   /**
     * Computes the MSE of the average of @f$r@f$ observations sampled with
     * replacement from the empirical distribution defined by the values in the
     * tally using @f$\mathrm{Var}_{\mathrm{emp}}(X)/r + \mathrm{bias}^2@f$. This
@@ -252,7 +241,7 @@ public class MeanMedianMSE {
                stream.resetStartSubstream();
                bootstrapMrValues(tally, m, r, stream, statMed);
                double arMse = mseAr(tally, r);
-               double mrMse = mse(statMed);
+               double mrMse = statMed.mseKnownMean(exactMean);
                double ratio = mrMse == 0.0 ? Double.NaN : arMse / mrMse;
 
                arRows.append(arMse).append("  ");
