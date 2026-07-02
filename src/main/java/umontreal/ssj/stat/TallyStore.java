@@ -167,6 +167,21 @@ public class TallyStore extends Tally {
    }
   
    /**
+    * Computes the mean squared error (MSE) of the observations under the assumption 
+    * that the exact mean is known and equal to 'exactMean'.
+    * The average sum of squares is computed directly and returned.
+    */
+   public double mseKnownMean(double exactMean) {
+      double sum = 0.0;
+      double[] obs = this.getArray();
+      for (int i = 0; i < numberObs(); i++) {
+         double x = obs[i] - exactMean;
+         sum += x * x;
+      }
+      return sum / numberObs();
+   }
+  
+   /**
     * Returns the sample skewness of the observations contained in this tally.
     * This uses the function @ref cern.jet.stat.Descriptive.skew, which makes the standard 
     * bias correction for the variance, but no bias correction for the skewness estimator.
