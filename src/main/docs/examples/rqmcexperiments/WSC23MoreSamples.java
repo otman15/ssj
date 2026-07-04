@@ -214,6 +214,16 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       PointSetRandomization nus = new NestedUniformScrambling(stream, 32);
       simulRepsRQMCSort(model, cp, nus, m, statReps);
 
+      // Sob-Burley Owen using the same Sobol base p
+      stream.resetStartStream();
+      System.out.println("* Burley Owen on SSJ Sobol");
+      statReps.setName(modelTag + "-" + s + "-BurleyOwen-" + k + "-" + m);
+      BurleyOwen.BurleyPointSet Burley =
+            new BurleyOwen.BurleyPointSet(p, 1);
+      PointSetRandomization burleyOwen =
+            new BurleyOwen.Randomization(stream);
+      simulRepsRQMCSort(model, Burley, burleyOwen, m, statReps);
+
       // Sob Burley padded
       stream.resetStartStream();
       System.out.println("* Burley padded Sobol with hash-based NUS");

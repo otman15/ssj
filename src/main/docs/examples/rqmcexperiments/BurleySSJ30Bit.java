@@ -6,7 +6,7 @@ import umontreal.ssj.hups64.SobolSequence;
 // It keeps the same shuffle -> Sobol -> scramble pipeline, but uses SSJ Sobol
 // generator matrix columns instead of Burley's hardcoded 32-bit direction table.
 // This is therefore not expected to match Burley's C++ code bit-for-bit.
-public class SobolOwenSSJ30Bit {
+public class BurleySSJ30Bit {
    private static final int NUM_BITS = 30;
    private static final int MASK = (1 << NUM_BITS) - 1;
    private static final double SCALE = 0x1.0p-30;
@@ -14,7 +14,7 @@ public class SobolOwenSSJ30Bit {
    private final int s;
    private final long[] directions;
 
-   public SobolOwenSSJ30Bit(int s) {
+   public BurleySSJ30Bit(int s) {
       if (s <= 0)
          throw new IllegalArgumentException("s must be positive");
 

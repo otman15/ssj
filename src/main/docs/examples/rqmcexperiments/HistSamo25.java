@@ -18,21 +18,21 @@ public class HistSamo25 {
 
       // String inputFolder = "C:/Users/Lecuyer/Dropbox/samo25/datapl/";
       // String outputFolder = "C:/Users/Lecuyer/Dropbox/samo25/histograms/";
-      String inputFolder = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
-      String outputFolder = "/home/otman/Documents/GitHub/Data/samo25-test/latexNewConfig/";
+      String inputFolder = "/home/otman/Documents/GitHub/Data/o-test/nus/nusWithSobol";
+      String outputFolder = "/home/otman/Documents/GitHub/Data/o-test/nus/nusWithSobol/latexFiles/";
 
-      String[] modelTags = new String[] {
-         "SmoothPerB4", "SumUeU", "MC2", "Polynomial", "Oscillatory",
-         "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
-      };
-      String[] methods = new String[] {
-         "Lat-RS", "Lat-RSB", "Lat-Rv", "Lat-Rpv", "Lat-RvRS",
-         "Lat-RvRSB", "Lat-RpvRS", "Lat-RpvRSB",
-         "Sob-RDS", "Sob-RDSB", "Sob-LMS", "Sob-LMS-RDS",
-         "Sob-LMS-RDS-IRB", "Sob-NUS"
-      };
-      int[] sDims = new int[] {2, 4, 8, 16, 32};  // Dimensions s.
-      int[] ks = new int[] {10, 12, 14, 16};      // Values of k = log_2 n.
+      String[] modelTags = new String[] {"SumUeU"};
+      //    "SmoothPerB4", "SumUeU", "MC2", "Polynomial", "Oscillatory",
+      //    "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
+      // };
+      String[] methods = new String[] {"Sob-NUS", "BurleyOwen","BurleyPadded"};
+      //    "Lat-RS", "Lat-RSB", "Lat-Rv", "Lat-Rpv", "Lat-RvRS",
+      //    "Lat-RvRSB", "Lat-RpvRS", "Lat-RpvRSB",
+      //    "Sob-RDS", "Sob-RDSB", "Sob-LMS", "Sob-LMS-RDS",
+      //    "Sob-LMS-RDS-IRB", "Sob-NUS"
+      // };
+      int[] sDims = new int[] {2, 4};  // Dimensions s.
+      int[] ks = new int[] {10, 12, 14};      // Values of k = log_2 n.
       int m = 10000;                    // Number of observations per file.
 
       HistCollectionLatex.writeCollection(
