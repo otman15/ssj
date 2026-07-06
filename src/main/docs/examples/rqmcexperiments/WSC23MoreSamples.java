@@ -5,6 +5,7 @@ import umontreal.ssj.hups64.*;
 import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
 import umontreal.ssj.mcqmctools.RQMCExperiment64;
 import umontreal.ssj.rng.LFSR258;
+import umontreal.ssj.rng.MWC64k3a2;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.*;
 import umontreal.ssj.util.Chrono;
@@ -115,7 +116,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       String modelTag = model.getTag();
       // String ident; // Identifies the case, used in file names.
       int n = (int) Num.TWOEXP[k];
-      RandomStream stream = new LFSR258();
+      RandomStream stream = new MWC64k3a2();
       Chrono timer = new Chrono();
       System.out.println("WSC23MoreSamples program, RQMC replicates with model: " + model.toString() + "\n");
       TallyStore statReps = new TallyStore(m);
@@ -211,28 +212,37 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("* Sobol with NUS");
       statReps.setName(modelTag + "-" + s + "-Sob-NUS-" + k + "-" + m);
       CachedPointSet cp = new CachedPointSet(p);
-      PointSetRandomization nus = new NestedUniformScrambling(stream, 32);
+      PointSetRandomization nus = new NestedUniformScrambling(stream, 18);
       simulRepsRQMCSort(model, cp, nus, m, statReps);
 
-      // Sob-Burley Owen using the same Sobol base p
+      // Sob-NUS 64
+      DigitalNetBase2Test p64 = new SobolSequenceTest(k, 32, s);
       stream.resetStartStream();
-      System.out.println("* Burley Owen on SSJ Sobol");
-      statReps.setName(modelTag + "-" + s + "-BurleyOwen-" + k + "-" + m);
-      BurleyOwen.BurleyPointSet Burley =
-            new BurleyOwen.BurleyPointSet(p, 1);
-      PointSetRandomization burleyOwen =
-            new BurleyOwen.Randomization(stream);
-      simulRepsRQMCSort(model, Burley, burleyOwen, m, statReps);
+      System.out.println("* Sobol with NUS64");
+      statReps.setName(modelTag + "-" + s + "-Sob-NUS64-" + k + "-" + m);
+      CachedPointSet cp2 = new CachedPointSet(p64);
+      PointSetRandomization nus64 = new NestedUniformScramblingTest(stream, 18);
+      simulRepsRQMCSort(model, cp2, nus64, m, statReps);
 
-      // Sob Burley padded
-      stream.resetStartStream();
-      System.out.println("* Burley padded Sobol with hash-based NUS");
-      statReps.setName(modelTag + "-" + s + "-BurleyPadded-" + k + "-" + m);
-      BurleyPaddedSobol.PaddedPointSet pBurley =
-            new BurleyPaddedSobol.PaddedPointSet(k, s, 1);
-      PointSetRandomization burleyNus =
-            new BurleyPaddedSobol.Randomization(stream);
-      simulRepsRQMCSort(model, pBurley, burleyNus, m, statReps);
+      // // Sob-Burley Owen using the same Sobol base p
+      // stream.resetStartStream();
+      // System.out.println("* Burley Owen on SSJ Sobol");
+      // statReps.setName(modelTag + "-" + s + "-BurleyOwen-" + k + "-" + m);
+      // BurleyOwen.BurleyPointSet Burley =
+      //       new BurleyOwen.BurleyPointSet(p, 1);
+      // PointSetRandomization burleyOwen =
+      //       new BurleyOwen.Randomization(stream);
+      // simulRepsRQMCSort(model, Burley, burleyOwen, m, statReps);
+
+      // // Sob Burley padded
+      // stream.resetStartStream();
+      // System.out.println("* Burley padded Sobol with hash-based NUS");
+      // statReps.setName(modelTag + "-" + s + "-BurleyPadded-" + k + "-" + m);
+      // BurleyPaddedSobol.PaddedPointSet pBurley =
+      //       new BurleyPaddedSobol.PaddedPointSet(k, s, 1);
+      // PointSetRandomization burleyNus =
+      //       new BurleyPaddedSobol.Randomization(stream);
+      // simulRepsRQMCSort(model, pBurley, burleyNus, m, statReps);
 
       /*
        * // Sob-Int2 Sob-interlaced-order2
@@ -255,7 +265,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       String modelTag = model.getTag();
       // String ident; // Identifies the case, used in file names.
       int n = (int) Num.TWOEXP[k];
-      RandomStream stream = new LFSR258();
+      RandomStream stream = new MWC64k3a2();
       Chrono timer = new Chrono();
       System.out.println("WSC23MoreSamples program, RQMC replicates with model: " + model.toString() + "\n");
       TallyStore statReps = new TallyStore(m);

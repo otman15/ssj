@@ -256,7 +256,7 @@ public interface RandomStream {
     * @return a random `b`-bit integer.
     */
    default public long nextBitsLong(int b) {
-      return nextLong (0, (1 << b) - 1);
+      return nextLong (0, (1L << b) - 1);
    }
    
 }
