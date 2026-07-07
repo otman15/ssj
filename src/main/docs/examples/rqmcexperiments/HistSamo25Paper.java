@@ -20,18 +20,19 @@ import umontreal.ssj.stat.TallyStore;
 public class HistSamo25Paper {
 
    // Fixed parameters for this particular paper.
-   static String inputFolder = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
-   static String outputFolder = "/home/otman/Documents/GitHub/Data/o-test/histSamoPaper/";
-
+   static String inputFolder = "C:/Users/Lecuyer/Dropbox/samo25/datapl/";
+   static String outputFolder = "C:/Users/Lecuyer/Dropbox/samo25/paperdat/";
    static int numBins = 100;
          
    /**
     * Builds the PGFPlots LaTeX code for one histogram.
     *
-    * The plot includes a title derived from the input file name, summary
-    * statistics in a legend, and marks for selected extreme observations. The
-    * extreme marks and number of bins are class fields; use the setters to
-    * configure them.
+    * The plot includes a title derived from the input file name, and summary
+    * statistics in a legend. The range of the histogram goes from the smallest 
+    * observation on the left of the first bin to the largest observation plus a
+    * tiny margin of `1.0e-12` times the range on the right of the last bin.
+    * Extra space of one percent of the range is added in the display on each side
+    * of the histogram.
     *
     * @param String fileName input file name without folder name and extension.
     *
@@ -41,14 +42,15 @@ public class HistSamo25Paper {
    public static String makeSimpleHistogramLatex(String fileName, int numBins) throws IOException {
       TallyStore data = new TallyStore();
       data.fillFromFile(inputFolder + fileName + ".dat");
-      double xmin = data.min();
-      double xmax = data.max();
-      double range = xmax - xmin;
-      TallyHistogram hist = new TallyHistogram(xmin, xmax * 1.000000001, numBins);
+      double a = data.min();
+      double b = data.max();
+      double range = b - a;
+      TallyHistogram hist = new TallyHistogram(a, b + range * 1.0e-12, numBins);
       hist.fillFromTallyStore(data);     
       ScaledHistogram scHist = new ScaledHistogram(hist);
-      scHist.setAxisOptions("title={" + fileName + "}, width=4.4cm, height=3.0cm, scale only axis, \n" +
-             "  ymin=0.0, xmin = " + (xmin - 0.01 * range) + ", xmax = " + (xmax + 0.01 * range) + 
+      System.out.println(hist.toString());
+      scHist.setAxisOptions("title={{\\footnotesize " + fileName + "}}, width=4.4cm, height=3.0cm, scale only axis, \n" +
+             "  ymin=0.0, xmin = " + (a - 0.01 * range) + ", xmax = " + (b + 0.01 * range) + 
              ",\n  ylabel={}, yticklabels={}, \n" +
              "  scaled x ticks=true, minor x tick num=0, scaled y ticks=false, \n" +
              "  every x tick label/.append style={scale=0.6, transform shape}, \n" +
@@ -57,7 +59,7 @@ public class HistSamo25Paper {
              "  legend entries={{\\parbox[c][0.1cm][c]{1.2cm}{\\centering\\scalebox{0.6}{\\tt \n" +
              "  \\begin{tabular}{@{}l@{}}\n     $\\sigma^2=$ " + sci(data.variance())
                  + "\\\\[-1pt]\n     $\\gamma=$ " + sci(data.skewness())
-                 + "\\\\[-1pt]\n     $\\kappa'=$ " + sci(data.kurtosis()) + " \\end{tabular}}}}},\n" +
+                 + "\\\\[-1pt]\n     $\\kappa'=$ " + sci(data.kurtosis()) + "\n  \\end{tabular}}}}},\n" +
              "  legend image code/.code={}, \n" +
              "  legend style={draw=none, fill=none, cells={anchor=west}, inner xsep=0pt, inner ysep=5pt}, \n" +
              "  legend pos=north east");
@@ -112,9 +114,20 @@ public class HistSamo25Paper {
             inputFolder, outputFolder, modelTags, methods, sDims, ks, m);
        */      
    
-      System.out.println(makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RS-16-10000", numBins));
-      System.out.println(makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RvRS-16-10000", numBins));
-      System.out.println(makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RpvRS-16-10000", numBins));
+      // This one is just for testing.
+      System.out.println(makeSimpleHistogramLatex("babytest", 4));
+
+      makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RS-16-10000", 100);
+      makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RvRS-16-10000", 100);
+      makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RpvRS-16-10000", 100);
+      makeSimpleHistogramLatex("SmoothPerB4-8-Sob-RDS-16-10000", 100);
+      makeSimpleHistogramLatex("SmoothPerB4-8-Sob-LMS-RDS-16-10000", 100);
+      makeSimpleHistogramLatex("SmoothPerB4-8-Sob-NUS-16-10000", 100);
+      
+      makeSimpleHistogramLatex("MC2-8-Sob-LMS-RDS-16-10000", 100);
+      makeSimpleHistogramLatex("MC2-16-Sob-LMS-RDS-14-10000", 100);
+      makeSimpleHistogramLatex("MC2-16-Sob-NUS-14-10000", 100);
+
 
    }
    

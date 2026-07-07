@@ -119,47 +119,6 @@ public class TallyHistogram extends Tally {
    }
 
    /**
-    * Fills this object from the first numObs observations in array obs.
-    */
-   public void fillFromArray(double[] obs, int numObs) {
-      init();
-      for (int i = 0; i < numObs; i++)
-         add(obs[i]);
-   }
-
-   /**
-    * Fills this object from the entire array obs.
-    */
-   public void fillFromArray(double[] obs) {
-      fillFromArray(obs, obs.length);
-   }
-
-   /**
-    * Fills this object from the observations in a TallyStore object.
-    */
-   public void fillFromTallyStore(TallyStore ts) {
-      fillFromArray(ts.getArray(), ts.numberObs());
-   }
-
-   /**
-    * Fills this object by reading the observations from the file `filename`.
-    * This file should contain only a set of real numbers separated by a white space
-    * or a new line. Each one will be one observation.
-    */
-   public void fillFromFile(String filename) {
-      init();
-      try {
-         File file = new File(filename);
-         Scanner scanner = new Scanner(file);
-         while (scanner.hasNextDouble())
-             add(scanner.nextDouble());
-         scanner.close();
-      } catch (FileNotFoundException e) {
-         System.out.println("fillFromFile: File not found");
-      }
-   } 
-
-   /**
     * Gives a new observation @f$x@f$ to the statistical probe. Updates are made as
     * for the parent `Tally` object. Also increases by 1 the bin counter in which
     * value @f$x@f$ falls. Values that fall outside the interval @f$[a,b]@f$ are
@@ -175,6 +134,7 @@ public class TallyHistogram extends Tally {
          ++rightCount;
       else {
          int i = (int) ((x - m_a) / m_h);
+         if (i == numBins) i--; 
          ++count[i];
       }
    }
@@ -360,8 +320,8 @@ public class TallyHistogram extends Tally {
       sb.append(PrintfFormat.NEWLINE + "Counters = {" + PrintfFormat.NEWLINE);
       sb.append("   (-inf, " + PrintfFormat.f(6, 3, m_a) + ")    " + leftCount + PrintfFormat.NEWLINE);
       for (int i = 0; i < numBins; i++) {
-         double a = m_a + (i - 1) * m_h;
-         double b = m_a + i * m_h;
+         double a = m_a + i * m_h;
+         double b = m_a + (i + 1) * m_h;
          sb.append("   (" + PrintfFormat.f(6, 3, a) + ", " + PrintfFormat.f(6, 3, b) + ")    " + count[i]
                + PrintfFormat.NEWLINE);
       }
