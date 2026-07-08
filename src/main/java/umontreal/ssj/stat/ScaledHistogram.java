@@ -32,44 +32,45 @@ import java.util.Locale;
 // import umontreal.ssj.util.PrintfFormat;
 
 /**
- * This class is *not* a statistical probe like a `TallyHistogram` or `HistogramOnly`.
- * It only provides a histogram object and tools to manipulate and transform this object.
- * The histogram has @f$n_b@f$ bins of equal width @f$h = (b-a)/n_b@f$, 
- * covering the finite interval @f$[a,b]@f$ over which the histogram is defined.
- * The bins counts (number of observations in each bin) are replaced by 
- * real-valued frequencies (in `double`) that can be rescaled in a way that 
- * the integral of the histogram over @f$[a,b]@f$, which is @f$h@f$ times the sum of
- * frequencies, is equal to a specified value. 
- * By taking this integral equal to 1, for example, the histogram can be seen as a density
- * estimator for a density whose support is contained in @f$[a,b]@f$. If part of
- * the density is outside @f$[a,b]@f$ and we want to estimate the density over 
- * @f$[a,b]@f$ only, then the integral of the estimated
- * density over @f$[a,b]@f$ can be less than 1.
+ * This class is *not* a statistical probe like a `TallyHistogram` or
+ * `HistogramOnly`. It only provides a histogram object and tools to manipulate
+ * and transform this object. The histogram has @f$n_b@f$ bins of equal
+ * width @f$h = (b-a)/n_b@f$, covering the finite interval @f$[a,b]@f$ over
+ * which the histogram is defined. The bins counts (number of observations in
+ * each bin) are replaced by real-valued frequencies (in `double`) that can be
+ * rescaled in a way that the integral of the histogram over @f$[a,b]@f$, which
+ * is @f$h@f$ times the sum of frequencies, is equal to a specified value. By
+ * taking this integral equal to 1, for example, the histogram can be seen as a
+ * density estimator for a density whose support is contained in @f$[a,b]@f$. If
+ * part of the density is outside @f$[a,b]@f$ and we want to estimate the
+ * density over @f$[a,b]@f$ only, then the integral of the estimated density
+ * over @f$[a,b]@f$ can be less than 1. If no integral is specified, then no
+ * scaling is applied and the integral is @f$h@f$ times the number of observations.
  * 
- * This class also offer tools to construct averaged-shifted histograms (ASH) 
- * and polygonal interpolations of histograms, defined as in @cite tSCO15a.
- * The methods `toLatexHist` and `toLatexPolygon` can be used to generate 
- * LaTeX code to draw a histogram or its polygonal interpolation in a document.
+ * This class also offer tools to construct averaged-shifted histograms (ASH)
+ * and polygonal interpolations of histograms, defined as in @cite tSCO15a. The
+ * methods `toLatexHist` and `toLatexPolygon` can be used to generate LaTeX code
+ * to draw a histogram or its polygonal interpolation in a document.
  * 
  * <div class="SSJ-bigskip"></div>
  */
 
 public class ScaledHistogram {
-   protected int numBins;     // number of bins
-   protected double m_h;      // width of each bin
-   protected double m_a;      // left boundary of first bin
-   protected double m_b;      // right boundary of last bin
+   protected int numBins; // number of bins
+   protected double m_h; // width of each bin
+   protected double m_a; // left boundary of first bin
+   protected double m_b; // right boundary of last bin
    protected double[] height; // rescaled counters: height[j] is the height of bin j.
    protected double integral; // Total area under the histogram, = (b-a) x sum of heights.
-   
 
-   protected String axisOptions = "";     // Extra LaTeX axis options used by \c toLatex.
-   protected String addPlotOptions = "";  // Extra LaTeX addplot options used by \c toLatex.
-   
+   protected String axisOptions = ""; // Extra LaTeX axis options used by \c toLatex.
+   protected String addPlotOptions = ""; // Extra LaTeX addplot options used by \c toLatex.
+
    /**
-    * This is used by `clone` for cloning a `ScaledHistogram`. 
+    * This is used by `clone` for cloning a `ScaledHistogram`.
     */
-   private ScaledHistogram() {}
+   private ScaledHistogram() {
+   }
 
    /**
     * Constructs a `ScaledHistogram` over the interval @f$[a,b]@f$, which is
@@ -85,6 +86,14 @@ public class ScaledHistogram {
    }
 
    /**
+    * Constructs a `ScaledHistogram` from `hist` by keeping the rectangle heights 
+    * equal to the bin counts. 
+    */
+   public ScaledHistogram(TallyHistogram hist) {
+      init(hist);
+   }
+
+   /**
     * Constructs a `ScaledHistogram` from `hist` by normalizing the bin counts so
     * that the integral of the histogram is equal to `integral`.
     */
@@ -94,8 +103,8 @@ public class ScaledHistogram {
 
    /**
     * Initializes the `ScaledHistogram` so it covers the interval @f$[a,b]@f$,
-    * which is divided into `numBins` bins of equal width.
-    * The frequency of each bin is initialized to 0.
+    * which is divided into `numBins` bins of equal width. The frequency of each
+    * bin is initialized to 0.
     * 
     * @param a       left boundary of interval
     * @param b       right boundary of interval
@@ -117,7 +126,26 @@ public class ScaledHistogram {
    /**
     * Initializes this `ScaledHistogram` with the @ref TallyHistogram `hist`. It
     * uses the same interval @f$[a,b]@f$, same bins, and rescales the counters so
-    * the integral of the histogram over @f$[a,b]@f$ equals the value specified by `integral`.
+    * the integral of the histogram over @f$[a,b]@f$ equals the value specified by
+    * `integral`.
+    */
+   public void init(TallyHistogram hist) {
+      m_a = hist.getA();
+      m_b = hist.getB();
+      m_h = hist.getH();
+      numBins = hist.numBins;
+      height = new double[numBins];
+      this.integral = hist.numberObs() * m_h;
+      int count[] = hist.getCounters();
+      for (int i = 0; i < numBins; i++)
+         height[i] = count[i];
+   }
+
+   /**
+    * Initializes this `ScaledHistogram` with the @ref TallyHistogram `hist`. It
+    * uses the same interval @f$[a,b]@f$, same bins, and rescales the counters so
+    * the integral of the histogram over @f$[a,b]@f$ equals the value specified by
+    * `integral`.
     */
    public void init(TallyHistogram hist, double integral) {
       m_a = hist.getA();
@@ -153,7 +181,7 @@ public class ScaledHistogram {
       image.integral = integral;
       for (int j = 1; j < numBins; ++j)
          image.height[j] = height[j];
-   
+
       // Preserve LaTeX options when the histogram is cloned.
       image.axisOptions = axisOptions;
       image.addPlotOptions = addPlotOptions;
@@ -204,8 +232,8 @@ public class ScaledHistogram {
    }
 
    /**
-    * Returns an array that contain the @f$n_b+1@f$ bin boundaries of this histogram, 
-    * including @f$a@f$ and @f$b@f$.
+    * Returns an array that contain the @f$n_b+1@f$ bin boundaries of this
+    * histogram, including @f$a@f$ and @f$b@f$.
     */
    public double[] getHistogramBounds() {
       double h = (m_b - m_a) / numBins;
@@ -215,34 +243,33 @@ public class ScaledHistogram {
          bounds[i] = bounds[i - 1] + h;
       return bounds;
    }
-   
-   
+
    /**
-    * Sets extra LaTeX options for the axis generated by \c toLatex.
-    * The string must contain comma-separated options without brackets.
-    * Passing \c null clears the options.
+    * Sets extra LaTeX options for the axis generated by \c toLatex. The string
+    * must contain comma-separated options without brackets. Passing \c null clears
+    * the options.
     *
     * @param str the axis options
     */
    public void setAxisOptions(String str) {
       axisOptions = (str == null) ? "" : str.trim();
    }
-   
+
    /**
     * Sets extra LaTeX options for the addplot commands generated by \c toLatex.
-    * The string must contain comma-separated options without brackets.
-    * Passing \c null clears the options.
+    * The string must contain comma-separated options without brackets. Passing \c
+    * null clears the options.
     *
     * @param str the addplot options
     */
    public void setAddPlotOptions(String str) {
       addPlotOptions = (str == null) ? "" : str.trim();
    }
-   
+
    /**
     * Computes and returns the integrated square error (ISE) of a histogram w.r.t.
-    * the @f$U(0,1)@f$ distribution. Assumes that the histogram integrates to 1
-    * and is over the interval @f$[a,b] = [0,1]@f$.
+    * the @f$U(0,1)@f$ distribution. Assumes that the histogram integrates to 1 and
+    * is over the interval @f$[a,b] = [0,1]@f$.
     */
    public double ISEvsU01() {
       double sum = 0.0;
@@ -285,11 +312,10 @@ public class ScaledHistogram {
 
    /**
     * Constructs and returns an ASH-transformed version of this scaled histogram,
-    * with the same bin size. The new
-    * frequency (height) in any given bin is the weighted average of the
-    * frequencies in the neighboring bins, with weights @f$(r-d)/r^2@f$ given to
-    * bins that are at distance @f$d@f$ from the target bin, for all @f$d < r@f$.
-    * See @cite tSCO15a and @cite sLEC23s.
+    * with the same bin size. The new frequency (height) in any given bin is the
+    * weighted average of the frequencies in the neighboring bins, with
+    * weights @f$(r-d)/r^2@f$ given to bins that are at distance @f$d@f$ from the
+    * target bin, for all @f$d < r@f$. See @cite tSCO15a and @cite sLEC23s.
     */
    public ScaledHistogram averageShiftedHistogram(int r) {
       ScaledHistogram image = clone();
@@ -321,7 +347,7 @@ public class ScaledHistogram {
    public ScaledHistogram averageShiftedHistogramTrunc(int r) {
       ScaledHistogram image = clone();
       double[] heightNew = image.getHeights();
-      // double rscale = 1.0 / (r * r);    // Rescaling factor for each bin.
+      // double rscale = 1.0 / (r * r); // Rescaling factor for each bin.
       double sum = 0.0;
       for (int k = 0; k < numBins; k++) {
          heightNew[k] = r * height[k]; //
@@ -345,11 +371,11 @@ public class ScaledHistogram {
    }
 
    /**
-    * A more general version of `averageShiftedHistogram` that uses a weighted average
-    * with arbitrary weights. 
-    * For the new average in a given bin, any neighbor bin at distance @f$\ell <
-    * r@f$ is given a weight proportional to `w[i]`. The given weights do not have
-    * to sum to 1; they are rescaled so the sum of weights that go to any given bin is 1.
+    * A more general version of `averageShiftedHistogram` that uses a weighted
+    * average with arbitrary weights. For the new average in a given bin, any
+    * neighbor bin at distance @f$\ell < r@f$ is given a weight proportional to
+    * `w[i]`. The given weights do not have to sum to 1; they are rescaled so the
+    * sum of weights that go to any given bin is 1.
     */
    public ScaledHistogram averageShiftedHistogram(int r, double[] w) {
       ScaledHistogram image = clone();
@@ -379,11 +405,11 @@ public class ScaledHistogram {
 
    /**
     * A more general version of `averageShiftedHistogramTrunc` that uses a weighted
-    * average with arbitrary weights. For the new average in a given bin, any neighbor bin at
-    * distance @f$\ell < r@f$ is given a weight proportional to `w[i]`. The given
-    * weights do not have to sum to 1; they are rescaled so the sum of weights that
-    * go to any given bin is 1 (not counting the weights given to bins that fall
-    * outside the interval).
+    * average with arbitrary weights. For the new average in a given bin, any
+    * neighbor bin at distance @f$\ell < r@f$ is given a weight proportional to
+    * `w[i]`. The given weights do not have to sum to 1; they are rescaled so the
+    * sum of weights that go to any given bin is 1 (not counting the weights given
+    * to bins that fall outside the interval).
     */
    public ScaledHistogram averageShiftedHistogramTrunc(int r, double[] w) {
       ScaledHistogram image = clone();
@@ -413,7 +439,7 @@ public class ScaledHistogram {
 
    /**
     * This is supposed to be a faster implementation of
-    * `averageShiftedHistogram(r)`.  To be tested.
+    * `averageShiftedHistogram(r)`. To be tested.
     */
    public ScaledHistogram averageShiftedHistogram1(int r) {
       ScaledHistogram image = clone();
@@ -446,7 +472,7 @@ public class ScaledHistogram {
       image.integral = sum * m_h;
       return image;
    }
-   
+
    /*
     * Return the min and max of the bin heights.
     */
@@ -459,17 +485,16 @@ public class ScaledHistogram {
             min = height[i];
       }
    }
-   
+
    /**
-    * Returns a String that contains a LaTeX/Tikz code snippet to draw this 
-    * histogram in a LaTeX document. 
-    * By selecting the desired options, one can draw only the ordinary histogram
-    * (`histo = true`) or a polygonal interpolation (`polygon = true`) of this histogram, 
-    * or both in the same plot (if both values are `true`). 
-    * The polygonal interpolation puts a point at the top center of each 
-    * rectangle (bin), after adding a bin of zero height on each side,
-    * and draws a piecewise-linear interpolation with these points. 
-    * See @cite tSCO15a and @cite sLEC23s for details.
+    * Returns a String that contains a LaTeX/Tikz code snippet to draw this
+    * histogram in a LaTeX document. By selecting the desired options, one can draw
+    * only the ordinary histogram (`histo = true`) or a polygonal interpolation
+    * (`polygon = true`) of this histogram, or both in the same plot (if both
+    * values are `true`). The polygonal interpolation puts a point at the top
+    * center of each rectangle (bin), after adding a bin of zero height on each
+    * side, and draws a piecewise-linear interpolation with these points. See @cite
+    * tSCO15a and @cite sLEC23s for details.
     */
    public String toLatex(boolean histo, boolean polygon) {
       double bounds[] = getHistogramBounds();
@@ -479,48 +504,53 @@ public class ScaledHistogram {
          if (height[i] > ymax)
             ymax = height[i];
          // if (height[i] < ymin)
-         //   ymin = height[i];
+         // ymin = height[i];
       }
       ymax = 1.1 * ymax;
       Formatter formatter = new Formatter(Locale.US);
       formatter.format("%%---------------------------------------------------------------%%%n");
       formatter.format("\\begin{tikzpicture} %n");
-      formatter.format("\\begin{axis}[ %n");
-      formatter.format("        ymin=%s, ymax=%s,%n", 0.0, ymax);
-      formatter.format("        ylabel={}, yticklabels={}");
-      
-      // Append user-defined axis options only when they are not empty.
-      if (!axisOptions.isEmpty())
-         formatter.format(",%n        %s", axisOptions);
-      
-      formatter.format("%n");
-      // formatter.format("        %%area style, %n");
-      formatter.format("        ] %n");
-      if (histo) {
-    	  formatter.format("\\addplot+[ybar interval,mark=none");
 
-		 // Append user-defined addplot options only when they are not empty.
-		 if (!addPlotOptions.isEmpty())
-		    formatter.format(",%s", addPlotOptions);
-		 
-		 formatter.format("] plot coordinates { ");
+      // Append user-defined axis options only when they are not empty.
+      if (axisOptions.isEmpty()) {
+         formatter.format("\\begin{axis}[ %n");
+         formatter.format("        ymin=%s, ymax=%s,%n", 0.0, ymax);
+         formatter.format("        ylabel={}, yticklabels={}");
+      }
+      else {
+         formatter.format("\\begin{axis}[%n  %s", axisOptions);
+         //formatter.format(",%n        %s", axisOptions);
+      }
+
+      // formatter.format("%n");
+      // formatter.format(" %%area style, %n");
+      formatter.format("] %n");
+      if (histo) {
+         formatter.format("\\addplot+[ybar interval,mark=none");
+
+         // Append user-defined addplot options only when they are not empty.
+         if (!addPlotOptions.isEmpty())
+            formatter.format(",%s", addPlotOptions);
+
+         formatter.format("] plot coordinates { ");
          for (int i = 0; i < numBins; i++)
             formatter.format("\n (%s,%s) ", bounds[i], height[i]);
+         formatter.format("\n (%s,%s) ", bounds[numBins-1] + m_h, height[numBins-1]);
          formatter.format("};%n");
       }
       if (polygon) {
-         double halfh = (bounds[1] - bounds[0]) / 2;   // Half the width of a bin.
+         double halfh = (bounds[1] - bounds[0]) / 2; // Half the width of a bin.
          formatter.format("\\addplot+[sharp plot,mark=none");
 
-	     // Append the same user-defined addplot options to the polygonal plot.
-	     if (!addPlotOptions.isEmpty())
-	         formatter.format(",%s", addPlotOptions);
-	
-	     formatter.format("] plot coordinates { ");
+         // Append the same user-defined addplot options to the polygonal plot.
+         if (!addPlotOptions.isEmpty())
+            formatter.format(",%s", addPlotOptions);
+
+         formatter.format("] plot coordinates { ");
          formatter.format("\n (%s,%s) ", bounds[0], height[0]);
          for (int i = 0; i < numBins; i++)
             formatter.format("\n (%s,%s) ", bounds[i] + halfh, height[i]);
-         formatter.format("\n (%s,%s) ", bounds[numBins], height[numBins - 1]);   // ???  
+         formatter.format("\n (%s,%s) ", bounds[numBins], height[numBins - 1]); // ???
          formatter.format("};%n");
       }
       formatter.format("\\end{axis} %n");
@@ -529,5 +559,5 @@ public class ScaledHistogram {
       formatter.close();
       return ch;
    }
-   
+
 }
