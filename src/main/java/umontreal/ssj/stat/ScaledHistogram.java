@@ -499,7 +499,7 @@ public class ScaledHistogram {
    public String toLatex(boolean histo, boolean polygon) {
       double bounds[] = getHistogramBounds();
       // double ymin = 0.0;
-      double ymax = 0.0;
+      double ymax = 0.0;// may be height[0]
       for (int i = 1; i < numBins; i++) {
          if (height[i] > ymax)
             ymax = height[i];

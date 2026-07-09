@@ -15,13 +15,13 @@ import umontreal.ssj.stat.TallyStore;
  * The local variables in the `main` set the directories, list of models, list of methods,
  * dimensions, values of `k = log_2 n`, and number of observations.
  * All of these are passed as parameters to `HistCollectionLatex.writeCollection`,
- * which constructs one LaTeX file for each model in the list.
+ * which constructs one LaTeX file for each model in the list. 
  */
 public class HistSamo25Paper {
 
    // Fixed parameters for this particular paper.
-   static String inputFolder = "C:/Users/Lecuyer/Dropbox/samo25/datapl/";
-   static String outputFolder = "C:/Users/Lecuyer/Dropbox/samo25/paperdat/";
+   static String inputFolder = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
+   static String outputFolder = "/home/otman/Documents/GitHub/Data/samo25-test/test-pdf/samoPaper/";
    static int numBins = 100;
          
    /**
@@ -44,11 +44,12 @@ public class HistSamo25Paper {
       data.fillFromFile(inputFolder + fileName + ".dat");
       double a = data.min();
       double b = data.max();
+     
       double range = b - a;
       TallyHistogram hist = new TallyHistogram(a, b + range * 1.0e-12, numBins);
       hist.fillFromTallyStore(data);     
       ScaledHistogram scHist = new ScaledHistogram(hist);
-      System.out.println(hist.toString());
+      //System.out.println(hist.toString());
       scHist.setAxisOptions("title={{\\footnotesize " + fileName + "}}, width=4.4cm, height=3.0cm, scale only axis, \n" +
              "  ymin=0.0, xmin = " + (a - 0.01 * range) + ", xmax = " + (b + 0.01 * range) + 
              ",\n  ylabel={}, yticklabels={}, \n" +
@@ -113,21 +114,30 @@ public class HistSamo25Paper {
       HistCollectionLatex.writeCollection(
             inputFolder, outputFolder, modelTags, methods, sDims, ks, m);
        */      
-   
-      // This one is just for testing.
-      System.out.println(makeSimpleHistogramLatex("babytest", 4));
 
-      makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RS-16-10000", 100);
-      makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RvRS-16-10000", 100);
-      makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RpvRS-16-10000", 100);
-      makeSimpleHistogramLatex("SmoothPerB4-8-Sob-RDS-16-10000", 100);
-      makeSimpleHistogramLatex("SmoothPerB4-8-Sob-LMS-RDS-16-10000", 100);
-      makeSimpleHistogramLatex("SmoothPerB4-8-Sob-NUS-16-10000", 100);
+
+      // makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RS-16-10000", 100);
+      // makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RvRS-16-10000", 100);
+      // makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RpvRS-16-10000", 100);
+      // makeSimpleHistogramLatex("SmoothPerB4-8-Sob-RDS-16-10000", 100);
+      // makeSimpleHistogramLatex("SmoothPerB4-8-Sob-LMS-RDS-16-10000", 100);
+      // makeSimpleHistogramLatex("SmoothPerB4-8-Sob-NUS-16-10000", 100);
       
-      makeSimpleHistogramLatex("MC2-8-Sob-LMS-RDS-16-10000", 100);
-      makeSimpleHistogramLatex("MC2-16-Sob-LMS-RDS-14-10000", 100);
-      makeSimpleHistogramLatex("MC2-16-Sob-NUS-14-10000", 100);
+      // makeSimpleHistogramLatex("MC2-8-Sob-LMS-RDS-16-10000", 100);
+      // makeSimpleHistogramLatex("MC2-16-Sob-LMS-RDS-14-10000", 100);
+      // makeSimpleHistogramLatex("MC2-16-Sob-NUS-14-10000", 100);
+      String[] filenames = new String[] {"SmoothPerB4-8-Lat-RvRS-16-10000", "SmoothPerB4-8-Lat-RS-16-10000",
+         "SmoothPerB4-8-Lat-RpvRS-16-10000","SmoothPerB4-8-Sob-RDS-16-10000","SmoothPerB4-8-Sob-LMS-RDS-16-10000",
+         "SmoothPerB4-8-Sob-NUS-16-10000","MC2-8-Sob-LMS-RDS-16-10000","MC2-16-Sob-LMS-RDS-14-10000","SmoothPerB4-8-Sob-NUS-16-10000"
 
+      };
+      int[] ExtremMarks = new int[] {2,3};
+      String path;
+      for(String filename: filenames){
+         path = inputFolder + filename + ".dat";
+         HistCollectionLatex.writeHistogramLatex(path, outputFolder, numBins, filename, 
+            "4.4 cm", "3 cm", "builtin", ExtremMarks);
+      }
 
    }
    
