@@ -18,11 +18,11 @@ public class HistSamo25 {
 
       String inputFolder = "/home/otman/Documents/dropbox_copy/samo25_copy/datapl/";
       String outputFolder = "/home/otman/Documents/GitHub/Data/samo25-test/test-pdf/";
-
+//"Gaussian", "Oscillatory",
       String[] modelTags = new String[] {
-         "SmoothPerB4", "SumUeU"};//, "MC2", "Polynomial", "Oscillatory",
-      //    "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
-      // };
+         "SmoothPerB4", "SumUeU", "MC2", "Polynomial", 
+         "SmoothGauss", "PieceLinGauss", "IndSumNormal"
+      };
       String[] methods = new String[] {
          "Lat-RS", "Lat-RSB", "Lat-Rv", "Lat-Rpv", "Lat-RvRS",
          "Lat-RvRSB", "Lat-RpvRS", "Lat-RpvRSB",
