@@ -43,13 +43,12 @@ public class HistSamo25Paper {
       TallyStore data = new TallyStore();
       data.fillFromFile(inputFolder + fileName + ".dat");
       double a = data.min();
-      double b = data.max();
-     
+      double b = data.max();     
       double range = b - a;
       TallyHistogram hist = new TallyHistogram(a, b + range * 1.0e-12, numBins);
       hist.fillFromTallyStore(data);     
       ScaledHistogram scHist = new ScaledHistogram(hist);
-      //System.out.println(hist.toString());
+      System.out.println(hist.toString());
       scHist.setAxisOptions("title={{\\footnotesize " + fileName + "}}, width=4.4cm, height=3.0cm, scale only axis, \n" +
              "  ymin=0.0, xmin = " + (a - 0.01 * range) + ", xmax = " + (b + 0.01 * range) + 
              ",\n  ylabel={}, yticklabels={}, \n" +
@@ -115,6 +114,8 @@ public class HistSamo25Paper {
             inputFolder, outputFolder, modelTags, methods, sDims, ks, m);
        */      
 
+      // This one is just for testing.
+      System.out.println(makeSimpleHistogramLatex("babytest", 4));
 
       // makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RS-16-10000", 100);
       // makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RvRS-16-10000", 100);
@@ -144,10 +145,10 @@ public class HistSamo25Paper {
       String latexHist;
       for(String fileName: fileNames){
          path = inputFolder + fileName + ".dat";
-         latexHist = HistCollectionLatex.makeHistogramLatex(path, numBins, fileName, 
+         latexHist = HistCollectionLatex.makeHistogramLatex(path, numBins, fileName,
             "4.4 cm", "3 cm", "builtin", ExtremMarks);
 
-         File outFile = new File(outputFolder, fileName + "-hist25.tex");// hist25 is used to nor overwrite makeSimpleHistogramLatex files 
+         File outFile = new File(outputFolder, fileName + "-hist25.tex");// hist25 is used to nor overwrite makeSimpleHistogramLatex files
          try (PrintWriter out = new PrintWriter(new FileWriter(outFile))) {
             out.print(latexHist);
          } catch (IOException e) {
