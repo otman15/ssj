@@ -15,7 +15,7 @@ import umontreal.ssj.stat.TallyStore;
  * The local variables in the `main` set the directories, list of models, list of methods,
  * dimensions, values of `k = log_2 n`, and number of observations.
  * All of these are passed as parameters to `HistCollectionLatex.writeCollection`,
- * which constructs one LaTeX file for each model in the list. 
+ * which constructs one LaTeX file for each model in the list.
  */
 public class HistSamo25Paper {
 
