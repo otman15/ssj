@@ -43,7 +43,7 @@ public class HistSamo25Paper {
       TallyStore data = new TallyStore();
       data.fillFromFile(inputFolder + fileName + ".dat");
       double a = data.min();
-      double b = data.max();     
+      double b = data.max();
       double range = b - a;
       TallyHistogram hist = new TallyHistogram(a, b + range * 1.0e-12, numBins);
       hist.fillFromTallyStore(data);     
