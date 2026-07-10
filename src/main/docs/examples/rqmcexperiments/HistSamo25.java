@@ -33,8 +33,8 @@ public class HistSamo25 {
       int[] ks = new int[] {10, 12, 14, 16};      // Values of k = log_2 n.
       int m = 10000;                    // Number of observations per file.
 
-      HistCollectionLatex.setLegendPos("auto");
-      HistCollectionLatex.setShowLegend("builtin");
+      // HistCollectionLatex.setLegendPos("auto");
+      // HistCollectionLatex.setShowLegend("builtin");
       HistCollectionLatex.writeCollection(
          inputFolder, outputFolder, modelTags, methods, sDims, ks, m);
    }
