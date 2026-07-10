@@ -281,8 +281,18 @@ public class HistCollectionLatex {
       double xmin = fileStats.min();
       double xmax = fileStats.max();
       double range = xmax - xmin;
-      double[] bounds = getHistogramBounds(xmin, xmax);
-      TallyHistogram hist = new TallyHistogram(bounds[0], bounds[1], numBins);
+      double a = xmin;
+      double b = xmax;
+      
+      if (range > 0.0) {
+         b += range * 1.0e-12;
+      } else {
+         double fallbackRange = 1e-12 * Math.max(1.0, Math.abs(xmin));
+         a -=  0.5 * fallbackRange;
+         b +=  0.5 * fallbackRange;
+      }
+  
+      TallyHistogram hist = new TallyHistogram(a, b, numBins);
       hist.fillFromTallyStore(fileStats);
       ScaledHistogram scHist = new ScaledHistogram(hist);
 
@@ -381,29 +391,6 @@ public class HistCollectionLatex {
       String mStr = Integer.toString(m);
       String samples = m > 0 && mStr.matches("10*") ? "$10^{" + (mStr.length() - 1) + "}$ samples" : m + " samples";
       return "RQMC comparison: " + escapeLatex(model) + " s = " + s + " (" + samples + ")";
-   }
-
-   /**
-    * Expands histogram bounds around the observed min and max. Uses a tiny
-    * fallback range when all observations are equal or the range is invalid. This
-    * works well for centered data; for large nearly equal data, the bounds may
-    * need manual adjustment in the generated LaTeX code.
-    *
-    * @param xmin minimum value of the observations
-    * @param xmax maximum value of the observations
-    * @return two-element array containing the lower and upper histogram bounds
-    */
-   private static double[] getHistogramBounds(double xmin, double xmax) {
-      double center = 0.5 * (xmin + xmax);
-      double range = xmax - xmin;
-      if (!(range > 0.0) || Double.isNaN(range) || Double.isInfinite(range)) {
-         double fallbackRange = 1e-12 * Math.max(1.0, Math.abs(center));
-         xmin = center - 0.5 * fallbackRange;
-         xmax = center + 0.5 * fallbackRange;
-      } else {
-         xmax += range * 1.0e-12;
-      }
-      return new double[] { xmin, xmax };
    }
 
    /**

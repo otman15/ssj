@@ -115,7 +115,7 @@ public class HistSamo25Paper {
        */      
 
       // This one is just for testing.
-      System.out.println(makeSimpleHistogramLatex("babytest", 4));
+      // System.out.println(makeSimpleHistogramLatex("babytest", 4));
 
       // makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RS-16-10000", 100);
       // makeSimpleHistogramLatex("SmoothPerB4-8-Lat-RvRS-16-10000", 100);
@@ -139,7 +139,9 @@ public class HistSamo25Paper {
       for(String fileName: fileNames){
          makeSimpleHistogramLatex(fileName, 100);
       }
-      // Same output using 'HistCollectionLatex.makeHistogramLatex'
+
+      //Same output using 'HistCollectionLatex.makeHistogramLatex'
+
       int[] ExtremMarks = new int[] {2,2};
       String path;
       String latexHist;
