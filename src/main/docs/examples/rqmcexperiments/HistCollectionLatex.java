@@ -537,6 +537,9 @@ public class HistCollectionLatex {
       out.println("\\setlength{\\histmethodwidth}{0.2cm}");
       out.println("\\newcommand{\\sethistwidths}[1]{%");
       out.println("  \\setlength{\\histcellwidth}{\\dimexpr(\\textwidth-\\histmethodwidth)/#1\\relax}%");
+      out.println("  \\ifdim\\histcellwidth>5.3cm");
+      out.println("    \\setlength{\\histcellwidth}{5.3cm}%");
+      out.println("  \\fi");
       out.println("  \\setlength{\\histaxiswidth}{0.96\\histcellwidth}%");
       out.println("  \\setlength{\\histaxisheight}{0.86\\histaxiswidth}%");
       out.println("}");
