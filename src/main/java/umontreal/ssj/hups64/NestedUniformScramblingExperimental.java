@@ -11,7 +11,8 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
       SCIML_JL_OWEN_INCREMENTAL,
       SCIML_JL_OWEN_PACKED,
       FRIEDEL,
-      FULL_OWEN
+      FULL_OWEN,
+      SSJ_NUS64_PRESORTED
    }
 
    private RandomStream stream;
@@ -28,6 +29,16 @@ private byte[][][] cachedScimlOriginBits;
 private byte[][][] cachedScimlRandomBits;
 private int[][][] cachedScimlIndices;
 private byte[][] cachedScimlPerms;
+
+//nus presorted:
+private DigitalNetBase2 cachedNusPresortedNet;
+private int cachedNusPresortedNumPoints;
+private int cachedNusPresortedDim;
+private int cachedNusPresortedOutDigits;
+private int cachedNusPresortedNumCols;
+
+private long[][] cachedNusPresortedBv;
+private int[][] cachedNusPresortedPos;
 
 //private byte[] cachedScimlPackedPerms;
 
@@ -74,6 +85,10 @@ private byte[][] cachedScimlPerms;
       case SCIML_JL_OWEN_PACKED:
         scimlJlOwenPacked(net, cp.getArray(), numBits);
         break;
+
+      case SSJ_NUS64_PRESORTED:
+         nestedUniformScramble64Presorted(net, cp.getArray(), numBits);
+         break;
 
       default:
          throw new UnsupportedOperationException("Method not implemented yet: " + method);
@@ -176,6 +191,132 @@ private byte[][] cachedScimlPerms;
          }
       }
    }
+
+   /////////////////////nus presorted:
+   
+/**
+ * Applies the SSJ NUS64 algorithm using precomputed sorted point bits.
+ * The sorted bvlist and poslist are computed once for the same digital net,
+ * then reused across randomizations.
+ *
+ * @param net the original base-2 digital net
+ * @param output the array receiving the scrambled points
+ * @param numBits the number of bits randomized; 0 means outDigits
+ */
+private void nestedUniformScramble64Presorted(DigitalNetBase2 net,
+                                              double[][] output,
+                                              int numBits) {
+   assert output.length == net.numPoints;
+   assert output.length > 0;
+   assert output[0].length == net.dim;
+   assert net.outDigits >= 31;
+   assert net.outDigits <= 62;
+
+   if (numBits == 0)
+      numBits = net.outDigits;
+
+   ensureNusPresortedCache(net);
+
+   double localNormFactor = 1.0 / Math.abs((double) (1L << net.outDigits));
+
+   for (int j = 0; j < net.dim; ++j) {
+      long[] bvlist = cachedNusPresortedBv[j];
+      int[] poslist = cachedNusPresortedPos[j];
+
+      long bv = (stream.nextLong(0, (1L << numBits) - 1)
+                 << (net.outDigits - numBits));
+
+      long bvlistL = bvlist[0] << (net.outDigits - 31);
+      output[poslist[0]][j] = (bvlistL ^ bv) * localNormFactor + + net.EpsilonHalf;
+
+      for (int i = 1; i < net.numPoints; i++) {
+         long bv2 = bvlist[i - 1] << (net.outDigits - 31);
+         bvlistL = bvlist[i] << (net.outDigits - 31);
+         bv2 ^= bvlistL;
+
+         bv2 = (stream.nextLong(0, (1L << numBits) - 1)
+                << (net.outDigits - numBits))
+               & ((1L << (long) Num.log2((double) bv2)) - 1);
+
+         bv ^= bv2;
+
+         output[poslist[i]][j] = (bvlistL ^ bv) * localNormFactor + + net.EpsilonHalf;
+      }
+   }
+}
+
+
+/**
+ * Computes the sorted bvlist and poslist used by the SSJ NUS64 algorithm.
+ * This part is deterministic and does not depend on the random stream.
+ *
+ * @param net the original base-2 digital net
+ */
+private void ensureNusPresortedCache(DigitalNetBase2 net) {
+   if (cachedNusPresortedNet == net &&
+       cachedNusPresortedNumPoints == net.numPoints &&
+       cachedNusPresortedDim == net.dim &&
+       cachedNusPresortedOutDigits == net.outDigits &&
+       cachedNusPresortedNumCols == net.numCols &&
+       cachedNusPresortedBv != null &&
+       cachedNusPresortedPos != null)
+      return;
+
+   cachedNusPresortedNet = net;
+   cachedNusPresortedNumPoints = net.numPoints;
+   cachedNusPresortedDim = net.dim;
+   cachedNusPresortedOutDigits = net.outDigits;
+   cachedNusPresortedNumCols = net.numCols;
+
+   cachedNusPresortedBv = new long[net.dim][net.numPoints];
+   cachedNusPresortedPos = new int[net.dim][net.numPoints];
+
+   int[] poslist = new int[2 * net.numPoints];
+   long[] bvlist = new long[2 * net.numPoints];
+   int[] counts = new int[256];
+   int[] binpos = new int[256];
+
+   for (int j = 0; j < net.dim; ++j) {
+      bvlist[0] = 0;
+      poslist[0] = 0;
+
+      for (int i = 1; i < net.numPoints; i++) {
+         int pos = Integer.numberOfTrailingZeros(i);
+         bvlist[i] = bvlist[i - 1]
+               ^ (net.genMat[j * net.numCols + pos] >>> (net.outDigits - 31));
+         poslist[i] = i;
+      }
+
+      for (int b = 0; b < 4; b++) {
+         for (int i = 0; i < 256; i++)
+            counts[i] = 0;
+
+         int m = (b % 2) * net.numPoints;
+         int bb = 8 * b;
+         long bv = 0xffL << bb;
+
+         for (int i = 0; i < net.numPoints; i++)
+            counts[(int) ((bvlist[m + i] & bv) >>> bb)]++;
+
+         binpos[0] = (1 - b % 2) * net.numPoints;
+
+         for (int i = 0; i < 255; i++)
+            binpos[i + 1] = binpos[i] + counts[i];
+
+         for (int i = 0; i < net.numPoints; i++) {
+            int pos = (int) ((bvlist[m + i] & bv) >>> bb);
+            int k = binpos[pos]++;
+            bvlist[k] = bvlist[m + i];
+            poslist[k] = poslist[m + i];
+         }
+      }
+
+      for (int i = 0; i < net.numPoints; i++) {
+         cachedNusPresortedBv[j][i] = bvlist[i];
+         cachedNusPresortedPos[j][i] = poslist[i];
+      }
+   }
+}
 
 
    ////////////////////////SciML 
