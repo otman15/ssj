@@ -176,8 +176,8 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
 */
       // -------------------------
       // Objects for Sobol' points
-      System.out.println("*** Sobol points ");
-      DigitalNetBase2 p = new SobolSequence(k, 32, s); // n = 2^{k} points in s dim.
+      // System.out.println("*** Sobol points ");
+      // DigitalNetBase2 p = new SobolSequence(k, 32, s); // n = 2^{k} points in s dim.
 /*    
       ptent = new BakerTransformedPointSet(p);
       // PointSetRandomization norand = new EmptyRandomization(); // No randomization
@@ -208,21 +208,84 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       simulRepsRQMCSort(model, p, lmsrds, m, statReps);
       p.clearIndepRandomBits();
 */
-      // Sob-NUS
-      System.out.println("* Sobol with NUS");
-      statReps.setName(modelTag + "-" + s + "-Sob-NUS-" + k + "-" + m);
-      CachedPointSet cp = new CachedPointSet(p);
-      PointSetRandomization nus = new NestedUniformScrambling(stream, 18);
-      simulRepsRQMCSort(model, cp, nus, m, statReps);
 
+      System.out.println("*** Sobol points ");
+      DigitalNetBase2 p = new SobolSequence(k, 32, s); // n = 2^{k} points in s dim.
+
+      // // Sob-NUS
+      // System.out.println("* Sobol with NUS");
+      // statReps.setName(modelTag + "-" + s + "-Sob-NUS-" + k + "-" + m);
+      // CachedPointSet cp = new CachedPointSet(p);
+      // stream.resetNextSubstream();
+      // PointSetRandomization nus = new NestedUniformScrambling(stream, 30);
+      // simulRepsRQMCSort(model, cp, nus, m, statReps);
+
+
+      // Copie expérimentale
+      System.out.println("* Sobol with NUS64 copy");
+      statReps.setName(modelTag + "-" + s + "-Sob-NUS64-COPY-" + k + "-" + m);
+      CachedPointSet cp2 = new CachedPointSet(p);
+      stream.resetNextSubstream();
+      PointSetRandomization nusCopy =
+            new NestedUniformScramblingExperimental(
+                  stream,
+                  NestedUniformScramblingExperimental.Method.SSJ_NUS64_COPY,
+                  18);
+      simulRepsRQMCSort(model, cp2, nusCopy, m, statReps);
+/* 
+// Sobol with SciML QuasiMonteCarlo.jl Owen scrambling structure
+      System.out.println("* Sobol with SCIML_JL_OWEN");
+      statReps.setName(modelTag + "-" + s + "-Sob-SCIML-JL-OWEN-" + k + "-" + m);
+
+      CachedPointSet cpScimlJlOwen = new CachedPointSet(p);
+      stream.resetStartSubstream();
+      PointSetRandomization scimlJlOwen =
+            new NestedUniformScramblingExperimental(
+                  stream,
+                  NestedUniformScramblingExperimental.Method.SCIML_JL_OWEN,
+                  30);
+
+      simulRepsRQMCSort(model, cpScimlJlOwen, scimlJlOwen, m, statReps);
+   */
+/////SCIML_JL_OWEN_INCREMENTAL
+/* 
+      // Sobol with SciML QuasiMonteCarlo.jl Owen scrambling structure
+      System.out.println("* Sobol with SCIML_JL_OWEN_INCREMENTAL");
+      statReps.setName(modelTag + "-" + s + "-Sob-SCIML-JL-OWEN-" + k + "-" + m);
+
+      CachedPointSet cpScimlJlOwenInc = new CachedPointSet(p);
+      stream.resetStartSubstream();
+      PointSetRandomization ScimlJlOwenInc =
+            new NestedUniformScramblingExperimental(
+                  stream,
+                  NestedUniformScramblingExperimental.Method.SCIML_JL_OWEN_INCREMENTAL,
+                  30);
+
+      simulRepsRQMCSort(model, cpScimlJlOwenInc, ScimlJlOwenInc, m, statReps);
+
+*/
+/////////////scimlJlOwenPacked
+      // Sobol with SciML QuasiMonteCarlo.jl Owen scrambling structure
+      System.out.println("* Sobol with scimlJlOwenPacked");
+      statReps.setName(modelTag + "-" + s + "-Sob-SCIML-JL-OWEN-" + k + "-" + m);
+
+      CachedPointSet cpScimlJlOwenPack = new CachedPointSet(p);
+      stream.resetStartSubstream();
+      PointSetRandomization ScimlJlOwenPack =
+            new NestedUniformScramblingExperimental(
+                  stream,
+                  NestedUniformScramblingExperimental.Method.SCIML_JL_OWEN_PACKED,
+                  18);
+
+      simulRepsRQMCSort(model, cpScimlJlOwenPack, ScimlJlOwenPack, m, statReps);
       // Sob-NUS 64
-      DigitalNetBase2Test p64 = new SobolSequenceTest(k, 32, s);
-      stream.resetStartStream();
-      System.out.println("* Sobol with NUS64");
-      statReps.setName(modelTag + "-" + s + "-Sob-NUS64-" + k + "-" + m);
-      CachedPointSet cp2 = new CachedPointSet(p64);
-      PointSetRandomization nus64 = new NestedUniformScramblingTest(stream, 18);
-      simulRepsRQMCSort(model, cp2, nus64, m, statReps);
+      // DigitalNetBase2Test p64 = new SobolSequenceTest(k, 32, s);
+      // stream.resetStartStream();
+      // System.out.println("* Sobol with NUS64");
+      // statReps.setName(modelTag + "-" + s + "-Sob-NUS64-" + k + "-" + m);
+      // CachedPointSet cp2 = new CachedPointSet(p64);
+      // PointSetRandomization nus64 = new NestedUniformScramblingTest(stream, 18);
+      // simulRepsRQMCSort(model, cp2, nus64, m, statReps);
 
       // // Sob-Burley Owen using the same Sobol base p
       // stream.resetStartStream();
