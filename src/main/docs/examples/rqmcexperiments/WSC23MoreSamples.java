@@ -221,11 +221,28 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       // simulRepsRQMCSort(model, cp, nus, m, statReps);
 
 
+
+
+// //////////////nus presorted/////////// nestedUniformScramble64Presorted
+// /// 
+      System.out.println("* Sobol with NUS64 presorted");
+      statReps.setName(modelTag + "-" + s + "-Sob-NUS64-PRESORTED-" + k + "-" + m);
+      CachedPointSet cp3 = new CachedPointSet(p);
+      stream.resetNextSubstream();
+      
+      PointSetRandomization nusPresorted =
+            new NestedUniformScramblingExperimental(
+                  stream,
+                  NestedUniformScramblingExperimental.Method.SSJ_NUS64_PRESORTED,
+                  30);
+      simulRepsRQMCSort(model, cp3, nusPresorted, m, statReps);
+///////////////////
+/// 
       // Copie expérimentale
-      System.out.println("* Sobol with NUS64 copy");
+      System.out.println("* Sobol with NUS64 ssj");
       statReps.setName(modelTag + "-" + s + "-Sob-NUS64-COPY-" + k + "-" + m);
       CachedPointSet cp2 = new CachedPointSet(p);
-      stream.resetNextSubstream();
+      stream.resetStartSubstream();
       PointSetRandomization nusCopy =
             new NestedUniformScramblingExperimental(
                   stream,
@@ -233,18 +250,31 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
                   30);
       simulRepsRQMCSort(model, cp2, nusCopy, m, statReps);
 
-//////////////nus presorted/////////// nestedUniformScramble64Presorted
-/// 
-      System.out.println("* Sobol with NUS64 presorted");
-      statReps.setName(modelTag + "-" + s + "-Sob-NUS64-PRESORTED-" + k + "-" + m);
-      CachedPointSet cp3 = new CachedPointSet(p);
+/////////////scimlJlOwenPacked
+      // Sobol with SciML QuasiMonteCarlo.jl Owen scrambling structure
+      System.out.println("* Sobol with scimlJlOwenPacked");
+      statReps.setName(modelTag + "-" + s + "-Sob-SCIML-JL-OWEN-P-" + k + "-" + m);
+
+      CachedPointSet cpScimlJlOwenPack = new CachedPointSet(p);
       stream.resetStartSubstream();
-      PointSetRandomization nusPresorted =
+      PointSetRandomization ScimlJlOwenPack =
             new NestedUniformScramblingExperimental(
-                  stream,
-                  NestedUniformScramblingExperimental.Method.SSJ_NUS64_PRESORTED,
-                  30);
-      simulRepsRQMCSort(model, cp3, nusPresorted, m, statReps);
+                  stream, NestedUniformScramblingExperimental.Method.SCIML_JL_OWEN_PACKED, 30);
+
+      simulRepsRQMCSort(model, cpScimlJlOwenPack, ScimlJlOwenPack, m, statReps);
+
+///////////////////SCIML_JL_OWEN_PACKED_CACHED
+/// 
+      System.out.println("* Sobol with scimlJlOwenPCashed");
+      statReps.setName(modelTag + "-" + s + "-Sob-SCIML-JL-OWEN-PC-" + k + "-" + m);
+
+      CachedPointSet cpScimlJlOwenPC = new CachedPointSet(p);
+      stream.resetStartSubstream();
+      PointSetRandomization ScimlJlOwenPC =
+            new NestedUniformScramblingExperimental(
+                  stream,NestedUniformScramblingExperimental.Method.SCIML_JL_OWEN_PACKED_CACHED, 30);
+
+      simulRepsRQMCSort(model, cpScimlJlOwenPC, ScimlJlOwenPC, m, statReps);
 /* 
 // Sobol with SciML QuasiMonteCarlo.jl Owen scrambling structure
       System.out.println("* Sobol with SCIML_JL_OWEN");
@@ -277,20 +307,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       simulRepsRQMCSort(model, cpScimlJlOwenInc, ScimlJlOwenInc, m, statReps);
 
 */
-/////////////scimlJlOwenPacked
-      // Sobol with SciML QuasiMonteCarlo.jl Owen scrambling structure
-      // System.out.println("* Sobol with scimlJlOwenPacked");
-      // statReps.setName(modelTag + "-" + s + "-Sob-SCIML-JL-OWEN-" + k + "-" + m);
 
-      // CachedPointSet cpScimlJlOwenPack = new CachedPointSet(p);
-      // stream.resetStartSubstream();
-      // PointSetRandomization ScimlJlOwenPack =
-      //       new NestedUniformScramblingExperimental(
-      //             stream,
-      //             NestedUniformScramblingExperimental.Method.SCIML_JL_OWEN_PACKED,
-      //             18);
-
-      // simulRepsRQMCSort(model, cpScimlJlOwenPack, ScimlJlOwenPack, m, statReps);
       // Sob-NUS 64
       // DigitalNetBase2Test p64 = new SobolSequenceTest(k, 32, s);
       // stream.resetStartStream();

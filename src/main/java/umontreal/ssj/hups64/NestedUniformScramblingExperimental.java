@@ -12,7 +12,8 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
       SCIML_JL_OWEN_PACKED,
       FRIEDEL,
       FULL_OWEN,
-      SSJ_NUS64_PRESORTED
+      SSJ_NUS64_PRESORTED,
+      SCIML_JL_OWEN_PACKED_CACHED
    }
 
    private RandomStream stream;
@@ -39,6 +40,18 @@ private int cachedNusPresortedNumCols;
 
 private long[][] cachedNusPresortedBv;
 private int[][] cachedNusPresortedPos;
+
+////////// Julia packed cashed:
+private DigitalNetBase2 cachedScimlPackedCachedNet;
+private int cachedScimlPackedCachedPad;
+private int cachedScimlPackedCachedN;
+private int cachedScimlPackedCachedDim;
+private int cachedScimlPackedCachedM;
+private int cachedScimlPackedCachedOutDigits;
+private int cachedScimlPackedCachedNumCols;
+
+private byte[] cachedScimlPackedCachedOriginalBits;
+private int[] cachedScimlPackedCachedPermIndices;
 
 //private byte[] cachedScimlPackedPerms;
 
@@ -88,6 +101,9 @@ private int[][] cachedNusPresortedPos;
 
       case SSJ_NUS64_PRESORTED:
          nestedUniformScramble64Presorted(net, cp.getArray(), numBits);
+         break;
+      case SCIML_JL_OWEN_PACKED_CACHED:
+         scimlJlOwenPackedCached(net, cp.getArray(), numBits);
          break;
 
       default:
@@ -318,6 +334,154 @@ private void ensureNusPresortedCache(DigitalNetBase2 net) {
    }
 }
 
+
+////////////////////SciML cashed and packed
+/// 
+/**
+ * Applies the SciML QuasiMonteCarlo.jl Owen scrambling rule in base 2,
+ * using a Java-optimized packed implementation with cached deterministic data.
+ * The original bit and the permutation index used at each Owen level are
+ * precomputed once for the same digital net.
+ *
+ * @param net the original base-2 digital net
+ * @param output the array receiving the scrambled points
+ * @param pad the number of binary digits used in the scrambling
+ */
+private void scimlJlOwenPackedCached(DigitalNetBase2 net,
+                                     double[][] output,
+                                     int pad) {
+   assert output.length == net.numPoints;
+   assert output.length > 0;
+   assert output[0].length == net.dim;
+
+   if (pad == 0)
+      pad = net.outDigits;
+
+   int n = net.numPoints;
+   int dim = net.dim;
+   int m = log2ExactSciml(n);
+
+   assert pad >= m;
+   assert pad <= net.outDigits;
+   assert pad <= 62;
+
+   ensureScimlPackedCachedData(net, pad, n, dim, m);
+
+   int totalPerms = n - 1;
+   int tailBits = pad - m;
+   byte[] perms = new byte[totalPerms];
+
+   double normFactor = Math.scalb(1.0, -pad);
+
+   final int randomBlockBits = 62;
+   long randomBlock = 0L;
+   int bitsLeft = 0;
+
+   for (int j = 0; j < dim; j++) {
+      for (int t = 0; t < totalPerms; t++) {
+         if (bitsLeft == 0) {
+            randomBlock = stream.nextBitsLong(randomBlockBits);
+            bitsLeft = randomBlockBits;
+         }
+
+         perms[t] = (byte) (randomBlock & 1L);
+         randomBlock >>>= 1;
+         bitsLeft--;
+      }
+
+      for (int i = 0; i < n; i++) {
+         long y = 0L;
+         int base = (j * n + i) * m;
+
+         for (int level = 0; level < m; level++) {
+            int index = base + level;
+
+            int scrambledBit =
+                  cachedScimlPackedCachedOriginalBits[index]
+                  ^ perms[cachedScimlPackedCachedPermIndices[index]];
+
+            y = (y << 1) | scrambledBit;
+         }
+
+         if (tailBits > 0) {
+            long tail = stream.nextBitsLong(tailBits);
+            y = (y << tailBits) | tail;
+         }
+
+         output[i][j] = y * normFactor;
+      }
+   }
+}
+
+
+/**
+ * Computes the deterministic data used by the cached packed SciML Owen
+ * implementation. For each dimension, point, and Owen level, it stores the
+ * original bit and the flat permutation index offset + prefix.
+ *
+ * @param net the original base-2 digital net
+ * @param pad the number of binary digits used in the scrambling
+ * @param n the number of points
+ * @param dim the dimension
+ * @param m the number of Owen levels, equal to log2(numPoints)
+ */
+private void ensureScimlPackedCachedData(DigitalNetBase2 net,
+                                         int pad,
+                                         int n,
+                                         int dim,
+                                         int m) {
+   if (cachedScimlPackedCachedNet == net &&
+       cachedScimlPackedCachedPad == pad &&
+       cachedScimlPackedCachedN == n &&
+       cachedScimlPackedCachedDim == dim &&
+       cachedScimlPackedCachedM == m &&
+       cachedScimlPackedCachedOutDigits == net.outDigits &&
+       cachedScimlPackedCachedNumCols == net.numCols &&
+       cachedScimlPackedCachedOriginalBits != null &&
+       cachedScimlPackedCachedPermIndices != null)
+      return;
+
+   cachedScimlPackedCachedNet = net;
+   cachedScimlPackedCachedPad = pad;
+   cachedScimlPackedCachedN = n;
+   cachedScimlPackedCachedDim = dim;
+   cachedScimlPackedCachedM = m;
+   cachedScimlPackedCachedOutDigits = net.outDigits;
+   cachedScimlPackedCachedNumCols = net.numCols;
+
+   int size = dim * n * m;
+
+   cachedScimlPackedCachedOriginalBits = new byte[size];
+   cachedScimlPackedCachedPermIndices = new int[size];
+
+   for (int j = 0; j < dim; j++) {
+      long x = 0L;
+
+      for (int i = 0; i < n; i++) {
+         if (i > 0) {
+            int pos = Integer.numberOfTrailingZeros(i);
+            x ^= net.genMat[j * net.numCols + pos];
+         }
+
+         int prefix = 0;
+         int offset = 0;
+         int base = (j * n + i) * m;
+
+         for (int level = 0; level < m; level++) {
+            int index = base + level;
+
+            byte originalBit =
+                  (byte) ((x >>> (net.outDigits - 1 - level)) & 1L);
+
+            cachedScimlPackedCachedOriginalBits[index] = originalBit;
+            cachedScimlPackedCachedPermIndices[index] = offset + prefix;
+
+            prefix |= originalBit << level;
+            offset += 1 << level;
+         }
+      }
+   }
+}
 
    ////////////////////////SciML 
     /**
