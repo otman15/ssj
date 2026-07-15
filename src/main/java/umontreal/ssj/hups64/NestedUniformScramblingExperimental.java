@@ -9,7 +9,8 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
       SSJ_NUS64,
       SSJ_NUS64_PRESORTED,
       SCIML_JL_OWEN_PACKED_CACHED,
-      BURLEY_OWEN_SSJ_DIR
+      BURLEY_OWEN_SSJ_DIR,
+      ART_OWEN_SSJ_DIR,
 
       // SCIML_JL_OWEN,
       // SCIML_JL_OWEN_INCREMENTAL,
@@ -100,6 +101,9 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
 
       case BURLEY_OWEN_SSJ_DIR:
          burleyOwenSsjDirections(net, cp.getArray(), numBits);
+         break;
+      case ART_OWEN_SSJ_DIR:
+         artOwenSsjDirections(net, cp.getArray(), numBits);
          break;
 
       // case SCIML_JL_OWEN:
@@ -844,6 +848,127 @@ private long burleyScrambleLeadingBits(long bits,
 
    return (scrambledPrefix << tailBits) | tail;
 }
+
+//////////////////////////////////// ART OWEN article
+/// ////////////////////////////////////////////////////
+/// 
+private static final int ART_NUM_SYMBOLS = 4;
+
+private static final int[][] ART_TM_PROD = {
+      {0, 3},
+      {1, 2},
+      {0, 1},
+      {1, 0}
+};
+
+
+/**
+ * Applies ART-Owen scrambling using SSJ Sobol direction numbers.
+ *
+ * This version uses the 4-symbol Thue-Morse grammar from ART-Owen.
+ * For each randomization, it generates one scrambling code per dimension
+ * and per grammar symbol.
+ *
+ * @param net the original base-2 digital net
+ * @param output the array receiving the scrambled points
+ * @param numBits the number of leading bits scrambled; 0 means min(outDigits, 32)
+ */
+private void artOwenSsjDirections(DigitalNetBase2 net,
+                                  double[][] output,
+                                  int numBits) {
+   assert output.length == net.numPoints;
+   assert output.length > 0;
+   assert output[0].length == net.dim;
+   assert net.outDigits <= 62;
+
+   if (numBits == 0)
+      numBits = Math.min(net.outDigits, 32);
+
+   assert numBits >= 0;
+   assert numBits <= net.outDigits;
+   assert numBits <= 32;
+
+   int n = net.numPoints;
+   int dim = net.dim;
+
+   int[][] data = new int[dim][ART_NUM_SYMBOLS];
+
+   for (int j = 0; j < dim; j++) {
+      for (int id = 0; id < ART_NUM_SYMBOLS; id++)
+         data[j][id] = (int) stream.nextBitsLong(32);
+   }
+
+   double normFactor = Math.scalb(1.0, -net.outDigits);
+
+   for (int j = 0; j < dim; j++) {
+      long x = 0L;
+
+      for (int i = 0; i < n; i++) {
+         if (i > 0) {
+            int pos = Integer.numberOfTrailingZeros(i);
+            x ^= net.genMat[j * net.numCols + pos];
+         }
+
+         long scrambledBits =
+               artOwenScrambleLeadingBits(x, data[j],
+                                           numBits, net.outDigits);
+
+         output[i][j] = scrambledBits * normFactor;
+      }
+   }
+}
+
+/**
+ * Scrambles the first numBits leading bits of one Sobol coordinate
+ * using the ART-Owen grammar and scrambling data.
+ *
+ * @param bits the original Sobol coordinate bits
+ * @param data the ART-Owen scrambling codes for one dimension
+ * @param numBits the number of leading bits to scramble
+ * @param outDigits the number of output bits stored in bits
+ * @return the coordinate bits after ART-Owen scrambling
+ */
+private long artOwenScrambleLeadingBits(long bits,
+                                        int[] data,
+                                        int numBits,
+                                        int outDigits) {
+   assert data.length == ART_NUM_SYMBOLS;
+   assert numBits >= 0;
+   assert numBits <= outDigits;
+   assert numBits <= 32;
+   assert outDigits <= 62;
+
+   if (numBits == 0)
+      return bits;
+
+   int tailBits = outDigits - numBits;
+
+   long tailMask = tailBits == 0 ? 0L : (1L << tailBits) - 1L;
+   long tail = bits & tailMask;
+
+   int prefix = (int) (bits >>> tailBits);
+   int xIn = prefix << (32 - numBits);
+   int xOut = xIn;
+
+   int id = 0;
+
+   for (int level = 0; level < numBits; level++) {
+      xOut ^= data[id] >>> level;
+
+      int originalBit = (xIn >>> (31 - level)) & 1;
+      id = ART_TM_PROD[id][originalBit];
+   }
+
+   long scrambledPrefix =
+         (xOut >>> (32 - numBits))
+         & (numBits == 32 ? 0xffffffffL : (1L << numBits) - 1L);
+
+   return (scrambledPrefix << tailBits) | tail;
+}
+
+
+
+
 
    @Override
    public String toString() {

@@ -264,6 +264,18 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
 
       simulRepsRQMCSort(model, cpScimlJlOwenPC, ScimlJlOwenPC, m, statReps);
 
+//////////////////////////////////////ART OWEN//////////////////////
+
+      System.out.println("* Sobol with ART OWEN");
+      statReps.setName(modelTag + "-" + s + "-ART_OWEN_SSJ_DIR-" + k + "-" + m);
+
+      CachedPointSet cpArtOwen = new CachedPointSet(p);
+      stream.resetStartSubstream();
+      PointSetRandomization ArtOwen =
+            new NestedUniformScramblingExperimental(
+                  stream,NestedUniformScramblingExperimental.Method.ART_OWEN_SSJ_DIR, 30);
+
+      simulRepsRQMCSort(model, cpArtOwen, ArtOwen, m, statReps);
 
 /////////////////////Burley: BURLEY_OWEN_SSJ_DIR
 /// 
