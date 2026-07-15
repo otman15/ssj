@@ -102,12 +102,12 @@ private static class X2Model implements MonteCarloModelDouble {
 
    // SSJ 30-bit version: same hash-based shuffle + scramble idea,
    // but using SSJ Sobol generator columns instead of Burley's 32-bit table.
-   private static MethodResult runBurleySSJ30BitFull(MonteCarloModelDouble model,
-                                                     RandomStream stream, int s, int k, int n, int m) {
-      HashBasedSobolSSJ30BitPointSet pointSet = new HashBasedSobolSSJ30BitPointSet(k, s, 1);
-      PointSetRandomization nus = new HashBasedSobolSSJ30BitRandomization(stream);
-      return runReplications("Burley SSJ 30-bit shuffle + scramble", pointSet, nus, model, n, m);
-   }
+   // private static MethodResult runBurleySSJ30BitFull(MonteCarloModelDouble model,
+   //                                                   RandomStream stream, int s, int k, int n, int m) {
+   //    HashBasedSobolSSJ30BitPointSet pointSet = new HashBasedSobolSSJ30BitPointSet(k, s, 1);
+   //    PointSetRandomization nus = new HashBasedSobolSSJ30BitRandomization(stream);
+   //    return runReplications("Burley SSJ 30-bit shuffle + scramble", pointSet, nus, model, n, m);
+   // }
 
    private static void writeMethod(PrintWriter out, String label, MethodResult result) {
       TallyStore estimates = result.estimates;
@@ -150,8 +150,8 @@ private static class X2Model implements MonteCarloModelDouble {
                // SSJ 30-bit version: explicit label in the output because it is
                // not expected to match Burley's 32-bit C++ output bit-for-bit.
                stream.resetStartStream();
-               writeMethod(out, "Burley SSJ 30-bit shuffle + scramble",
-                     runBurleySSJ30BitFull(factory.create(s), stream, s, k, n, m));
+               // writeMethod(out, "Burley SSJ 30-bit shuffle + scramble",
+               //       runBurleySSJ30BitFull(factory.create(s), stream, s, k, n, m));
 
                stream.resetStartStream();
                writeMethod(out, "SSJ NUS",

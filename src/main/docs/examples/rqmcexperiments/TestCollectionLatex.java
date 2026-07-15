@@ -33,26 +33,26 @@ public class TestCollectionLatex {
       outputFolder.mkdirs();
 
       File sampleFile = inputFile();
-
-      String histogramLatex = HistCollectionLatex.makeHistogramLatex(sampleFile);
-      File histogramFile = new File(outputFolder,
-            "01-makeHistogramLatex-MC2-s2-Lat-RS-k10-m10000.tex");
-      writeText(histogramFile, histogramLatex);
+//// some methods were changed this code needs to be updated
+      //String histogramLatex = HistCollectionLatex.makeHistogramLatex("");
+      // File histogramFile = new File(outputFolder,
+      //       "01-makeHistogramLatex-MC2-s2-Lat-RS-k10-m10000.tex");
+      // writeText(histogramFile, histogramLatex);
 
       String modelFileOutputFolder = OUTPUT_FOLDER + "02-writeModelFile-output/";
       HistCollectionLatex.writeModelFile(
             INPUT_FOLDER, modelFileOutputFolder,
-            MODEL_TAG, S_DIMS, KS, M, METHODS);
+            MODEL_TAG, METHODS, S_DIMS, KS, M);
 
       String collectionOutputFolder = OUTPUT_FOLDER + "03-writeCollection-output/";
       HistCollectionLatex.writeCollection(
             INPUT_FOLDER, collectionOutputFolder,
-            MODEL_TAGS, S_DIMS, KS, M, METHODS);
+            MODEL_TAGS, METHODS, S_DIMS, KS, M);
 
       File resultList = new File(outputFolder, "00-result-files.txt");
-      writeResultList(resultList, sampleFile, histogramFile,
-            new File(modelFileOutputFolder, MODEL_TAG + "-hist.tex"),
-            new File(collectionOutputFolder, MODEL_TAG + "-hist.tex"));
+      // writeResultList(resultList, sampleFile, histogramFile,
+      //       new File(modelFileOutputFolder, MODEL_TAG + "-hist.tex"),
+      //       new File(collectionOutputFolder, MODEL_TAG + "-hist.tex"));
 
       System.out.println("HistCollectionLatex2 public method result files:");
       System.out.println(resultList.getAbsolutePath());
