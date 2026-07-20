@@ -4,7 +4,7 @@ import umontreal.ssj.rng.RandomStream;
 //import umontreal.ssj.util.Num;
 
 public class NestedUniformScramblingExperimental implements PointSetRandomization {
-
+ 
    public enum Method {
       SSJ_NUS64,
       SSJ_NUS64_PRESORTED,
@@ -947,7 +947,7 @@ private long artOwenScrambleLeadingBits(long bits,
    long tail = bits & tailMask;
 
    int prefix = (int) (bits >>> tailBits);
-   int xIn = prefix << (32 - numBits);
+   int xIn = prefix << (32 - numBits);// 32 bits
    int xOut = xIn;
 
    int id = 0;

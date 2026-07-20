@@ -212,7 +212,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       System.out.println("*** Sobol points ");
       DigitalNetBase2 p = new SobolSequence(k, 32, s); // n = 2^{k} points in s dim.
 
-      // Sob-NUS
+      // Sob-NUS///////////////////////////////////////////////
       System.out.println("* Sobol with NUS");
       statReps.setName(modelTag + "-" + s + "-Sob-NUS-" + k + "-" + m);
       CachedPointSet cp = new CachedPointSet(p);
@@ -221,8 +221,35 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       simulRepsRQMCSort(model, cp, nus, m, statReps);
 
 
+// Burley-Padded Original///////////////////////////////////////////////
+System.out.println("* Burley padded");
+statReps.setName(modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
+stream.resetStartStream();
+BurleyPaddedPointSet pBurl = new BurleyPaddedPointSet(k, s, 32, 12345);
 
+stream.resetNextSubstream();
+PointSetRandomization burleyRand = new PointSetRandomization() {
+   private RandomStream randStream = stream;
 
+   @Override
+   public void randomize(PointSet p) {
+      BurleyPaddedPointSet bp = (BurleyPaddedPointSet) p;
+      bp.setSeed(randStream.nextInt(0, Integer.MAX_VALUE));
+   }
+
+   @Override
+   public void setStream(RandomStream stream) {
+      this.randStream = stream;
+   }
+
+   @Override
+   public RandomStream getStream() {
+      return randStream;
+   }
+};
+
+simulRepsRQMCSort(model, pBurl, burleyRand, m, statReps);
+/* 
 // //////////////nus presorted/////////// nestedUniformScramble64Presorted
 // /// 
       System.out.println("* Sobol with NUS64 presorted");
@@ -290,7 +317,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
 
       simulRepsRQMCSort(model, cpBurley, Burley, m, statReps);
 
-
+*/
 
 
 /////////////scimlJlOwenPacked
