@@ -755,7 +755,7 @@ private void burleyOwenSsjDirections(DigitalNetBase2 net,
    int n = net.numPoints;
    int dim = net.dim;
 
-   int seed = BurleyOwenUtils.hash((int) stream.nextBitsLong(32));
+   int seed = BurleyUtils.hash((int) stream.nextBitsLong(32));
    double normFactor = Math.scalb(1.0, -net.outDigits);
 
    for (int j = 0; j < dim; j++) {
@@ -764,13 +764,13 @@ private void burleyOwenSsjDirections(DigitalNetBase2 net,
 
       int seedGroup = group == 0
             ? seed
-            : BurleyOwenUtils.hash(BurleyOwenUtils.hashCombine(seed, group));
+            : BurleyUtils.hash(BurleyUtils.hashCombine(seed, group));
 
-      int coordSeed = BurleyOwenUtils.hashCombine(seedGroup, localDim);
+      int coordSeed = BurleyUtils.hashCombine(seedGroup, localDim);
 
       for (int i = 0; i < n; i++) {
          int shuffledIndex =
-               BurleyOwenUtils.nestedUniformScramble(i, seedGroup);
+               BurleyUtils.nestedUniformScramble(i, seedGroup);
 
          long bits = sobolBitsFromSsj4D(net, shuffledIndex, localDim);
 
@@ -843,7 +843,7 @@ private long burleyScrambleLeadingBits(long bits,
          : (1L << numBits) - 1L;
 
    long scrambledPrefix =
-         (BurleyOwenUtils.nestedUniformScramble(shiftedPrefix, seed)
+         (BurleyUtils.nestedUniformScramble(shiftedPrefix, seed)
           >>> (32 - numBits)) & prefixMask;
 
    return (scrambledPrefix << tailBits) | tail;

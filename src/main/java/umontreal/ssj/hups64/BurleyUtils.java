@@ -3,8 +3,8 @@ package umontreal.ssj.hups64;
 /**
  * Utility methods for Burley's 32-bit hash-based Owen scrambling.
  */
-public final class BurleyOwenUtils {
-   private BurleyOwenUtils() {}
+public final class BurleyUtils {
+   private BurleyUtils() {}
 
    /**
     * MurmurHash3 finalizer used by Burley's code.
@@ -22,8 +22,8 @@ public final class BurleyOwenUtils {
    }
 
    public static int hashCombine(int seed, int v) {
-   return seed ^ (v + (seed << 6) + (seed >>> 2));
-}
+      return seed ^ (v + (seed << 6) + (seed >>> 2));
+   }
 
    /**
     * Applies the Laine-Karras 32-bit permutation used by Burley.

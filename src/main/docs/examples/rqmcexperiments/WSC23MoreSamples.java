@@ -249,6 +249,22 @@ PointSetRandomization burleyRand = new PointSetRandomization() {
 };
 
 simulRepsRQMCSort(model, pBurl, burleyRand, m, statReps);
+
+// Burley padded using SSJ Sobol directions
+System.out.println("* Burley padded with SSJ Sobol directions");
+statReps.setName(
+      modelTag + "-" + s + "-BurleySSJPadded-" + k + "-" + m);
+
+stream.resetStartStream();
+
+BurleySSJPadded.PaddedPointSet pBurleySSJ =
+      new BurleySSJPadded.PaddedPointSet(k, s, 32, 1);
+
+PointSetRandomization burleySSJRandomization =
+      new BurleySSJPadded.Randomization(stream);
+
+simulRepsRQMCSort(
+      model, pBurleySSJ, burleySSJRandomization, m, statReps);
 /* 
 // //////////////nus presorted/////////// nestedUniformScramble64Presorted
 // /// 
@@ -303,21 +319,21 @@ simulRepsRQMCSort(model, pBurl, burleyRand, m, statReps);
                   stream,NestedUniformScramblingExperimental.Method.ART_OWEN_SSJ_DIR, 30);
 
       simulRepsRQMCSort(model, cpArtOwen, ArtOwen, m, statReps);
-
+*/
 /////////////////////Burley: BURLEY_OWEN_SSJ_DIR
 /// 
-      System.out.println("* Sobol with Burley padded");
-      statReps.setName(modelTag + "-" + s + "-BURLEY_OWEN_SSJ_DIR-" + k + "-" + m);
+      // System.out.println("* Sobol with Burley padded");
+      // statReps.setName(modelTag + "-" + s + "-BURLEY_OWEN_SSJ_DIR-" + k + "-" + m);
 
-      CachedPointSet cpBurley = new CachedPointSet(p);
-      stream.resetStartSubstream();
-      PointSetRandomization Burley =
-            new NestedUniformScramblingExperimental(
-                  stream,NestedUniformScramblingExperimental.Method.BURLEY_OWEN_SSJ_DIR, 30);
+      // CachedPointSet cpBurley = new CachedPointSet(p);
+      // stream.resetStartSubstream();
+      // PointSetRandomization Burley =
+      //       new NestedUniformScramblingExperimental(
+      //             stream,NestedUniformScramblingExperimental.Method.BURLEY_OWEN_SSJ_DIR, 30);
 
-      simulRepsRQMCSort(model, cpBurley, Burley, m, statReps);
+      // simulRepsRQMCSort(model, cpBurley, Burley, m, statReps);
 
-*/
+
 
 
 /////////////scimlJlOwenPacked
@@ -376,15 +392,15 @@ simulRepsRQMCSort(model, pBurl, burleyRand, m, statReps);
       // PointSetRandomization nus64 = new NestedUniformScramblingTest(stream, 18);
       // simulRepsRQMCSort(model, cp2, nus64, m, statReps);
 
-      // // Sob-Burley Owen using the same Sobol base p
+      // Sob-Burley Owen using the same Sobol points
       // stream.resetStartStream();
       // System.out.println("* Burley Owen on SSJ Sobol");
       // statReps.setName(modelTag + "-" + s + "-BurleyOwen-" + k + "-" + m);
-      // BurleyOwen.BurleyPointSet Burley =
+      // BurleyOwen.BurleyPointSet cpB =
       //       new BurleyOwen.BurleyPointSet(p, 1);
       // PointSetRandomization burleyOwen =
       //       new BurleyOwen.Randomization(stream);
-      // simulRepsRQMCSort(model, Burley, burleyOwen, m, statReps);
+      // simulRepsRQMCSort(model, cpB, burleyOwen, m, statReps);
 
       // Sob Burley padded
       stream.resetStartStream();

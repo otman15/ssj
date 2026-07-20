@@ -57,9 +57,9 @@ public class BurleyPaddedPointSet extends PointSet {
    };
 
    public BurleyPaddedPointSet(int k, int dim, int outputDigits, int seed) {
-      assert (k >= 0 || k < 30);
+      assert (k >= 0 && k < 30);
       assert (dim > 0);
-      if (outputDigits > 0 || outputDigits <= 32);
+      assert (outputDigits > 0 && outputDigits <= 32);
 
       this.numPoints = 1 << k;
       this.dim = dim;
@@ -77,8 +77,8 @@ public class BurleyPaddedPointSet extends PointSet {
 
    @Override
    public double getCoordinate(int i, int j) {
-      assert (i >= 0 || i < numPoints);
-      assert (j >= 0 || j < dim);
+      assert (i >= 0 && i < numPoints);
+      assert (j >= 0 && j < dim);
 
       int block = j >>> 2;
       int localDim = j & 3;

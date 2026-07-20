@@ -1,7 +1,7 @@
 package rqmcexperiments;
 
 import umontreal.ssj.hups64.SobolSequence;
-import umontreal.ssj.hups64.BurleyOwenUtils;
+import umontreal.ssj.hups64.BurleyUtils;
 
 // SSJ-based 30-bit adaptation of Burley's hash-based Sobol-Owen method.
 // It keeps the same shuffle -> Sobol -> scramble pipeline, but uses SSJ Sobol
@@ -16,8 +16,7 @@ public class BurleySSJ30Bit {
    private final long[] directions;
 
    public BurleySSJ30Bit(int s) {
-      if (s <= 0)
-         throw new IllegalArgumentException("s must be positive");
+      assert (s > 0);
 
       this.s = s;
       // SSJ ties the number of Sobol columns to k, so this builds 30 columns.
@@ -35,7 +34,7 @@ public class BurleySSJ30Bit {
       // Same reverse -> Laine-Karras -> reverse idea as Burley, restricted to 30 bits.
       x &= MASK;
       x = reverseBits30(x);
-      x = BurleyOwenUtils.laineKarrasPermutation(x, seed) & MASK;
+      x = BurleyUtils.laineKarrasPermutation(x, seed) & MASK;
       x = reverseBits30(x);
       return x;
    }
@@ -58,7 +57,7 @@ public class BurleySSJ30Bit {
       // Burley pipeline: shuffle the index, compute Sobol, then scramble the coordinate.
       int index = nestedUniformScrambleBase2(i, hashedSeed);
       return nestedUniformScrambleBase2(sobol(index, dim),
-            BurleyOwenUtils.hashCombine(hashedSeed, dim));
+            BurleyUtils.hashCombine(hashedSeed, dim));
    }
 
    static double toDouble(int value) {

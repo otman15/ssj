@@ -77,9 +77,8 @@ public class BurleyPaddedSobol {
       return x;
    }
 
-   static int sobol4d(int index, int localDim) {
-      if (localDim < 0 || localDim >= 4)
-         throw new IllegalArgumentException("localDim must be between 0 and 3");
+   private static int sobol4d(int index, int localDim) {
+      assert (localDim >= 0 && localDim < 4);
 
       int x = 0;
       for (int bit = 0; bit < 32; bit++) {
@@ -105,10 +104,8 @@ public class BurleyPaddedSobol {
       private int hashedSeed;
 
       public PaddedPointSet(int k, int s, int seed) {
-         if (k < 0 || k > 30)
-            throw new IllegalArgumentException("k must be between 0 and 30");
-         if (s <= 0)
-            throw new IllegalArgumentException("s must be positive");
+         assert (k > 0 && k <= 30);
+         assert (s > 0);
 
          this.n = 1 << k;
          this.s = s;
@@ -123,11 +120,8 @@ public class BurleyPaddedSobol {
 
       @Override
       public double getCoordinate(int i, int j) {
-         if (i < 0 || i >= n)
-            throw new IllegalArgumentException("point index out of range");
-         if (j < 0 || j >= s)
-            throw new IllegalArgumentException("coordinate index out of range");
-
+         assert (i >= 0 && i < n);
+         assert (j >= 0 && j < s);
          int x = value(i, j, hashedSeed);
          return Integer.toUnsignedLong(x) * 0x1.0p-32;
       }
