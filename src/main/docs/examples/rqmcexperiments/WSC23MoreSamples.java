@@ -92,6 +92,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
          simulateRuns(model, p.getNumPoints(), stream, statValue);
          statReps.add(statValue.average()); // For the estimator of the mean.
       }
+      String time = timer.format();
       System.out.println(statReps.report());
       System.out.println("variance = " + statReps.variance());
       // System.out.println("skewness from Colt = " + statReps.skewness2());
@@ -100,7 +101,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       // System.out.println("excess kurtosis from Colt = " + statReps.kurtosis2());
       System.out.println("excess kurtosis, bias corrected = " + statReps.kurtosis(true, true));
       System.out.println("excess kurtosis, not corrected  = " + statReps.kurtosis(false, true));
-      System.out.println("CPU time: " + timer.format() + "\n");
+      System.out.println("CPU time: " + time + "\n");
       statReps.quickSort();
       dataToFile(statReps);
    }
@@ -214,7 +215,7 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
 
       // Sob-NUS///////////////////////////////////////////////
       System.out.println("* Sobol with NUS");
-      statReps.setName(modelTag + "-" + s + "-Sob-NUS-" + k + "-" + m);
+      statReps.setName(modelTag + "-" + s + "-NUS-SSJ-" + k + "-" + m);
       CachedPointSet cp = new CachedPointSet(p);
       stream.resetNextSubstream();
       PointSetRandomization nus = new NestedUniformScrambling(stream, 30);
@@ -222,56 +223,56 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
 
 
 // Burley-Padded Original///////////////////////////////////////////////
-System.out.println("* Burley padded");
-statReps.setName(modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
-stream.resetStartStream();
-BurleyPaddedPointSet pBurl = new BurleyPaddedPointSet(k, s, 32, 12345);
+// System.out.println("* Burley padded");
+// statReps.setName(modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
+// stream.resetStartStream();
+// BurleyPaddedPointSet pBurl = new BurleyPaddedPointSet(k, s, 32, 12345);
 
-stream.resetNextSubstream();
-PointSetRandomization burleyRand = new PointSetRandomization() {
-   private RandomStream randStream = stream;
+// stream.resetNextSubstream();
+// PointSetRandomization burleyRand = new PointSetRandomization() {
+//    private RandomStream randStream = stream;
 
-   @Override
-   public void randomize(PointSet p) {
-      BurleyPaddedPointSet bp = (BurleyPaddedPointSet) p;
-      bp.setSeed(randStream.nextInt(0, Integer.MAX_VALUE));
-   }
+//    @Override
+//    public void randomize(PointSet p) {
+//       BurleyPaddedPointSet bp = (BurleyPaddedPointSet) p;
+//       bp.setSeed(randStream.nextInt(0, Integer.MAX_VALUE));
+//    }
 
-   @Override
-   public void setStream(RandomStream stream) {
-      this.randStream = stream;
-   }
+//    @Override
+//    public void setStream(RandomStream stream) {
+//       this.randStream = stream;
+//    }
 
-   @Override
-   public RandomStream getStream() {
-      return randStream;
-   }
-};
+//    @Override
+//    public RandomStream getStream() {
+//       return randStream;
+//    }
+// };
 
-simulRepsRQMCSort(model, pBurl, burleyRand, m, statReps);
+// simulRepsRQMCSort(model, pBurl, burleyRand, m, statReps);
 
 // Burley padded using SSJ Sobol directions
 System.out.println("* Burley padded with SSJ Sobol directions");
 statReps.setName(
-      modelTag + "-" + s + "-BurleySSJPadded-" + k + "-" + m);
+      modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
 
 stream.resetStartStream();
 
 BurleySSJPadded.PaddedPointSet pBurleySSJ =
-      new BurleySSJPadded.PaddedPointSet(k, s, 32, 1);
+      new BurleySSJPadded.PaddedPointSet(k, s, 62, 1);
 
 PointSetRandomization burleySSJRandomization =
       new BurleySSJPadded.Randomization(stream);
 
 simulRepsRQMCSort(
       model, pBurleySSJ, burleySSJRandomization, m, statReps);
-/* 
+
 // //////////////nus presorted/////////// nestedUniformScramble64Presorted
 // /// 
       System.out.println("* Sobol with NUS64 presorted");
-      statReps.setName(modelTag + "-" + s + "-Sob-NUS64-PRESORTED-" + k + "-" + m);
+      statReps.setName(modelTag + "-" + s + "-SSJ-PRESORTED-" + k + "-" + m);
       CachedPointSet cp3 = new CachedPointSet(p);
-      stream.resetStartSubstream();
+      stream.resetNextSubstream();
       
       PointSetRandomization nusPresorted =
             new NestedUniformScramblingExperimental(
@@ -280,7 +281,7 @@ simulRepsRQMCSort(
                   30);
       simulRepsRQMCSort(model, cp3, nusPresorted, m, statReps);
 ///////////////////
-/// 
+/*  
       // Copie expérimentale
       System.out.println("* Sobol with NUS64 ssj Copy");
       statReps.setName(modelTag + "-" + s + "-Sob-NUS64-COPY-" + k + "-" + m);
@@ -292,12 +293,13 @@ simulRepsRQMCSort(
                   NestedUniformScramblingExperimental.Method.SSJ_NUS64,
                   30);
       simulRepsRQMCSort(model, cp2, nusCopy, m, statReps);
+*/
 ///////////////////////
 /// 
 ///////////////////SCIML_JL_OWEN_PACKED_CACHED
 /// 
       System.out.println("* Sobol with scimlJlOwenPCashed");
-      statReps.setName(modelTag + "-" + s + "-Sob-SCIML-JL-OWEN-PC-" + k + "-" + m);
+      statReps.setName(modelTag + "-" + s + "-SCIML-" + k + "-" + m);
 
       CachedPointSet cpScimlJlOwenPC = new CachedPointSet(p);
       stream.resetStartSubstream();
@@ -309,17 +311,17 @@ simulRepsRQMCSort(
 
 //////////////////////////////////////ART OWEN//////////////////////
 
-      System.out.println("* Sobol with ART OWEN");
-      statReps.setName(modelTag + "-" + s + "-ART_OWEN_SSJ_DIR-" + k + "-" + m);
+      // System.out.println("* Sobol with ART OWEN");
+      // statReps.setName(modelTag + "-" + s + "-ART_OWEN_SSJ_DIR-" + k + "-" + m);
 
-      CachedPointSet cpArtOwen = new CachedPointSet(p);
-      stream.resetStartSubstream();
-      PointSetRandomization ArtOwen =
-            new NestedUniformScramblingExperimental(
-                  stream,NestedUniformScramblingExperimental.Method.ART_OWEN_SSJ_DIR, 30);
+      // CachedPointSet cpArtOwen = new CachedPointSet(p);
+      // stream.resetStartSubstream();
+      // PointSetRandomization ArtOwen =
+      //       new NestedUniformScramblingExperimental(
+      //             stream,NestedUniformScramblingExperimental.Method.ART_OWEN_SSJ_DIR, 30);
 
-      simulRepsRQMCSort(model, cpArtOwen, ArtOwen, m, statReps);
-*/
+      // simulRepsRQMCSort(model, cpArtOwen, ArtOwen, m, statReps);
+
 /////////////////////Burley: BURLEY_OWEN_SSJ_DIR
 /// 
       // System.out.println("* Sobol with Burley padded");
@@ -403,14 +405,14 @@ simulRepsRQMCSort(
       // simulRepsRQMCSort(model, cpB, burleyOwen, m, statReps);
 
       // Sob Burley padded
-      stream.resetStartStream();
-      System.out.println("* Burley padded Sobol with hash-based NUS");
-      statReps.setName(modelTag + "-" + s + "-BurleyPadded-" + k + "-" + m);
-      BurleyPaddedSobol.PaddedPointSet pBurley =
-            new BurleyPaddedSobol.PaddedPointSet(k, s, 1);
-      PointSetRandomization burleyNus =
-            new BurleyPaddedSobol.Randomization(stream);
-      simulRepsRQMCSort(model, pBurley, burleyNus, m, statReps);
+      // stream.resetStartStream();
+      // System.out.println("* Burley padded Sobol with hash-based NUS");
+      // statReps.setName(modelTag + "-" + s + "-BurleyPadded-" + k + "-" + m);
+      // BurleyPaddedSobol.PaddedPointSet pBurley =
+      //       new BurleyPaddedSobol.PaddedPointSet(k, s, 1);
+      // PointSetRandomization burleyNus =
+      //       new BurleyPaddedSobol.Randomization(stream);
+      // simulRepsRQMCSort(model, pBurley, burleyNus, m, statReps);
 
       /*
        * // Sob-Int2 Sob-interlaced-order2
@@ -485,7 +487,7 @@ simulRepsRQMCSort(
     */
    public static void simulRepsAllSizes(MonteCarloModelDouble model, int s, int mink, int maxk, int m)
          throws IOException {
-      // redirectToFile(model.getTag() + "-" + s + "-" + m);
+       redirectToFile(model.getTag() + "-" + s + "-" + m);
       System.out.println("RQMC replicates with model: " + model.toString() + ", s = " + s + "\n");
       Chrono timer = new Chrono();
       for (int k = mink; k <= maxk; k += 2) { // For each point set size
