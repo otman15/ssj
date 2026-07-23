@@ -18,9 +18,9 @@ public class WSC23MoreReps extends RQMCExperiment64 {
    public static void main(String[] args) throws IOException {
       // WSC26RQMCSamples64.directory = "C:/Users/Lecuyer/Dropbox/wsc26/data64/"; // Retained for 64 bits
       // WSC23MoreSamples.directory = "C:/Users/Lecuyer/Dropbox/wsc23/test/";        // For testing
-      WSC23MoreSamples.directory = "/home/otman/Documents/GitHub/Data/o-test/nus/newNusExp/";        // For Samo paper
+      WSC23MoreSamples.directory = "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/";        // For Samo paper
 
-       MonteCarloModelDouble model;
+       MonteCarloModelDouble model; 
        Chrono timerTotal = new Chrono();
       // long[] seed1 = {123456789123456789L, 123456789123456789L, 123456789123456789L, 123456789123456789L, 123456789123456789L};
       // long[] seed2 = {223456789123456790L, 3456789123456791L, 123456792L, 123456789123456793L, 6666789123456794L};
@@ -36,7 +36,7 @@ public class WSC23MoreReps extends RQMCExperiment64 {
    
       // RandomStream noise = new LFSR258();
 
-      for (int s = 2; s <= 4; s *= 2) {
+      for (int s = 2; s <= 16; s *= 2) {
       // for (int s = 4; s <= 32; s *= 2) {
          System.out.println("WSC23MoreReps, run with s = " + s);
          // Uncomment the model you want below. ***
@@ -60,7 +60,7 @@ public class WSC23MoreReps extends RQMCExperiment64 {
          int m = 10000; // Number of RQMC randomizations.
          // int m = 10; // Number of RQMC randomizations.
          int mink = 8;
-         int maxk = 10;
+         int maxk = 12;
       //   WSC23MoreSamples.simulRepsAllSizes(new SmoothPerB4(s, 1.0), s, mink, maxk, m);
       //   WSC23MoreSamples.simulRepsAllSizes(new SumUeU(s), s, mink, maxk, m);
            WSC23MoreSamples.simulRepsAllSizes(new MC2(s), s, mink, maxk, m);

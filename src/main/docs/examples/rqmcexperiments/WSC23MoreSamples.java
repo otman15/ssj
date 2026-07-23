@@ -214,18 +214,32 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
       DigitalNetBase2 p = new SobolSequence(k, 32, s); // n = 2^{k} points in s dim.
 
       // Sob-NUS///////////////////////////////////////////////
-      System.out.println("* Sobol with NUS");
+      System.out.println("* SSJ");
       statReps.setName(modelTag + "-" + s + "-NUS-SSJ-" + k + "-" + m);
       CachedPointSet cp = new CachedPointSet(p);
       stream.resetNextSubstream();
       PointSetRandomization nus = new NestedUniformScrambling(stream, 30);
       simulRepsRQMCSort(model, cp, nus, m, statReps);
 
+// //////////////nus presorted/////////// nestedUniformScramble64Presorted
+// /// 
+      System.out.println("* SSJ Presorted");
+      statReps.setName(modelTag + "-" + s + "-SSJ-PRESORTED-" + k + "-" + m);
+      CachedPointSet cp3 = new CachedPointSet(p);
+
+      stream.resetStartSubstream();
+      
+      PointSetRandomization nusPresorted =
+            new NestedUniformScramblingExperimental(
+                  stream,
+                  NestedUniformScramblingExperimental.Method.SSJ_NUS64_PRESORTED,
+                  30);
+      simulRepsRQMCSort(model, cp3, nusPresorted, m, statReps);
 
 // Burley-Padded Original///////////////////////////////////////////////
 // System.out.println("* Burley padded");
 // statReps.setName(modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
-// stream.resetStartStream();
+// stream.resetStartSubstream();
 // BurleyPaddedPointSet pBurl = new BurleyPaddedPointSet(k, s, 32, 12345);
 
 // stream.resetNextSubstream();
@@ -252,14 +266,14 @@ public class WSC23MoreSamples extends RQMCExperiment64 {
 // simulRepsRQMCSort(model, pBurl, burleyRand, m, statReps);
 
 // Burley padded using SSJ Sobol directions
-System.out.println("* Burley padded with SSJ Sobol directions");
+System.out.println("* Burley SSJ-Dr");
 statReps.setName(
       modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
 
-stream.resetStartStream();
+stream.resetStartSubstream();
 
 BurleySSJPadded.PaddedPointSet pBurleySSJ =
-      new BurleySSJPadded.PaddedPointSet(k, s, 62, 1);
+      new BurleySSJPadded.PaddedPointSet(k, s, 32, 1);
 
 PointSetRandomization burleySSJRandomization =
       new BurleySSJPadded.Randomization(stream);
@@ -267,19 +281,7 @@ PointSetRandomization burleySSJRandomization =
 simulRepsRQMCSort(
       model, pBurleySSJ, burleySSJRandomization, m, statReps);
 
-// //////////////nus presorted/////////// nestedUniformScramble64Presorted
-// /// 
-      System.out.println("* Sobol with NUS64 presorted");
-      statReps.setName(modelTag + "-" + s + "-SSJ-PRESORTED-" + k + "-" + m);
-      CachedPointSet cp3 = new CachedPointSet(p);
-      stream.resetNextSubstream();
-      
-      PointSetRandomization nusPresorted =
-            new NestedUniformScramblingExperimental(
-                  stream,
-                  NestedUniformScramblingExperimental.Method.SSJ_NUS64_PRESORTED,
-                  30);
-      simulRepsRQMCSort(model, cp3, nusPresorted, m, statReps);
+
 ///////////////////
 /*  
       // Copie expérimentale
@@ -298,7 +300,7 @@ simulRepsRQMCSort(
 /// 
 ///////////////////SCIML_JL_OWEN_PACKED_CACHED
 /// 
-      System.out.println("* Sobol with scimlJlOwenPCashed");
+      System.out.println("* SciMl SSJ-Dr");
       statReps.setName(modelTag + "-" + s + "-SCIML-" + k + "-" + m);
 
       CachedPointSet cpScimlJlOwenPC = new CachedPointSet(p);

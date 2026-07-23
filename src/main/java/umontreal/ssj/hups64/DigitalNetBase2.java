@@ -729,7 +729,7 @@ public class DigitalNetBase2 extends DigitalNet {
             bv2 ^= bvlistL;
             //System.out.println("bv2 = " + Long.toBinaryString(bv2));
             bv2 = (stream.nextLong(0, (1L << numBits)-1) << (outDigits - numBits))
-                  & ((1L << (long) Num.log2((double) bv2)) - 1);
+                  & ((1L << (long) Num.log2((double) bv2)) - 1); // (Long.highestOneBit(bv2) - 1L); // this is diffrent for k=8,must be handeled
             // System.out.println("bv2 = " + Long.toBinaryString(bv2));
             bv ^= bv2;
             output[poslist[i]][j] = (bvlistL ^ bv) * localNormFactor + EpsilonHalf;

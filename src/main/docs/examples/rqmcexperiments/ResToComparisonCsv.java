@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 
 public final class ResToComparisonCsv {
 
+   private static final String SSJ_METHOD = "SSJ";
+
    private static final Pattern FILE_NAME_PATTERN =
          Pattern.compile("^.+-(\\d+)-(\\d+)\\.res$");
 
@@ -37,8 +39,10 @@ public final class ResToComparisonCsv {
       final String method;
       final double variance;
       final double cpuTime;
+      double timeRatioToSsj;
 
-      Result(int s, int k, String method, double variance, double cpuTime) {
+      Result(int s, int k, String method,
+             double variance, double cpuTime) {
          this.s = s;
          this.k = k;
          this.method = method;
@@ -51,55 +55,38 @@ public final class ResToComparisonCsv {
          Path resDirectory,
          Path outputCsv) throws IOException {
 
+      List<Result> results = readResDirectory(resDirectory);
+      completeAndWrite(results, outputCsv);
+   }
+
+   public static void writeComparisonTable(
+         Path resDirectory,
+         Path additionalCsv,
+         Path outputCsv) throws IOException {
+
+      List<Result> results = readResDirectory(resDirectory);
+      readCsv(additionalCsv, results);
+      completeAndWrite(results, outputCsv);
+   }
+
+   private static List<Result> readResDirectory(
+         Path resDirectory) throws IOException {
+
       List<Result> results = new ArrayList<>();
 
       try (Stream<Path> files = Files.list(resDirectory)) {
-         files.filter(Files::isRegularFile)
-               .filter(path -> path.getFileName().toString().endsWith(".res"))
+         Path[] resFiles = files
+               .filter(Files::isRegularFile)
+               .filter(path ->
+                     path.getFileName().toString().endsWith(".res"))
                .sorted()
-               .forEach(path -> {
-                  try {
-                     readResFile(path, results);
-                  } catch (IOException e) {
-                     throw new RuntimeException(
-                           "Cannot read " + path, e);
-                  }
-               });
-      } catch (RuntimeException e) {
-         if (e.getCause() instanceof IOException)
-            throw (IOException) e.getCause();
-         throw e;
+               .toArray(Path[]::new);
+
+         for (Path file : resFiles)
+            readResFile(file, results);
       }
 
-      results.sort(
-            Comparator.comparingInt((Result result) -> result.s)
-                  .thenComparingInt(result -> result.k)
-                  .thenComparing(result -> result.method));
-
-      Path parent = outputCsv.getParent();
-      if (parent != null)
-         Files.createDirectories(parent);
-
-      try (BufferedWriter writer = Files.newBufferedWriter(
-            outputCsv,
-            StandardCharsets.UTF_8)) {
-
-         writer.write("s,k,method,variance,cpu_time");
-         writer.newLine();
-
-         for (Result result : results) {
-            writer.write(Integer.toString(result.s));
-            writer.write(',');
-            writer.write(Integer.toString(result.k));
-            writer.write(',');
-            writer.write(csvEscape(result.method));
-            writer.write(',');
-            writer.write(Double.toString(result.variance));
-            writer.write(',');
-            writer.write(Double.toString(result.cpuTime));
-            writer.newLine();
-         }
-      }
+      return results;
    }
 
    private static void readResFile(
@@ -126,34 +113,39 @@ public final class ResToComparisonCsv {
                continue;
             }
 
-            Matcher reportMatcher = REPORT_PATTERN.matcher(trimmed);
+            Matcher reportMatcher =
+                  REPORT_PATTERN.matcher(trimmed);
+
             if (reportMatcher.matches()) {
-               currentK = Integer.parseInt(reportMatcher.group(1));
+               currentK =
+                     Integer.parseInt(reportMatcher.group(1));
                currentVariance = null;
                continue;
             }
 
-            Matcher varianceMatcher = VARIANCE_PATTERN.matcher(trimmed);
+            Matcher varianceMatcher =
+                  VARIANCE_PATTERN.matcher(trimmed);
+
             if (varianceMatcher.matches() && currentK != null) {
                currentVariance =
                      Double.parseDouble(varianceMatcher.group(1));
                continue;
             }
 
-            Matcher cpuMatcher = CPU_TIME_PATTERN.matcher(trimmed);
+            Matcher cpuMatcher =
+                  CPU_TIME_PATTERN.matcher(trimmed);
+
             if (cpuMatcher.matches()
                   && currentMethod != null
                   && currentK != null
                   && currentVariance != null) {
-
-               double cpuTime = parseCpuTime(cpuMatcher.group(1));
 
                results.add(new Result(
                      s,
                      currentK,
                      currentMethod,
                      currentVariance,
-                     cpuTime));
+                     parseCpuTime(cpuMatcher.group(1))));
 
                currentK = null;
                currentVariance = null;
@@ -162,13 +154,128 @@ public final class ResToComparisonCsv {
       }
    }
 
+   private static void readCsv(
+         Path csvFile,
+         List<Result> results) throws IOException {
+
+      try (BufferedReader reader = Files.newBufferedReader(
+            csvFile,
+            StandardCharsets.UTF_8)) {
+
+         reader.readLine();
+
+         String line;
+
+         while ((line = reader.readLine()) != null) {
+            if (line.trim().isEmpty())
+               continue;
+
+            String[] fields = line.split(",", -1);
+
+            if (fields.length < 5) {
+               throw new IllegalArgumentException(
+                     "Invalid CSV row: " + line);
+            }
+
+            results.add(new Result(
+                  Integer.parseInt(unquote(fields[0])),
+                  Integer.parseInt(unquote(fields[1])),
+                  unquote(fields[2]),
+                  Double.parseDouble(unquote(fields[3])),
+                  Double.parseDouble(unquote(fields[4]))));
+         }
+      }
+   }
+
+   private static void completeAndWrite(
+         List<Result> results,
+         Path outputCsv) throws IOException {
+
+      computeTimeRatios(results);
+
+      results.sort(
+            Comparator.comparingInt((Result result) -> result.s)
+                  .thenComparingInt(result -> result.k)
+                  .thenComparing(result -> result.method));
+
+      writeCsv(results, outputCsv);
+   }
+
+   private static void computeTimeRatios(
+         List<Result> results) {
+
+      for (Result result : results) {
+         double ssjTime = Double.NaN;
+         int ssjCount = 0;
+
+         for (Result reference : results) {
+            if (reference.s == result.s
+                  && reference.k == result.k
+                  && SSJ_METHOD.equals(reference.method)) {
+
+               ssjTime = reference.cpuTime;
+               ssjCount++;
+            }
+         }
+
+         if (ssjCount != 1) {
+            throw new IllegalArgumentException(
+                  "Expected one SSJ result for s = "
+                        + result.s
+                        + ", k = "
+                        + result.k
+                        + ", found "
+                        + ssjCount);
+         }
+
+         result.timeRatioToSsj =
+               result.cpuTime / ssjTime;
+      }
+   }
+
+   private static void writeCsv(
+         List<Result> results,
+         Path outputCsv) throws IOException {
+
+      Path parent = outputCsv.getParent();
+
+      if (parent != null)
+         Files.createDirectories(parent);
+
+      try (BufferedWriter writer = Files.newBufferedWriter(
+            outputCsv,
+            StandardCharsets.UTF_8)) {
+
+         writer.write(
+               "s,k,method,variance,cpu_time,time_ratio_to_ssj");
+         writer.newLine();
+
+         for (Result result : results) {
+            writer.write(Integer.toString(result.s));
+            writer.write(',');
+            writer.write(Integer.toString(result.k));
+            writer.write(',');
+            writer.write(csvEscape(result.method));
+            writer.write(',');
+            writer.write(Double.toString(result.variance));
+            writer.write(',');
+            writer.write(Double.toString(result.cpuTime));
+            writer.write(',');
+            writer.write(String.format(java.util.Locale.US,"%.2f", result.timeRatioToSsj));
+            writer.newLine();
+         }
+      }
+   }
+
    private static int extractDimension(Path resFile) {
       String fileName = resFile.getFileName().toString();
-      Matcher matcher = FILE_NAME_PATTERN.matcher(fileName);
+      Matcher matcher =
+            FILE_NAME_PATTERN.matcher(fileName);
 
       if (!matcher.matches()) {
          throw new IllegalArgumentException(
-               "Cannot extract s from file name: " + fileName);
+               "Cannot extract s from file name: "
+                     + fileName);
       }
 
       return Integer.parseInt(matcher.group(1));
@@ -186,26 +293,44 @@ public final class ResToComparisonCsv {
       double minutes = Double.parseDouble(fields[1]);
       double seconds = Double.parseDouble(fields[2]);
 
-      return 3600.0 * hours + 60.0 * minutes + seconds;
+      return 3600.0 * hours
+            + 60.0 * minutes
+            + seconds;
+   }
+
+   private static String unquote(String value) {
+      value = value.trim();
+
+      if (value.length() >= 2
+            && value.startsWith("\"")
+            && value.endsWith("\"")) {
+         return value.substring(1, value.length() - 1);
+      }
+
+      return value;
    }
 
    private static String csvEscape(String value) {
-      return "\"" + value.replace("\"", "\"\"") + "\"";
+      return "\""
+            + value.replace("\"", "\"\"")
+            + "\"";
    }
 
    public static void main(String[] args) throws IOException {
-      if (args.length != 2) {
-         System.err.println(
-               "Usage: ResToComparisonCsv <res-directory> <output-csv>");
-         return;
-      }
 
-      Path resDirectory = Paths.get(args[0]);
-      Path outputCsv = Paths.get(args[1]);
 
-      writeComparisonTable(resDirectory, outputCsv);
+      Path resDirectory = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/");
+      Path outputCsv1 = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/comp1.csv");
+      Path outputCsv2 = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/comp2.csv");
+      Path csvfile = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/rqmc_fast_owen_results.csv");
+      
+  
+      writeComparisonTable(resDirectory, outputCsv1);
+      writeComparisonTable(resDirectory, csvfile, outputCsv2);
 
-      System.out.println(
-            "Comparison table written to " + outputCsv.toAbsolutePath());
    }
 }
+
+      // Path resDirectory = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/");
+      // Path outputCsv = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/comp.csv");
+
