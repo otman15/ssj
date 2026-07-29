@@ -43,9 +43,45 @@ public class MSESamo25 {
 
       RandomStream stream = new LFSR258();
       Chrono timerTotal = new Chrono();
+/*
+      // This is to estimate the MSE for each case and put that in `mse` directory.
       for (String model : modelTags)
-         MeanMedianMSE.estimateMSEOneModel(inputFolder, outputFolder, model, dims,
-               methods, ks, numObs, numReps, r, stream);
+         for (int r : rs)
+            MeanMedianMSE.estimateMSEOneModel(inputFolder, outputFolder, model, dims,
+                methods, ks, numObs, numReps, r, stream);
+                
+      // This part is to generate tables to plot the MSEs as functions of r.
+      // String[] modelTags2 = new String[] {"MC2"};
+      int[] dims2 = {4, 16};
+      int[] ks2 =  {10, 14};
+      int[] rs2 =  {11, 23, 47, 95, 189};
+      for (String model : modelTags)
+         MeanMedianMSE.estimateMSEManyr(inputFolder, outputFolder, model, dims2,
+               methods, ks2, numObs, numReps, rs2, stream);
+*/              
+      // Grouping by category to make scatter plots.
+      String[] modelTags3 = new String[] {
+            "SmoothPerB4", "SumUeU", "MC2", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
+      };
+      String[] methodsa = {
+            "Lat-RS", "Lat-RSB", "Sob-RDS", "Sob-RDSB", "Sob-NUS"
+      };
+      String[] methodsb = {
+            "Lat-RvRS", "Lat-RvRSB", "Lat-RpvRS", "Lat-RpvRSB", "Sob-LMS-RDS"
+      };
+      String[] methodsc = {
+            "Lat-Rv", "Lat-Rpv", "Sob-LMS"
+      };
+      int[] dims3 = {2, 4, 8, 16, 32};
+      int[] ks3 =  {10, 12, 14, 16};
+      int r3 = 5;
+      MeanMedianMSE.estimateMSEOneCategory(inputFolder, outputFolder, "a", methodsa,
+            modelTags3, dims3, ks3, numObs, numReps, r3, stream);
+      MeanMedianMSE.estimateMSEOneCategory(inputFolder, outputFolder, "b", methodsb,
+            modelTags3, dims3, ks3, numObs, numReps, r3, stream);
+      MeanMedianMSE.estimateMSEOneCategory(inputFolder, outputFolder, "c", methodsc,
+            modelTags3, dims3, ks3, numObs, numReps, r3, stream);
+      
       System.out.println("\nTotal time for everything: " + timerTotal.format() +
             "\n=========================================== \n");
    }

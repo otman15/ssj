@@ -121,16 +121,43 @@ public class MeanMedianMSE {
     * @param stream  random stream used for sampling
     * @param statMed TallyStore in which the @f$M_r@f$ values are stored
     */
-   public static void bootstrapMrValues(TallyStore tally, int m, int r, RandomStream stream, TallyStore statMed) {
+   public static void bootstrapMrValues(TallyStore tally, int m, int r, RandomStream stream, 
+         TallyStore statMed) {
       int numSim = tally.numberObs();
       double[] values = tally.getArray();
       double[] sample = new double[r];
       statMed.init(); // Clear previous observations.
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < r; j++) {
-            double value = values[stream.nextInt(0, numSim - 1)];
-            sample[j] = value;
+            sample[j] = values[stream.nextInt(0, numSim - 1)];
          }
+         statMed.add(Misc.getMedian(sample, r));
+      }
+   }
+
+
+   /**
+    * Performs bootstrap simulations to obtain realizations of both @f$A_r@f$ and @f$M_r@f$, and
+    * stores them in {@code statAver} and  {@code statMed}.
+    *
+    * @param tally   input data observations
+    * @param m       number of bootstrap samples
+    * @param r       size of each bootstrap sample
+    * @param stream  random stream used for sampling
+    * @param statAver TallyStore in which the @f$A_r@f$ values are stored
+    * @param statMed TallyStore in which the @f$M_r@f$ values are stored
+    */
+   public static void bootstrapArMrValues(TallyStore tally, int m, int r, RandomStream stream, 
+         TallyStore statAver, TallyStore statMed) {
+      int numSim = tally.numberObs();
+      double[] values = tally.getArray();
+      double[] sample = new double[r];
+      statAver.init();  statMed.init(); // Clear previous observations.
+      for (int i = 0; i < m; i++) {
+         for (int j = 0; j < r; j++) {
+            sample[j] = values[stream.nextInt(0, numSim - 1)];
+         }
+         statAver.add(Misc.getAverage(sample, r));
          statMed.add(Misc.getMedian(sample, r));
       }
    }
@@ -171,6 +198,7 @@ public class MeanMedianMSE {
       }
       return file;
    }
+   
 
    /**
     * Computes the moments and the MSE estimates for one model and one value of @f$r@f$.

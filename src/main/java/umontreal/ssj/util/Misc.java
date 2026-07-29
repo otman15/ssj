@@ -35,10 +35,9 @@ public class Misc {
    }
 
    /**
-    * Returns the @f$k^{th}@f$ smallest item of the array @f$A@f$ of size
+    * Returns the @f$k^{th}@f$ smallest item of the array @f$A@f$ of size @f$n@f$. 
+    * The array @f$A@f$ is unchanged by the method. Restriction: @f$1 \le k \le n@f$.
     * 
-    * @f$n@f$. Array @f$A@f$ is unchanged by the method. Restriction: @f$1 \le k
-    *          \le n@f$.
     * @param A the array which contain the items
     * @param n the number of items in the array
     * @param k the index of the smallest item
@@ -61,7 +60,6 @@ public class Misc {
          } else
             V[indV++] = A[i];
       }
-
       if (k <= u)
          return quickSelect(U, u, k);
       else if (k > v)
@@ -71,10 +69,9 @@ public class Misc {
    }
 
    /**
-    * Returns the @f$k^{th}@f$ smallest item of the array @f$A@f$ of size
+    * Returns the @f$k^{th}@f$ smallest item of the array @f$A@f$ of size @f$n@f$. 
+    * The array @f$A@f$ is unchanged by the method. Restriction: @f$1 \le k \le n@f$.
     * 
-    * @f$n@f$. Array @f$A@f$ is unchanged by the method. Restriction: @f$1 \le k
-    *          \le n@f$.
     * @param A the array which contain the items
     * @param n the number of items in the array
     * @param k the index of the smallest item
@@ -97,7 +94,6 @@ public class Misc {
          } else
             V[indV++] = A[i];
       }
-
       if (k <= u)
          return quickSelect(U, u, k);
       else if (k > v)
@@ -140,6 +136,35 @@ public class Misc {
          med = (med + y) / 2.0;
       }
       return med;
+   }
+
+
+   /**
+    * Returns the average of the first @f$n@f$ elements of array @f$A@f$.
+    * 
+    * @param A the array
+    * @param n the number of used elements
+    * @return the median of @f$A@f$
+    */
+   public static double getAverage(double[] A, int n) {
+      double sum = 0.0;
+      for (int i = 0; i < n; i++) 
+         sum += A[i];
+      return sum / n;
+   }
+
+   /**
+    * Returns the average of the first @f$n@f$ elements of array @f$A@f$.
+    * 
+    * @param A the array
+    * @param n the number of used elements
+    * @return the median of @f$A@f$
+    */
+   public static double getAverage(long[] A, int n) {
+      double sum = 0;
+      for (int i = 0; i < n; i++) 
+         sum += (double)A[i];
+      return sum / n;
    }
 
    /**

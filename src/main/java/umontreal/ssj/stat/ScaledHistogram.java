@@ -560,4 +560,62 @@ public class ScaledHistogram {
       return ch;
    }
 
+   /**
+    * Returns a String that contains a LaTeX/Tikz code snippet to draw two
+    * histograms superposed on the same plot, using the same scale and bins for both. 
+    * The current histogram will be superposed with `hist2`. 
+    */
+   public String toLatexTwoHist(ScaledHistogram hist2) {
+      double bounds[] = getHistogramBounds();
+      double ymax = height[0];
+      for (int i = 1; i < numBins; i++) {
+         if (height[i] > ymax)
+            ymax = height[i];
+      }
+      ymax = 1.1 * ymax;
+      Formatter formatter = new Formatter(Locale.US);
+      formatter.format("%%---------------------------------------------------------------%%%n");
+      formatter.format("\\begin{tikzpicture} %n");
+
+      // Append user-defined axis options only when they are not empty.
+      if (axisOptions.isEmpty()) {
+         formatter.format("\\begin{axis}[ %n");
+         formatter.format("        ymin=%s, ymax=%s,%n", 0.0, ymax);
+         formatter.format("        ylabel={}, yticklabels={}");
+      }
+      else {
+         formatter.format("\\begin{axis}[%n  %s", axisOptions);
+         //formatter.format(",%n        %s", axisOptions);
+      }
+      // formatter.format("%n");
+      // formatter.format(" %%area style, %n");
+      formatter.format("] %n");
+      
+      // latexAddHist ....  first histogram    
+      formatter.format("\\addplot+[ybar interval,mark=none");
+      if (!addPlotOptions.isEmpty())
+         formatter.format(",%s", addPlotOptions);
+      formatter.format("] plot coordinates { ");
+      for (int i = 0; i < numBins; i++)
+         formatter.format("\n (%s,%s) ", bounds[i], height[i]);
+      formatter.format("\n (%s,%s) ", bounds[numBins-1] + m_h, height[numBins-1]);
+      formatter.format("};%n");
+
+      // latexAddHist ....  second histogram    
+      formatter.format("\\addplot+[ybar interval,mark=none");
+      if (!hist2.addPlotOptions.isEmpty())
+         formatter.format(",%s", hist2.addPlotOptions);
+      formatter.format("] plot coordinates { ");
+      for (int i = 0; i < numBins; i++)
+         formatter.format("\n (%s,%s) ", bounds[i], hist2.height[i]);
+      formatter.format("\n (%s,%s) ", bounds[numBins-1] + m_h, hist2.height[numBins-1]);
+      formatter.format("};%n");
+
+      formatter.format("\\end{axis} %n");
+      formatter.format("\\end{tikzpicture} %n");
+      String ch = formatter.toString();
+      formatter.close();
+      return ch;
+   }
+
 }
