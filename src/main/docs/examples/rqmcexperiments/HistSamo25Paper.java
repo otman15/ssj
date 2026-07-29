@@ -82,7 +82,7 @@ public class HistSamo25Paper {
       latexCode = latexCode.replace("\\end{axis}", adds + "\n\\end{axis}");
       return latexCode;
    }
-
+   // In HistSamo25ArMr writeHistogramPageBody: options are passed as legpos, should we change the name of this param
    public static String makeDoubleHistogramLatex(TallyStore data1, TallyStore data2, String titleName, 
          String legpos, int numBins, int[] marks) throws IOException {
       data1.quickSort();
@@ -92,7 +92,7 @@ public class HistSamo25Paper {
       double a = Math.min(data1.min(), data2.min());
       double b = Math.max(data1.max(), data2.max());
       double range = b - a;
-      System.out.println("makeSimpleHistogramLatex: a = " + a + ", b = " + b);
+      //System.out.println("makeSimpleHistogramLatex: a = " + a + ", b = " + b);
 
       TallyHistogram hist1 = new TallyHistogram(a, b + range * 1.0e-12, numBins);
       hist1.fillFromTallyStore(data1);     
@@ -109,7 +109,7 @@ public class HistSamo25Paper {
              "  scaled x ticks=true, minor x tick num=0, scaled y ticks=false, \n" +
              "  every x tick label/.append style={scale=0.6, transform shape}, \n" +
              "  every x tick scale label/.style={at={(axis description cs:1, 0)}, \n" +
-                "  anchor=north east, xshift=2pt, yshift=-6.2pt, inner sep=0pt}, \n");
+                "  anchor=north east, xshift=2pt, yshift=-6.2pt, inner sep=0pt}, \n" + legpos);
       scHist1.setAddPlotOptions("mark=none,very thin,fill=green!25,opacity=0.6,fill opacity=0.6");
       scHist2.setAddPlotOptions("mark=none,very thin,fill=red!25,opacity=0.6,fill opacity=0.6");
       // Make the latex file.
