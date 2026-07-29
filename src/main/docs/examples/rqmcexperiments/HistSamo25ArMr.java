@@ -9,7 +9,7 @@ import java.util.Locale;
 import umontreal.ssj.rng.LFSR258;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.TallyStore;
-//import umontreal.ssj.util.Chrono;
+// import umontreal.ssj.util.Chrono;
 
 /**
  * Generates standalone LaTeX documents that compare the distributions of the
@@ -27,14 +27,16 @@ public class HistSamo25ArMr {
    static int numBins = 100;
    private static int r = 11;
    private static int numReps = 10000;
-   private static int[] marks = {0, 99, 499, numReps - 1, numReps - 100, numReps - 500};
+   private static int[] marks = {
+      0, 99, 499, numReps - 1, numReps - 100, numReps - 500
+   };
    private static RandomStream stream = new LFSR258();
-
 
    /**
     * Builds the input data file name for one experiment configuration.
     */
-   private static String fileNameMaker( String modelTag, int s, String method, int k, int m) {
+   private static String fileNameMaker(
+         String modelTag, int s, String method, int k, int m) {
       return modelTag + "-" + s + "-" + method + "-" + k + "-" + m + ".dat";
    }
 
@@ -48,11 +50,12 @@ public class HistSamo25ArMr {
     */
    private static void writeHistogramPageBody(
          PrintWriter out, File inputFolder,
-         String modelTag,String[] methods,int s,
+         String modelTag, String[] methods, int s,
          int[] ks, int m, String pageTitle) throws IOException {
 
       out.println("\\sethistwidths{" + ks.length + "}");
-      out.print("\\begin{longtable}{@{}>{\\centering\\arraybackslash}p{\\histmethodwidth}");
+      out.print(
+            "\\begin{longtable}{@{}>{\\centering\\arraybackslash}p{\\histmethodwidth}");
 
       for (int i = 0; i < ks.length; i++)
          out.print("@{}>{\\centering\\arraybackslash}p{\\histcellwidth}");
@@ -131,12 +134,12 @@ public class HistSamo25ArMr {
             title = "\\scriptsize " + title;
 
             String latexCode = HistSamo25Paper.makeDoubleHistogramLatex(
-                                    statAver,
-                                    statMed,
-                                    title,
-                                    legendOptions,
-                                    numBins,
-                                    marks);
+                  statAver,
+                  statMed,
+                  title,
+                  legendOptions,
+                  numBins,
+                  marks);
 
             out.print(" & \\makebox[\\histcellwidth][c]{");
             out.print(latexCode);
@@ -153,12 +156,12 @@ public class HistSamo25ArMr {
     * Formats a value in compact scientific notation for a plot legend.
     */
    private static String sci(double x) {
-         String s = String.format(Locale.US, "%2.2e", x);
-         s = s.replace("e-0", "e-");
-         s = s.replace("e+0", "e");
-         s = s.replace("e+", "e");
-         return s;
-      }
+      String s = String.format(Locale.US, "%2.2e", x);
+      s = s.replace("e-0", "e-");
+      s = s.replace("e+0", "e");
+      s = s.replace("e+", "e");
+      return s;
+   }
 
    /**
     * Creates a standalone LaTeX histogram document for one model.
@@ -173,9 +176,9 @@ public class HistSamo25ArMr {
     * @throws IOException if an input or output file cannot be accessed
     */
    public static void writeModelFile(
-      String inputFolder, String outputFolder,
-      String modelTag, String[] methods,
-      int[] sDims, int[] ks, int m) throws IOException {
+         String inputFolder, String outputFolder,
+         String modelTag, String[] methods,
+         int[] sDims, int[] ks, int m) throws IOException {
 
       if (ks.length == 0 || sDims.length == 0)
          throw new IllegalArgumentException(
@@ -261,21 +264,20 @@ public class HistSamo25ArMr {
     * Generates one LaTeX histogram document for each model listed below.
     *
     * <p>The documents compare the selected lattice and Sobol' methods for
-    * dimensions 2, 4, 8, 16, and 32 and sample sizes @f$n=2^k@f$, 
+    * dimensions 2, 4, 8, 16, and 32 and sample sizes @f$n=2^k@f$,
     * with @f$k=10,12,14,16@f$. The input files contain 10,000 observations.
-    *
     */
    public static void main(String[] args) throws IOException {
 
       String[] modelTags = {
-         "SmoothPerB4", "SumUeU", "MC2","Polynomial","Oscillatory",
-         "Gaussian", "SmoothGauss","PieceLinGauss","IndSumNormal"
+         "SmoothPerB4", "SumUeU", "MC2", "Polynomial", "Oscillatory",
+         "Gaussian", "SmoothGauss", "PieceLinGauss", "IndSumNormal"
       };
 
       String[] methods = {
-         "Lat-RS", "Lat-RSB", "Lat-Rv","Lat-Rpv","Lat-RvRS", "Lat-RvRSB",
-         "Lat-RpvRS","Lat-RpvRSB",
-         "Sob-RDS","Sob-RDSB", "Sob-LMS", "Sob-LMS-RDS", "Sob-LMS-RDS-IRB",
+         "Lat-RS", "Lat-RSB", "Lat-Rv", "Lat-Rpv", "Lat-RvRS", "Lat-RvRSB",
+         "Lat-RpvRS", "Lat-RpvRSB",
+         "Sob-RDS", "Sob-RDSB", "Sob-LMS", "Sob-LMS-RDS", "Sob-LMS-RDS-IRB",
          "Sob-NUS"
       };
 
