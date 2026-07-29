@@ -28,6 +28,10 @@ public final class ResToComparisonCsv {
    private static final Pattern VARIANCE_PATTERN =
          Pattern.compile("^variance\\s*=\\s*(\\S+)$");
 
+   private static final Pattern KURTOSIS_PATTERN =
+         Pattern.compile(
+               "^excess kurtosis, bias corrected\\s*=\\s*(\\S+)$");
+
    private static final Pattern CPU_TIME_PATTERN =
          Pattern.compile("^CPU time:\\s*(\\S+)$");
 
@@ -38,15 +42,17 @@ public final class ResToComparisonCsv {
       final int k;
       final String method;
       final double variance;
+      final double kurtosis;
       final double cpuTime;
       double timeRatioToSsj;
 
       Result(int s, int k, String method,
-             double variance, double cpuTime) {
+             double variance, double kurtosis, double cpuTime) {
          this.s = s;
          this.k = k;
          this.method = method;
          this.variance = variance;
+         this.kurtosis = kurtosis;
          this.cpuTime = cpuTime;
       }
    }
@@ -66,6 +72,19 @@ public final class ResToComparisonCsv {
 
       List<Result> results = readResDirectory(resDirectory);
       readCsv(additionalCsv, results);
+      completeAndWrite(results, outputCsv);
+   }
+
+   public static void writeComparisonTable(
+         Path resDirectory,
+         List<Path> additionalCsvFiles,
+         Path outputCsv) throws IOException {
+
+      List<Result> results = readResDirectory(resDirectory);
+
+      for (Path additionalCsv : additionalCsvFiles)
+         readCsv(additionalCsv, results);
+
       completeAndWrite(results, outputCsv);
    }
 
@@ -98,6 +117,7 @@ public final class ResToComparisonCsv {
       String currentMethod = null;
       Integer currentK = null;
       Double currentVariance = null;
+      Double currentKurtosis = null;
 
       try (BufferedReader reader = Files.newBufferedReader(
             resFile,
@@ -120,6 +140,7 @@ public final class ResToComparisonCsv {
                currentK =
                      Integer.parseInt(reportMatcher.group(1));
                currentVariance = null;
+               currentKurtosis = null;
                continue;
             }
 
@@ -132,23 +153,35 @@ public final class ResToComparisonCsv {
                continue;
             }
 
+            Matcher kurtosisMatcher =
+                  KURTOSIS_PATTERN.matcher(trimmed);
+
+            if (kurtosisMatcher.matches() && currentK != null) {
+               currentKurtosis =
+                     Double.parseDouble(kurtosisMatcher.group(1));
+               continue;
+            }
+
             Matcher cpuMatcher =
                   CPU_TIME_PATTERN.matcher(trimmed);
 
             if (cpuMatcher.matches()
                   && currentMethod != null
                   && currentK != null
-                  && currentVariance != null) {
+                  && currentVariance != null
+                  && currentKurtosis != null) {
 
                results.add(new Result(
                      s,
                      currentK,
                      currentMethod,
                      currentVariance,
+                     currentKurtosis,
                      parseCpuTime(cpuMatcher.group(1))));
 
                currentK = null;
                currentVariance = null;
+               currentKurtosis = null;
             }
          }
       }
@@ -162,7 +195,11 @@ public final class ResToComparisonCsv {
             csvFile,
             StandardCharsets.UTF_8)) {
 
-         reader.readLine();
+         String header = reader.readLine();
+         boolean hasKurtosis = header != null
+               && Stream.of(header.split(",", -1))
+                     .map(ResToComparisonCsv::unquote)
+                     .anyMatch("kurtosis"::equals);
 
          String line;
 
@@ -182,7 +219,11 @@ public final class ResToComparisonCsv {
                   Integer.parseInt(unquote(fields[1])),
                   unquote(fields[2]),
                   Double.parseDouble(unquote(fields[3])),
-                  Double.parseDouble(unquote(fields[4]))));
+                  hasKurtosis
+                        ? Double.parseDouble(unquote(fields[4]))
+                        : Double.NaN,
+                  Double.parseDouble(
+                        unquote(fields[hasKurtosis ? 5 : 4]))));
          }
       }
    }
@@ -247,7 +288,8 @@ public final class ResToComparisonCsv {
             StandardCharsets.UTF_8)) {
 
          writer.write(
-               "s,k,method,variance,cpu_time,time_ratio_to_ssj");
+               "s,k,method,variance,kurtosis,cpu_time,"
+                     + "time_ratio_to_ssj");
          writer.newLine();
 
          for (Result result : results) {
@@ -258,6 +300,8 @@ public final class ResToComparisonCsv {
             writer.write(csvEscape(result.method));
             writer.write(',');
             writer.write(Double.toString(result.variance));
+            writer.write(',');
+            writer.write(Double.toString(result.kurtosis));
             writer.write(',');
             writer.write(Double.toString(result.cpuTime));
             writer.write(',');
@@ -319,18 +363,23 @@ public final class ResToComparisonCsv {
    public static void main(String[] args) throws IOException {
 
 
-      Path resDirectory = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/");
-      Path outputCsv1 = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/comp1.csv");
-      Path outputCsv2 = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/comp2.csv");
-      Path csvfile = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/rqmc_fast_owen_results.csv");
+      Path resDirectory = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/comp/");
+      Path outputCsv1 = Paths.get("/home/otman/Documents/GitHub/rqmc-experiments/results/comp1.csv");
+      Path outputCsv2 = Paths.get("/home/otman/Documents/GitHub/rqmc-experiments/results/comp2.csv");
+      Path csvfile = Paths.get("/home/otman/Documents/GitHub/rqmc-experiments/results/rqmc_fast_owen_results.csv");
+      Path csvfile2 = Paths.get("/home/otman/Documents/GitHub/rqmc-experiments/results/scMl_res.csv");
+      Path csvfile3 = Paths.get("/home/otman/Documents/GitHub/rqmc-experiments/results/qmcpy_results.csv");
+
       
   
       writeComparisonTable(resDirectory, outputCsv1);
-      writeComparisonTable(resDirectory, csvfile, outputCsv2);
+      writeComparisonTable(
+            resDirectory,
+            java.util.Arrays.asList(csvfile, csvfile2,csvfile3),
+            outputCsv2);
 
    }
 }
 
       // Path resDirectory = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/");
       // Path outputCsv = Paths.get("/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/comp.csv");
-

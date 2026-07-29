@@ -18,7 +18,7 @@ public class WSC23MoreReps extends RQMCExperiment64 {
    public static void main(String[] args) throws IOException {
       // WSC26RQMCSamples64.directory = "C:/Users/Lecuyer/Dropbox/wsc26/data64/"; // Retained for 64 bits
       // WSC23MoreSamples.directory = "C:/Users/Lecuyer/Dropbox/wsc23/test/";        // For testing
-      WSC23MoreSamples.directory = "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/";        // For Samo paper
+      WSC23MoreSamples.directory = "/home/otman/Documents/GitHub/Data/o-test/nus/comp/";        // For Samo paper
 
        MonteCarloModelDouble model; 
        Chrono timerTotal = new Chrono();
@@ -57,11 +57,11 @@ public class WSC23MoreReps extends RQMCExperiment64 {
          //  RQMCSamples23.redirectToFile((model.getTag() + "-" + s));
          // WSC26RQMCSamples64.simulAllSizes(model, s, 8, 18, 1000);
          
-         int m = 10000; // Number of RQMC randomizations.
+         int m = 1000; // Number of RQMC randomizations.
          // int m = 10; // Number of RQMC randomizations.
          int mink = 8;
          int maxk = 12;
-      //   WSC23MoreSamples.simulRepsAllSizes(new SmoothPerB4(s, 1.0), s, mink, maxk, m);
+       //  WSC23MoreSamples.simulRepsAllSizes(new SmoothPerB4(s, 1.0), s, mink, maxk, m);
       //   WSC23MoreSamples.simulRepsAllSizes(new SumUeU(s), s, mink, maxk, m);
            WSC23MoreSamples.simulRepsAllSizes(new MC2(s), s, mink, maxk, m);
       //   WSC23MoreSamples.simulRepsAllSizes(new Polynomial(s), s, mink, maxk, m);
