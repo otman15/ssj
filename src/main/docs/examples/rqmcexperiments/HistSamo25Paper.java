@@ -146,7 +146,8 @@ public class HistSamo25Paper {
 
       String[] fileNames = new String[] {
          "SmoothPerB4-8-Lat-RS-16-10000", "SmoothPerB4-8-Lat-RvRS-16-10000", 
-         "SmoothPerB4-8-Lat-RpvRS-16-10000", "SmoothPerB4-8-Sob-RDS-16-10000",
+         "SmoothPerB4-8-Lat-RpvRS-16-10000", 
+         "SmoothPerB4-8-Sob-RDS-16-10000",
          "SmoothPerB4-8-Sob-LMS-RDS-16-10000", "SmoothPerB4-8-Sob-NUS-16-10000",
          "MC2-8-Sob-LMS-RDS-16-10000", "MC2-16-Sob-LMS-RDS-14-10000",
          "MC2-16-Sob-NUS-14-10000"
