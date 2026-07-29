@@ -1,12 +1,9 @@
 package rqmcexperiments;
 
 import java.io.*;
-import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
 import umontreal.ssj.mcqmctools.RQMCExperiment64;
-import umontreal.ssj.randvar.NormalGen;
-import umontreal.ssj.rng.LFSR258;
-import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.util.Chrono;
+import java.util.Arrays;
 
 /**
  * New version of the main program to generate and store large RQMC samples
@@ -48,24 +45,9 @@ public class Samo25SamplesMain extends RQMCExperiment64 {
          // WSC23MoreSamples.simulRepsLatRv(new SumUeU(s), s, mink, m);
          // WSC23MoreSamples.simulRepsSelectedTypes(new SumUeU(s), s, 10, m);
          
-         //  RQMCSamples23.redirectToFile((model.getTag() + "-" + s));
-         // WSC26RQMCSamples64.simulAllSizes(model, s, 8, 18, 1000);
-         
-         int m = 1000; // Number of RQMC randomizations.
-         // int m = 10; // Number of RQMC randomizations.
-         int mink = 8;
-         int maxk = 12;
-       //  WSC23MoreSamples.simulRepsAllSizes(new SmoothPerB4(s, 1.0), s, mink, maxk, m);
-      //   WSC23MoreSamples.simulRepsAllSizes(new SumUeU(s), s, mink, maxk, m);
-           WSC23MoreSamples.simulRepsAllSizes(new MC2(s), s, mink, maxk, m);
-      //   WSC23MoreSamples.simulRepsAllSizes(new Polynomial(s), s, mink, maxk, m);
-      //  WSC23MoreSamples.simulRepsAllSizes(new Oscillatory(s), s, mink, maxk, m);
-//         WSC23MoreSamples.simulRepsAllSizes(new GenzGaussian(s), s, mink, maxk, m);
-//         WSC23MoreSamples.simulRepsAllSizes(new SmoothGauss(s), s, mink, maxk, m);
-//         WSC23MoreSamples.simulRepsAllSizes(new PieceLinGauss(s), s, mink, maxk, m);
-         //WSC23MoreSamples.simulRepsAllSizes(new IndSumNormal(s), s, mink, maxk, m);
-              
       }
+      // WSC23MoreSamples.simulRepsSpecificCases (million);
+
       System.out.println("Total time for everything: " + timerTotal.format() +
             "\n=========================================== \n");
    }
