@@ -153,7 +153,8 @@ public class HistSamo25Paper {
          "MC2-16-Sob-NUS-14-10000"
       };
       String[] titleNames = new String[] {
-            "Lat-RS", "Lat-RvRS", "Lat-RpvRS","Sob-RDS", "Sob-LMS-RDS", "Sob-NUS",
+            "Lat-RS", "Lat-RvRS", 
+            "Lat-RpvRS","Sob-RDS", "Sob-LMS-RDS", "Sob-NUS",
             "Sob-LMS-RDS, $s=8$, $k=16$", "Sob-LMS-RDS, $s=16$, $k=14$",
             "Sob-NUS, $s=16$, $k=14$"
          };
