@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.title.LegendTitle;
 
 import umontreal.ssj.charts.XYLineChart;
@@ -25,6 +26,8 @@ public class ExecutionTimePlots {
  * @param filterValue2 the required value in the second filtering column
  * @param xColumn the CSV column used for the x-axis: {@code "m"} or {@code "k"}
  * @param xAxisLabel the x-axis label
+ * @param maxX the largest x value to include, or {@code null} for no limit
+ * @param logTime {@code true} to use a logarithmic time axis
  * @return the execution-time chart
  * @throws IOException if the CSV file cannot be read
  */
@@ -35,7 +38,9 @@ public static XYLineChart createMedianTimePlot(
       String filterColumn2,
       int filterValue2,
       String xColumn,
-      String xAxisLabel) throws IOException {
+      String xAxisLabel,
+      Double maxX,
+      boolean logTime) throws IOException {
 
    int xColumnIndex = expUtil.getCsvColumnIndex(inputFile, xColumn);
 
@@ -46,6 +51,10 @@ public static XYLineChart createMedianTimePlot(
 
    List<String[]> rows =
          expUtil.filterCsvRows(inputFile, conditions);
+
+   if (maxX != null)
+      rows.removeIf(
+            row -> Double.parseDouble(row[xColumnIndex]) > maxX);
 
    if (rows.isEmpty())
       throw new IllegalArgumentException(
@@ -77,6 +86,9 @@ double ymax = Double.NEGATIVE_INFINITY;
 
          xValues[i] = Double.parseDouble(row[xColumnIndex]);
          medianTimes[i] = Double.parseDouble(row[4]);
+         if (logTime && medianTimes[i] <= 0.0)
+            throw new IllegalArgumentException(
+                  "Logarithmic time plots require positive median times.");
          ymin = Math.min(ymin, medianTimes[i]);
          ymax = Math.max(ymax, medianTimes[i]);
       }
@@ -97,11 +109,14 @@ double ymax = Double.NEGATIVE_INFINITY;
    String title = "Median execution time, "
          + filterColumn1 + " = " + filterValue1
          + ", " + filterColumn2 + " = " + filterValue2;
+   String yAxisLabel = logTime
+         ? "Median execution time (seconds, logarithmic scale)"
+         : "Median execution time (seconds)";
 
    XYLineChart chart = new XYLineChart(
          title,
          xAxisLabel,
-         "Median execution time (seconds)",
+         yAxisLabel,
          data[0]
    );
 
@@ -125,7 +140,15 @@ double ymax = Double.NEGATIVE_INFINITY;
    );
 
    double[] range = {xmin- xmin*0.01, xmax+xmax*0.01, ymin - ymin*0.01, ymax+ymax*0.01};
-chart.setManualRange(range);
+   if (logTime) {
+      chart.getJFreeChart().getXYPlot().getDomainAxis()
+            .setRange(range[0], range[1]);
+      LogAxis timeAxis = new LogAxis(yAxisLabel);
+      timeAxis.setRange(ymin / 1.05, ymax * 1.05);
+      chart.getJFreeChart().getXYPlot().setRangeAxis(timeAxis);
+   } else {
+      chart.setManualRange(range);
+   }
 
    return chart;
 }
@@ -134,7 +157,7 @@ chart.setManualRange(range);
       //   Path inputFile = Path.of("/home/otman/Documents/GitHub/rqmc-experiments/results/all-methods.csv");
 
    
-      //   XYLineChart chart = createMedianTimePlot(inputFile,"s", 4, "k", 10, "m", "Number of replications m");
+      //   XYLineChart chart = createMedianTimePlot(inputFile,"s", 4, "k", 10, "m", "Number of replications m", 30.0, true);
       //   chart.view(800, 500);
       //   chart.toLatexFile(
       //       "/home/otman/Documents/GitHub/rqmc-experiments/results/median-time-s"+4+"-k"+10+".tex",
@@ -142,7 +165,7 @@ chart.setManualRange(range);
       //       9
       //   );
 
-      //   XYLineChart chart2 = createMedianTimePlot(inputFile,"s", 4, "m", 1, "k", "k (n = 2\\^k)");
+      //   XYLineChart chart2 = createMedianTimePlot(inputFile,"s", 4, "m", 1, "k", "k (n = 2\\^k)", 16.0, true);
       //   chart2.view(800, 500);
 
       //   chart2.toLatexFile(
@@ -154,30 +177,35 @@ chart.setManualRange(range);
       Path[] inputFiles = {
       Path.of("/home/otman/Dropbox/Nus-comparisons/owen_time_by_rep.csv"),
       Path.of("/home/otman/Dropbox/Nus-comparisons/sciMl_time_by_rep.csv"),
-      Path.of("/home/otman/Dropbox/Nus-comparisons/qmcpy_time_by_rep.csv")
+      Path.of("/home/otman/Dropbox/Nus-comparisons/qmcpy_time_by_rep.csv"),
+      Path.of( "/home/otman/Documents/GitHub/Data/o-test/nus/nus-ssj-timing/nus-timing.csv")
       };
 
       Path allmethodsFile = Path.of(
-      "/home/otman/Dropbox/Nus-comparisons/all-methods.csv");
+      "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/all-methods22.csv");
 
       expUtil.mergeCsvFiles(inputFiles, allmethodsFile, true);
       
       int s = 16, k=14, m =1;
+      boolean logTime = false;
+      double xMax = 10.0;
       // Time vs m
-      XYLineChart chart = createMedianTimePlot(allmethodsFile,"s", s, "k", k, "m", "Number of replications m");
+      XYLineChart chart = createMedianTimePlot(allmethodsFile,"s", s, "k", k, "m", "Number of replications m", xMax, logTime);
       chart.view(800, 500);
 
-      chart.toLatexFile(
-      "//home/otman/Dropbox/Nus-comparisons/median-time-s"+s+"-k"+k+".tex",
-      10, 9);
-
+      expUtil.writeLatexFile(
+      chart,
+      "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/latex/median-time-s"+s+"-k"+k+".tex",
+      10, 9, logTime);
+      
       // Time vs k
-      XYLineChart chart2 = createMedianTimePlot(allmethodsFile,"s", s, "m", m, "k", "k (n = 2\\^k)");
+      XYLineChart chart2 = createMedianTimePlot(allmethodsFile,"s", s, "m", m, "k", "k (n = 2\\^k)", 12.0, true);
       chart2.view(800, 500);
 
-      chart2.toLatexFile(
-      "//home/otman/Dropbox/Nus-comparisons/median-time-s"+s+"-m"+m+".tex",
-      10, 9);
+      expUtil.writeLatexFile(
+      chart2,
+      "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/latex/median-time-s"+s+"-m"+m+".tex",
+      10, 9, logTime);
         
     }
 

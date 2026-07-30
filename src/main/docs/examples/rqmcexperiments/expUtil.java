@@ -1,5 +1,6 @@
 package rqmcexperiments;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -9,7 +10,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import org.jfree.data.xy.XYDataset;
+
+import umontreal.ssj.charts.XYLineChart;
 
 /**
  * Contains utility methods that help with some experiments.
@@ -17,6 +23,102 @@ import java.util.Map;
 public final class expUtil {
 
    private expUtil() {
+   }
+
+   /**
+    * Writes an SSJ line chart to LaTeX. Linear charts use SSJ's exporter, while
+    * logarithmic charts use PGFPlots to keep the original y-value labels.
+    */
+   public static void writeLatexFile(XYLineChart chart, String outputFile,
+         double width, double height, boolean logYAxis) throws IOException {
+      if (!logYAxis) {
+         chart.toLatexFile(outputFile, width, height);
+         return;
+      }
+
+      XYDataset dataset =
+            chart.getSeriesCollection().getSeriesCollection();
+      for (int series = 0; series < dataset.getSeriesCount(); series++) {
+         for (int item = 0; item < dataset.getItemCount(series); item++) {
+            if (dataset.getYValue(series, item) <= 0.0)
+               throw new IllegalArgumentException(
+                     "Logarithmic plots require positive y values.");
+         }
+      }
+
+      Path path = Path.of(outputFile);
+      Path parent = path.getParent();
+      if (parent != null)
+         Files.createDirectories(parent);
+
+      try (BufferedWriter writer =
+            Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+         writer.write("\\documentclass[12pt]{article}");
+         writer.newLine();
+         writer.write("\\usepackage{pgfplots}");
+         writer.newLine();
+         writer.write("\\pgfplotsset{compat=1.18}");
+         writer.newLine();
+         writer.write("\\begin{document}");
+         writer.newLine();
+         writer.write("\\begin{figure}");
+         writer.newLine();
+         writer.write("\\centering");
+         writer.newLine();
+         writer.write(String.format(Locale.US,
+               "\\begin{semilogyaxis}[width=%.3fcm,height=%.3fcm,"
+                     + "title={%s},xlabel={%s},ylabel={%s},"
+                     + "grid=major,legend style={at={(0.5,1.02)},"
+                     + "anchor=south,legend columns=-1}]",
+               width, height,
+               latexText(chart.getTitle()),
+               latexText(chart.getJFreeChart().getXYPlot()
+                     .getDomainAxis().getLabel()),
+               latexText(chart.getJFreeChart().getXYPlot()
+                     .getRangeAxis().getLabel())));
+         writer.newLine();
+
+         for (int series = 0; series < dataset.getSeriesCount(); series++) {
+            Color color = chart.getSeriesCollection().getColor(series);
+            writer.write(String.format(Locale.US,
+                  "\\definecolor{series%d}{RGB}{%d,%d,%d}",
+                  series, color.getRed(), color.getGreen(), color.getBlue()));
+            writer.newLine();
+            writer.write(String.format(
+                  "\\addplot[color=series%d,mark=*] coordinates {", series));
+            writer.newLine();
+            for (int item = 0; item < dataset.getItemCount(series); item++) {
+               writer.write(String.format(Locale.US, "(%.15g,%.15g)",
+                     dataset.getXValue(series, item),
+                     dataset.getYValue(series, item)));
+               writer.newLine();
+            }
+            writer.write("};");
+            writer.newLine();
+            writer.write("\\addlegendentry{"
+                  + latexText(dataset.getSeriesKey(series).toString()) + "}");
+            writer.newLine();
+         }
+
+         writer.write("\\end{semilogyaxis}");
+         writer.newLine();
+         writer.write("\\end{figure}");
+         writer.newLine();
+         writer.write("\\end{document}");
+         writer.newLine();
+      }
+   }
+
+   private static String latexText(String text) {
+      if (text == null)
+         return "";
+      return text.replace("\\^", "^")
+            .replace("\\", "\\textbackslash{}")
+            .replace("_", "\\_")
+            .replace("%", "\\%")
+            .replace("&", "\\&")
+            .replace("#", "\\#")
+            .replace("^", "\\^{}");
    }
 
    /**
