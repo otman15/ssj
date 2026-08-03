@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.jfree.data.xy.XYDataset;
 
@@ -26,25 +28,35 @@ public final class expUtil {
    }
 
    /**
-    * Writes an SSJ line chart to LaTeX. Linear charts use SSJ's exporter, while
-    * logarithmic charts use PGFPlots to keep the original y-value labels.
+    * Writes an SSJ line chart to LaTeX using PGFPlots.
     */
    public static void writeLatexFile(XYLineChart chart, String outputFile,
          double width, double height, boolean logYAxis) throws IOException {
-      if (!logYAxis) {
-         chart.toLatexFile(outputFile, width, height);
-         return;
-      }
-
       XYDataset dataset =
             chart.getSeriesCollection().getSeriesCollection();
-      for (int series = 0; series < dataset.getSeriesCount(); series++) {
-         for (int item = 0; item < dataset.getItemCount(series); item++) {
-            if (dataset.getYValue(series, item) <= 0.0)
-               throw new IllegalArgumentException(
-                     "Logarithmic plots require positive y values.");
+      if (logYAxis) {
+         for (int series = 0; series < dataset.getSeriesCount(); series++) {
+            for (int item = 0; item < dataset.getItemCount(series); item++) {
+               if (dataset.getYValue(series, item) <= 0.0)
+                  throw new IllegalArgumentException(
+                        "Logarithmic plots require positive y values.");
+            }
          }
       }
+
+      String axisEnvironment = logYAxis ? "semilogyaxis" : "axis";
+      double xmin = chart.getJFreeChart().getXYPlot()
+            .getDomainAxis().getLowerBound();
+      double xmax = chart.getJFreeChart().getXYPlot()
+            .getDomainAxis().getUpperBound();
+      double ymin = chart.getJFreeChart().getXYPlot()
+            .getRangeAxis().getLowerBound();
+      double ymax = chart.getJFreeChart().getXYPlot()
+            .getRangeAxis().getUpperBound();
+      String xTickOptions = powerOfTwoTickOptions(dataset);
+      if (xTickOptions == null)
+         xTickOptions = "scaled x ticks=false,"
+               + "xticklabel style={/pgf/number format/1000 sep={,}},";
 
       Path path = Path.of(outputFile);
       Path parent = path.getParent();
@@ -65,17 +77,26 @@ public final class expUtil {
          writer.newLine();
          writer.write("\\centering");
          writer.newLine();
+         writer.write("\\begin{tikzpicture}");
+         writer.newLine();
          writer.write(String.format(Locale.US,
-               "\\begin{semilogyaxis}[width=%.3fcm,height=%.3fcm,"
+               "\\begin{%s}[width=%.3fcm,height=%.3fcm,"
                      + "title={%s},xlabel={%s},ylabel={%s},"
+                     + "xmin=%.15g,xmax=%.15g,ymin=%.15g,ymax=%.15g,"
+                     + "%s"
+                     + "tick label style={font=\\small},"
+                     + "title style={at={(axis description cs:0.5,1.18)},"
+                     + "anchor=south},"
                      + "grid=major,legend style={at={(0.5,1.02)},"
-                     + "anchor=south,legend columns=-1}]",
-               width, height,
+                     + "anchor=south,legend columns=3,"
+                     + "font=\\scriptsize,draw=none}]",
+               axisEnvironment, width, height,
                latexText(chart.getTitle()),
                latexText(chart.getJFreeChart().getXYPlot()
                      .getDomainAxis().getLabel()),
                latexText(chart.getJFreeChart().getXYPlot()
-                     .getRangeAxis().getLabel())));
+                     .getRangeAxis().getLabel()),
+               xmin, xmax, ymin, ymax, xTickOptions));
          writer.newLine();
 
          for (int series = 0; series < dataset.getSeriesCount(); series++) {
@@ -100,13 +121,52 @@ public final class expUtil {
             writer.newLine();
          }
 
-         writer.write("\\end{semilogyaxis}");
+         writer.write("\\end{" + axisEnvironment + "}");
+         writer.newLine();
+         writer.write("\\end{tikzpicture}");
          writer.newLine();
          writer.write("\\end{figure}");
          writer.newLine();
          writer.write("\\end{document}");
          writer.newLine();
       }
+   }
+
+   private static String powerOfTwoTickOptions(XYDataset dataset) {
+      SortedSet<Double> xValues = new TreeSet<>();
+      for (int series = 0; series < dataset.getSeriesCount(); series++) {
+         for (int item = 0; item < dataset.getItemCount(series); item++) {
+            double x = dataset.getXValue(series, item);
+            if (!(x > 0.0))
+               return null;
+            int exponent = (int) Math.rint(Math.log(x) / Math.log(2.0));
+            double powerOfTwo = Math.scalb(1.0, exponent);
+            if (Math.abs(x - powerOfTwo) > Math.abs(x) * 1.0e-10)
+               return null;
+            xValues.add(x);
+         }
+      }
+
+      if (xValues.isEmpty())
+         return null;
+
+      List<Double> ticks = new ArrayList<>(xValues);
+
+      StringBuilder positions = new StringBuilder("xtick={");
+      StringBuilder labels = new StringBuilder("xticklabels={");
+      for (int i = 0; i < ticks.size(); i++) {
+         if (i > 0) {
+            positions.append(',');
+            labels.append(',');
+         }
+         double x = ticks.get(i);
+         int exponent = (int) Math.rint(Math.log(x) / Math.log(2.0));
+         positions.append(String.format(Locale.US, "%.15g", x));
+         labels.append("$2^{").append(exponent).append("}$");
+      }
+      positions.append("},");
+      labels.append("},");
+      return "scaled x ticks=false," + positions + labels;
    }
 
    private static String latexText(String text) {
