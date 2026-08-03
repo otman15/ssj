@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Locale;
+
 
 import umontreal.ssj.rng.LFSR258;
 import umontreal.ssj.rng.RandomStream;
@@ -277,7 +279,7 @@ public class HistSamo25ArMr {
       // int[] marks = new int[] {0, 99, 499, numObs-1, numObs-100, numObs-500};   // This is for 10^4 obs.
       // int numReps = 10000;  // Number of bootstrap subsamples of A_r and M_r.
       RandomStream stream = new LFSR258();
-      // // Chrono timerTotal = new Chrono();
+      // Chrono timerTotal = new Chrono();
       
       // TallyStore tallyInput = new TallyStore();   // The values of X.
       // TallyStore statAver = new TallyStore();     // The values of A_r
@@ -288,9 +290,9 @@ public class HistSamo25ArMr {
       //    // TEMPORARY: Reset before each histogram so this loop uses
       //    // the same initial stream state as the reproducible standalone mode.
       //    stream.resetStartStream();
-      //    MeanMedianMSE.bootstrapArMrValues(tallyInput, numReps, r, stream, statAver, statMed);        
+      //    MeanMedianMSE.bootstrapArMrValues(tallyInput, numReps, r, stream, statAver, statMed);       
       //    String latexCode = HistSamo25Paper.makeDoubleHistogramLatex(statAver, statMed, 
-      //          titleNames[i], "pos=north east", numBins, marks);     
+      //          titleNames[i], "pos=north east", numBins, marks);
       //    File outFile = new File(outputFolder, fileNames[i] + "-ArMr-hist.tex");  
       //    try (PrintWriter out = new PrintWriter(new FileWriter(outFile))) {
       //       out.print(latexCode);
