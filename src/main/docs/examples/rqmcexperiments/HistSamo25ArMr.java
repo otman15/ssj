@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import umontreal.ssj.rng.LFSR258;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.TallyStore;
-// import umontreal.ssj.util.Chrono;
+//import umontreal.ssj.util.Chrono;
 
 /**
  * Generates standalone LaTeX documents that compare the distributions of the
