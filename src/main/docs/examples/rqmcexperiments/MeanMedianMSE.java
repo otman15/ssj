@@ -96,7 +96,10 @@ public class MeanMedianMSE {
     */
    public static double mseAr(Tally tally, int r) {
       double bias = tally.average() - exactMean;
-      return tally.variance() * (tally.numberObs() - 1.0) / tally.numberObs() / r + bias * bias;
+      // double mse = (tally.variance() * (tally.numberObs() - 1.0) / tally.numberObs()) / r + bias * bias;
+      double mse = (tally.variance() * (tally.numberObs() - 1.0) / tally.numberObs()) / r;
+      // System.out.println("mseAr, exactMean =" + exactMean + ", bias = " + bias + ", MSE = " + mse);
+      return mse;
    }
 
    /**
@@ -249,9 +252,8 @@ public class MeanMedianMSE {
       for (int s : dims) {
          statMed.init();
          for (int k : ks) {
-
             // Use a new substream for this k.
-            stream.resetNextSubstream();
+            // stream.resetNextSubstream();
             arRows.append(k).append("  ");
             mrRows.append(k).append("  ");
             ratioRows.append(k).append("  ");
@@ -354,7 +356,7 @@ public class MeanMedianMSE {
          for (int k : ks) {
             for (int r : rs) {
                // Use a new substream for this r.
-               stream.resetNextSubstream();
+               // stream.resetNextSubstream();
                arRows.append(r).append("  ");
                mrRows.append(r).append("  ");
                ratioRows.append(r).append("  ");
@@ -369,7 +371,7 @@ public class MeanMedianMSE {
                   }
                   TallyStore tally = readDataValues(file.getAbsolutePath());
 
-                  stream.resetStartSubstream();
+                  // stream.resetStartSubstream();
                   bootstrapMrValues(tally, m, r, stream, statMed);
                   double arMse = mseAr(tally, r);
                   double mrMse = statMed.mseKnownMean(exactMean);
@@ -447,7 +449,7 @@ public class MeanMedianMSE {
             statMed.init();
             for (int k : ks) {
                // Use a new substream for this k.
-               stream.resetNextSubstream();
+               // stream.resetNextSubstream();
                for (String method : methods) {
                   File file = getDataFile(inputFolder, model, s, method, k, numObs);
                   TallyStore tally = readDataValues(file.getAbsolutePath());
@@ -455,7 +457,8 @@ public class MeanMedianMSE {
                   double arMse = mseAr(tally, r);
                   double mrMse = statMed.mseKnownMean(exactMean);
                   double ratio = mrMse == 0.0 ? Double.NaN : arMse / mrMse;
-                  csvRows.append(model).append(",").append(s).append(",").append(method).append(",").append(k)
+                  if ((model!="SumUeU") | (method!="Lat-Rv")) 
+                      csvRows.append(model).append(",").append(s).append(",").append(method).append(",").append(k)
                         .append(",").append(tally.average()).append(",").append(tally.variance()).append(",")
                         .append(Math.abs(tally.skewness())).append(",").append(tally.kurtosis(false, false)).append(",")
                         .append(arMse).append(",").append(mrMse).append(",").append(ratio).append(",")
