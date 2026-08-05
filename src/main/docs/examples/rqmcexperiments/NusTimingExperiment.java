@@ -43,7 +43,7 @@ public class NusTimingExperiment extends RQMCExperiment64 {
    public static void main(String[] args) throws IOException {
       int[] sValues = { 2, 4, 8, 16, 32};
       int[] kValues = { 8, 10, 12, 14, 15};
-      int[] timingMValues = { 1, 2, 5, 10, 20};
+      int[] timingMValues = { 1, 2, 5, 10, 20, 30, 50};
       int statisticsM = 1000;
       int timingRuns = 11;
       String mode = TIMING;
