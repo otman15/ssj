@@ -44,9 +44,9 @@ public class NusTimingExperiment extends RQMCExperiment64 {
       int[] sValues = { 2, 4};
       int[] kValues = { 8, 10};
       int[] timingMValues = { 1, 2, 5, 10, 20};
-      int statisticsM = 100;
+      int statisticsM = 1000;
       int timingRuns = 11;
-      String mode = STATISTICS;
+      String mode = TIMING;
       boolean printResults = true;
       boolean writeCsv = true;
 
@@ -117,14 +117,15 @@ public class NusTimingExperiment extends RQMCExperiment64 {
    private static void simulRepsAllTypes(MonteCarloModelDouble model, int s,
          int k, int m, int nRuns, boolean isStatistics,
          BufferedWriter writer, boolean printResults) throws IOException {
-      double[] nusSsjTimes = isStatistics ? null : new double[nRuns];
+      int effectiveRuns = isStatistics ? 1 : nRuns;
+      double[] nusSsjTimes = isStatistics ? null : new double[effectiveRuns];
       double[] nusPresortedTimes =
-            isStatistics ? null : new double[nRuns];
+            isStatistics ? null : new double[effectiveRuns];
       double[] burleyPaddedTimes =
-            isStatistics ? null : new double[nRuns];
+            isStatistics ? null : new double[effectiveRuns];
       String modelTag = model.getTag();
 
-      for (int run = 0; run < nRuns; run++) {
+      for (int run = 0; run < effectiveRuns; run++) {
          RandomStream stream = new MWC64k3a2();
          TallyStore statReps = new TallyStore(m);
 
