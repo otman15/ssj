@@ -10,7 +10,7 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
       SSJ_NUS64_PRESORTED,
       SCIML_JL_OWEN_PACKED_CACHED,
       BURLEY_OWEN_SSJ_DIR,
-      ART_OWEN_SSJ_DIR,
+      ADAPTIVE_TILES_SSJ_DIR,
       HASHED32_OWEN,
 
       // SCIML_JL_OWEN,
@@ -103,8 +103,8 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
       case BURLEY_OWEN_SSJ_DIR:
          burleyOwenSsjDirections(net, cp.getArray(), numBits);
          break;
-      case ART_OWEN_SSJ_DIR:
-         artOwenSsjDirections(net, cp.getArray(), numBits);
+      case ADAPTIVE_TILES_SSJ_DIR:
+         adaptiveTilesSsjDirections(net, cp.getArray(), numBits);
          break;
       case HASHED32_OWEN:
          hashed32OwenSsjDirections(net, cp.getArray(), numBits);
@@ -867,9 +867,8 @@ private static final int[][] ART_TM_PROD = {
 
 
 /**
- * Applies ART-Owen scrambling using SSJ Sobol direction numbers.
- *
- * This version uses the 4-symbol Thue-Morse grammar from ART-Owen.
+ * Applies Adaptive Regular Tiles (ART) scrambling using SSJ Sobol direction
+ * numbers. This version uses ART's 4-symbol Thue-Morse grammar.
  * For each randomization, it generates one scrambling code per dimension
  * and per grammar symbol.
  *
@@ -877,9 +876,9 @@ private static final int[][] ART_TM_PROD = {
  * @param output the array receiving the scrambled points
  * @param numBits the number of leading bits scrambled; 0 means min(outDigits, 32)
  */
-private void artOwenSsjDirections(DigitalNetBase2 net,
-                                  double[][] output,
-                                  int numBits) {
+private void adaptiveTilesSsjDirections(DigitalNetBase2 net,
+                                        double[][] output,
+                                        int numBits) {
    assert output.length == net.numPoints;
    assert output.length > 0;
    assert output[0].length == net.dim;
@@ -914,8 +913,8 @@ private void artOwenSsjDirections(DigitalNetBase2 net,
          }
 
          long scrambledBits =
-               artOwenScrambleLeadingBits(x, data[j],
-                                           numBits, net.outDigits);
+               adaptiveTilesScrambleLeadingBits(x, data[j],
+                                                 numBits, net.outDigits);
 
          output[i][j] = scrambledBits * normFactor;
       }
@@ -924,18 +923,18 @@ private void artOwenSsjDirections(DigitalNetBase2 net,
 
 /**
  * Scrambles the first numBits leading bits of one Sobol coordinate
- * using the ART-Owen grammar and scrambling data.
+ * using the ART grammar and scrambling data.
  *
  * @param bits the original Sobol coordinate bits
- * @param data the ART-Owen scrambling codes for one dimension
+ * @param data the ART scrambling codes for one dimension
  * @param numBits the number of leading bits to scramble
  * @param outDigits the number of output bits stored in bits
- * @return the coordinate bits after ART-Owen scrambling
+ * @return the coordinate bits after ART scrambling
  */
-private long artOwenScrambleLeadingBits(long bits,
-                                        int[] data,
-                                        int numBits,
-                                        int outDigits) {
+private long adaptiveTilesScrambleLeadingBits(long bits,
+                                              int[] data,
+                                              int numBits,
+                                              int outDigits) {
    assert data.length == ART_NUM_SYMBOLS;
    assert numBits >= 0;
    assert numBits <= outDigits;
