@@ -34,7 +34,10 @@ import umontreal.ssj.charts.XYLineChart;
 import umontreal.ssj.probdist.EmpiricalDist;
 
 /**
- * Writes timing-analysis summaries and creates plots from those summaries.
+ * Builds CSV summaries and plots for the NUS all-methods timing analysis.
+ *
+ * <p>The class reads regression and timing outputs, summarizes values that are
+ * useful for analysis, then creates PNG and LaTeX figures from those summaries.
  */
 public class TimingAnalysisPlots {
 
@@ -48,6 +51,10 @@ public class TimingAnalysisPlots {
          new Color(220, 190, 0), Color.MAGENTA, Color.CYAN.darker()
    };
 
+   /**
+    * Holds the descriptive statistics computed for one group of numeric
+    * values.
+    */
    private static class Statistics {
       int observations;
       double median;
@@ -57,7 +64,16 @@ public class TimingAnalysisPlots {
       double thirdQuartile;
    }
 
+   /**
+    * Runs the full timing-analysis plotting workflow.
+    *
+    * <p>The workflow reads the interaction r_beta table, the interaction
+    * coefficient table, and the original timing table. It writes summary CSV
+    * files for r_beta trends, interaction coefficient ratios, and execution
+    * times, then saves the corresponding plots.
+    */
    public static void main(String[] args) throws IOException {
+      // Inputs produced by the regression and timing experiments.
       Path rBetaInput = INPUT_DIRECTORY.resolve(
             "interaction-r-beta-r" + RUNS + ".csv");
       Path interactionInput = INPUT_DIRECTORY.resolve(
@@ -67,6 +83,7 @@ public class TimingAnalysisPlots {
 
       Files.createDirectories(OUTPUT_DIRECTORY);
 
+      // Summary CSV files used as stable inputs for the plots below.
       Path rBetaByM = OUTPUT_DIRECTORY.resolve(
             "r-beta-vs-m-summary-r" + RUNS + ".csv");
       Path rBetaByK = OUTPUT_DIRECTORY.resolve(
@@ -79,6 +96,8 @@ public class TimingAnalysisPlots {
       Path timeByM = OUTPUT_DIRECTORY.resolve(
             "execution-time-vs-m-s32-k16-summary-r" + RUNS + ".csv");
 
+      // Convert detailed experiment outputs into compact summaries that are
+      // easier to inspect and plot.
       writeRBetaSummary(rBetaInput, rBetaByM, "m");
       writeRBetaSummary(rBetaInput, rBetaByK, "k");
       writeInteractionRatioSummary(
@@ -87,6 +106,8 @@ public class TimingAnalysisPlots {
             interactionInput, nDependentToRepeatedCostRatio, false);
       writeTimeSummary(timingInput, timeByM, 32, 16);
 
+      // Create the figures used to inspect r_beta, interaction coefficients,
+      // coefficient ratios, and execution time behavior.
       saveRBetaPlot(rBetaByM, "m", "Number of replications m",
             "R_beta versus m",
             OUTPUT_DIRECTORY.resolve("r-beta-vs-m-r" + RUNS + ".png"));
@@ -107,7 +128,15 @@ public class TimingAnalysisPlots {
       saveTimePlot(timeByM, 32, 16);
    }
 
-   private static void writeRBetaSummary(Path inputFile, Path outputFile,
+   /**
+    * Summarizes r_beta values by method and by one x variable.
+    *
+    * <p>The method reads the r_beta CSV file, groups rows by method, then
+    * groups finite r_beta values by the selected x column. For each method and
+    * x value, it writes the number of observations, median, first quartile, and
+    * third quartile.
+    */
+   static void writeRBetaSummary(Path inputFile, Path outputFile,
          String xColumn) throws IOException {
       int methodIndex = expUtil.getCsvColumnIndex(inputFile, "method");
       int xIndex = expUtil.getCsvColumnIndex(inputFile, xColumn);
@@ -124,6 +153,8 @@ public class TimingAnalysisPlots {
             Map<Double, List<Double>> valuesByX = new TreeMap<>();
             for (String[] row : methodEntry.getValue()) {
                Double value = parseFinite(row[rBetaIndex]);
+               // Ignore NA and non-finite r_beta values so the summary
+               // describes only usable fitted quantities.
                if (value != null)
                   valuesByX.computeIfAbsent(
                         Double.parseDouble(row[xIndex]), key -> new ArrayList<>())
@@ -142,7 +173,16 @@ public class TimingAnalysisPlots {
       }
    }
 
-   private static void writeInteractionRatioSummary(Path inputFile,
+   /**
+    * Summarizes interaction-coefficient quantities by method.
+    *
+    * <p>The method reads the fitted interaction coefficients and groups them by
+    * method. Depending on the selected mode, it summarizes either
+    * coefficient_mn / s, the repeated cost per point per replication per
+    * dimension, or coefficient_n / coefficient_mn, the ratio of n-dependent
+    * cost to repeated cost.
+    */
+   static void writeInteractionRatioSummary(Path inputFile,
          Path outputFile, boolean repeatedCost) throws IOException {
       int methodIndex = expUtil.getCsvColumnIndex(inputFile, "method");
       int sIndex = expUtil.getCsvColumnIndex(inputFile, "s");
@@ -173,6 +213,8 @@ public class TimingAnalysisPlots {
                      ? coefficientMN / Double.parseDouble(row[sIndex])
                      : (coefficientMN == 0.0 ? Double.NaN
                            : coefficientN / coefficientMN);
+               // Skip ratios that cannot be plotted or summarized as finite
+               // numbers.
                if (Double.isFinite(value))
                   values.add(value);
             }
@@ -186,7 +228,14 @@ public class TimingAnalysisPlots {
       }
    }
 
-   private static void writeTimeSummary(Path inputFile, Path outputFile,
+   /**
+    * Summarizes median execution time by method and m for one fixed s and k.
+    *
+    * <p>The method filters the original timing CSV to the selected dimension
+    * and k value, groups the remaining rows by method and m, and writes the
+    * median finite execution time for each group.
+    */
+   static void writeTimeSummary(Path inputFile, Path outputFile,
          int s, int k) throws IOException {
       int methodIndex = expUtil.getCsvColumnIndex(inputFile, "method");
       int mIndex = expUtil.getCsvColumnIndex(inputFile, "m");
@@ -203,6 +252,7 @@ public class TimingAnalysisPlots {
             Map<Double, List<Double>> valuesByM = new TreeMap<>();
             for (String[] row : methodEntry.getValue()) {
                Double time = parseFinite(row[timeIndex]);
+               // Only finite timing values are included in the median.
                if (time != null)
                   valuesByM.computeIfAbsent(
                         Double.parseDouble(row[mIndex]), key -> new ArrayList<>())
@@ -220,7 +270,14 @@ public class TimingAnalysisPlots {
       }
    }
 
-   private static void saveRBetaPlot(Path summaryFile, String xColumn,
+   /**
+    * Saves a line plot showing median r_beta as a function of one x variable.
+    *
+    * <p>The method reads one r_beta summary file, creates one line series per
+    * method, colors each series, adds a horizontal reference line at r_beta =
+    * 1, and writes the chart as a PNG image.
+    */
+   static void saveRBetaPlot(Path summaryFile, String xColumn,
          String xLabel, String title, Path outputFile) throws IOException {
       int methodIndex = expUtil.getCsvColumnIndex(summaryFile, "method");
       int xIndex = expUtil.getCsvColumnIndex(summaryFile, xColumn);
@@ -239,6 +296,8 @@ public class TimingAnalysisPlots {
          dataset.addSeries(series);
       }
 
+      // Use a shared style across methods so the r_beta plots can be compared
+      // visually.
       NumberAxis xAxis = new NumberAxis(xLabel);
       xAxis.setAutoRangeIncludesZero(false);
       NumberAxis yAxis = new NumberAxis("R_beta");
@@ -260,7 +319,17 @@ public class TimingAnalysisPlots {
             outputFile);
    }
 
-   private static void saveHorizontalComparison(Path summaryFile,
+   /**
+    * Saves a horizontal comparison plot with min-max ranges, quartile bands,
+    * and medians for each method.
+    *
+    * <p>The method reads one interaction-ratio summary file, sorts methods by
+    * name, builds three datasets for the full range, interquartile range, and
+    * median marker, then writes the combined chart as a PNG image. The value
+    * axis is logarithmic for repeated-cost summaries and linear for ratio
+    * summaries.
+    */
+   static void saveHorizontalComparison(Path summaryFile,
          boolean logarithmic, String title, String valueLabel,
          Path outputFile) throws IOException {
       int methodIndex = expUtil.getCsvColumnIndex(summaryFile, "method");
@@ -290,6 +359,8 @@ public class TimingAnalysisPlots {
          if (logarithmic && (minimum <= 0.0 || q1 <= 0.0))
             throw new IllegalArgumentException(
                   "Logarithmic comparison values must be positive.");
+         // Each method contributes a thin min-max line, a thicker quartile
+         // interval, and one point for the median.
          XYSeries range = new XYSeries(methods[i]);
          range.add(minimum, i);
          range.add(maximum, i);
@@ -302,6 +373,8 @@ public class TimingAnalysisPlots {
       }
       XYSeriesCollection medianDataset = new XYSeriesCollection(medians);
 
+      // The method names live on the vertical axis; the compared value is on
+      // the horizontal axis so long method lists remain readable.
       ValueAxis valueAxis = logarithmic
             ? new LogAxis(valueLabel + " (logarithmic scale)")
             : new NumberAxis(valueLabel);
@@ -335,20 +408,47 @@ public class TimingAnalysisPlots {
       savePng(chart, outputFile);
    }
 
+   /**
+    * Saves the execution-time plot for one fixed s and k.
+    *
+    * <p>The method delegates the median-time chart construction to
+    * {@link ExecutionTimePlots}, then writes both a PNG image and a LaTeX
+    * PGFPlots version of the same chart.
+    */
    private static void saveTimePlot(Path summaryFile, int s, int k)
          throws IOException {
+      saveTimePlot(summaryFile, s, k,
+            OUTPUT_DIRECTORY.resolve(
+                  "execution-time-vs-m-s32-k16-r" + RUNS + ".png"),
+            OUTPUT_DIRECTORY.resolve(
+                  "execution-time-vs-m-s32-k16-r" + RUNS + ".tex"));
+   }
+
+   /**
+    * Saves the execution-time plot for one fixed s and k using explicit output
+    * file names.
+    *
+    * <p>The method delegates the median-time chart construction to
+    * {@link ExecutionTimePlots}, then writes both a PNG image and a LaTeX
+    * PGFPlots version of the same chart.
+    */
+   static void saveTimePlot(Path summaryFile, int s, int k, Path pngFile,
+         Path latexFile) throws IOException {
       XYLineChart chart = ExecutionTimePlots.createMedianTimePlot(
             summaryFile, "s", s, "k", k, "m",
             "Number of replications m", null, value -> value, true);
-      Path pngFile = OUTPUT_DIRECTORY.resolve(
-            "execution-time-vs-m-s32-k16-r" + RUNS + ".png");
       savePng(chart.getJFreeChart(), pngFile);
       expUtil.writeLatexFile(chart,
-            OUTPUT_DIRECTORY.resolve(
-                  "execution-time-vs-m-s32-k16-r" + RUNS + ".tex").toString(),
-            13.0, 7.0, true);
+            latexFile.toString(), 13.0, 7.0, true);
    }
 
+   /**
+    * Computes descriptive statistics for a nonempty list of finite values.
+    *
+    * <p>The method copies and sorts the values, records the observation count,
+    * minimum, and maximum, and computes the median and quartiles. A single
+    * observation is used for all three quantiles.
+    */
    private static Statistics statistics(List<Double> values) {
       if (values.isEmpty())
          throw new IllegalArgumentException("No finite values to summarize.");
@@ -374,6 +474,9 @@ public class TimingAnalysisPlots {
       return result;
    }
 
+   /**
+    * Returns map entries sorted by their string key.
+    */
    private static List<Map.Entry<String, List<String[]>>> sortedEntries(
          Map<String, List<String[]>> groups) {
       List<Map.Entry<String, List<String[]>>> entries =
@@ -382,6 +485,9 @@ public class TimingAnalysisPlots {
       return entries;
    }
 
+   /**
+    * Parses a CSV numeric field and returns null for NA or non-finite values.
+    */
    private static Double parseFinite(String text) {
       if (text.equalsIgnoreCase("NA"))
          return null;
@@ -389,18 +495,27 @@ public class TimingAnalysisPlots {
       return Double.isFinite(value) ? value : null;
    }
 
+   /**
+    * Opens a UTF-8 writer for a generated summary CSV file.
+    */
    private static BufferedWriter newWriter(Path outputFile)
          throws IOException {
       return Files.newBufferedWriter(
             outputFile, StandardCharsets.UTF_8);
    }
 
+   /**
+    * Writes one CSV line and terminates it.
+    */
    private static void writeLine(BufferedWriter writer, String line)
          throws IOException {
       writer.write(line);
       writer.newLine();
    }
 
+   /**
+    * Saves a JFreeChart as a 1200 by 700 PNG image.
+    */
    private static void savePng(JFreeChart chart, Path outputFile)
          throws IOException {
       ChartUtils.saveChartAsPNG(outputFile.toFile(), chart, 1200, 700);

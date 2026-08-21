@@ -16,11 +16,24 @@ import umontreal.ssj.functionfit.LeastSquares;
 import umontreal.ssj.util.Misc;
 
 /**
- * Computes configurable linear regressions from CSV data.
+ * Reads CSV files containing experiment timing results, fits regression models
+ * to compare the behavior of different methods, and sends the derived
+ * regression tables either to CSV files, to the console, or to both.
+ *
+ * <p>The class supports two related workflows: simple one-variable regressions
+ * for fixed experiment settings, and interaction regressions that model the
+ * running time as a function of m, n, and their product.
  */
 public class CsvRegression {
 
-   private static class RegressionResult {
+   /**
+    * Holds the data produced by one simple regression.
+    *
+    * <p>Each instance records the group that was fitted, the filters used to
+    * select the rows, the variables used as x and y, and the fitted intercept,
+    * slope, and r-squared value.
+    */
+   static class RegressionResult {
       String groupColumn;
       String groupValue;
       String filterColumn1;
@@ -38,7 +51,14 @@ public class CsvRegression {
       double rSquared;
    }
 
-   private static class InteractionResult {
+   /**
+    * Holds the data produced by one interaction regression.
+    *
+    * <p>Each instance records the method and dimension being modeled, the
+    * number of observations used, the intercept, the coefficients of m and n,
+    * the interaction coefficient of m*n, and the r-squared value.
+    */
+   static class InteractionResult {
       String method;
       int s;
       int observations;
@@ -49,7 +69,14 @@ public class CsvRegression {
       double rSquared;
    }
 
-   private static class RBetaResult {
+   /**
+    * Holds one r_beta calculation derived from an interaction regression.
+    *
+    * <p>Each instance records the method, dimension, k and m values used in the
+    * calculation, plus two versions of r_beta computed from the fitted
+    * coefficients.
+    */
+   static class RBetaResult {
       String method;
       int s;
       int k;
@@ -58,63 +85,104 @@ public class CsvRegression {
       double rBetaB0;
    }
 
+   /**
+    * Runs the examples configured in this file.
+    *
+    * <p>The method first defines the experiment settings, input file, output
+    * files, and output modes. The commented examples show how to run two simple
+    * regressions, write them separately or together, and compare them through
+    * r_beta. The active example fits interaction regressions for several
+    * dimensions, writes the fitted coefficients, computes r_beta over selected
+    * k and m values, and writes a final summary by method.
+    */
    public static void main(String[] args) throws IOException {
+      // General experiment settings used to build file names and filters.
       int runs = 11;
       int s = 8;
       int k = 10;
       int m = 20;
+
+      // Input file containing all timing results for the selected run count.
       Path inputFile = Path.of(
             "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/all-methods-"
                   + runs + ".csv");
+
+      // Output file for the first simple-regression example.
       Path results1File = Path.of(
             "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/"
                   + "regression-x1-r" + runs + "-s" + s + "-k" + k + ".csv");
+
+      // Output file for writing both simple-regression examples together.
       Path bothResultsFile = Path.of(
             "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/"
                   + "regressions-r" + runs + "-s" + s + "-k" + k
                   + "-m" + m + ".csv");
+
+      // Output file for the comparison between the two simple regressions.
       Path comparisonFile = Path.of(
             "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/"
                   + "regression-comparison-r" + runs + "-s" + s + "-k" + k
                   + "-m" + m + ".csv");
+
+      // Output file for one interaction-regression example at a fixed s.
       Path interactionFile = Path.of(
             "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/"
                   + "interaction-regression-r" + runs + "-s" + s + ".csv");
+
+      // Controls whether result lines are printed, written as CSV, or both.
       boolean printResults = true;
       boolean writeCsv = true;
 
+      // The examples must have at least one visible output destination.
       if (!printResults && !writeCsv)
          throw new IllegalArgumentException(
                "At least one of printResults or writeCsv must be true.");
 
+      // Example A: fit median_time as a function of m for each method, using
+      // only rows with the selected s and k values and ignoring rows with
+      // m greater than 50.
       // Map<String, RegressionResult> results1 = regress(
       //       inputFile, "s", s, "k", k,
       //       "method", "m", "m", "median_time",
       //       50.0, xValue -> xValue, false);
 
+      // Example B: fit median_time as a function of n = 2^k for each method,
+      // using only rows with the selected s and m values and ignoring rows with
+      // k greater than 16.
       // Map<String, RegressionResult> results2 = regress(
       //       inputFile, "s", s, "m", m,
       //       "method", "k", "n=2^k", "median_time",
       //       16.0, kValue -> Math.pow(2.0, kValue), false);
 
-      // // Example 1: write results1 alone.
+      // // Example C: write only the first simple-regression table, which
+      // // contains one row per method for the m-based fit.
       // writeRegressionResults(
       //       results1File, List.of(results1), writeCsv, printResults);
 
-      // // Example 2: write results1 and results2 in the original row format.
+      // // Example D: write both simple-regression tables in the same output,
+      // // keeping each regression result as its own row.
       // writeRegressionResults(
       //       bothResultsFile, List.of(results1, results2),
       //       writeCsv, printResults);
 
-      // // Example 3: match results1 and results2 and write r_beta.
+      // // Example E: match the m-based and n-based regressions by method,
+      // // validate that their fixed settings agree, and write the r_beta
+      // // comparison for each method.
       // writeComparison(
       //       comparisonFile, results1, results2, k, m,
       //       writeCsv, printResults);
+
+      // Active example: fit interaction models for several dimensions, then
+      // derive r_beta values and summary statistics from those models.
       int[] sValues = {2,4,6,8,16,32};
       int[] kValues = {8,10,12,14,16};
       int[] mValues = {1,2,5,10,20,30,50};
       Map<String, InteractionResult> allInteractionResults =
             new LinkedHashMap<>();
+
+      // Fit one interaction model per method for each s value and store all
+      // fitted models in one map using s-method keys to avoid overwriting
+      // methods that appear for multiple dimensions.
       for(int sval: sValues){
             Map<String, InteractionResult> interactionResults =
                   fitInteractionModel(inputFile, sval, 50.0, 16.0);
@@ -123,11 +191,16 @@ public class CsvRegression {
                allInteractionResults.put(
                      sval + "-" + entry.getKey(), entry.getValue());
       }
+
+      // Write the fitted interaction coefficients for all selected dimensions.
       Path outputFile = Path.of(
             "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/"
                   + "interaction-regression-r" + runs + ".csv");
       writeInteractionResults(
             outputFile, allInteractionResults, writeCsv, printResults);
+
+      // Evaluate r_beta on the selected k and m grids using the interaction
+      // coefficients just fitted.
       List<RBetaResult> rBetaResults = computeRBetaValues(
             allInteractionResults, kValues, mValues);
       Path rBetaFile = Path.of(
@@ -135,6 +208,9 @@ public class CsvRegression {
                   + "interaction-r-beta-r" + runs + ".csv");
       writeRBetaResults(
             rBetaFile, rBetaResults, writeCsv, printResults);
+
+      // Aggregate the interaction models and r_beta values by method and write
+      // compact min, max, and median summaries.
       Path summaryFile = Path.of(
             "/home/otman/Documents/GitHub/Data/o-test/nus/nus-comp/"
                   + "interaction-summary-r" + runs + ".csv");
@@ -142,8 +218,17 @@ public class CsvRegression {
             allInteractionResults, rBetaResults,
             summaryFile, writeCsv, printResults);
    }
-
-   private static List<RBetaResult> computeRBetaValues(
+//////////////////////////////////////////////////////////////////////////////////////////////////
+   /**
+    * Computes r_beta values from fitted interaction-model coefficients.
+    *
+    * <p>The method walks through every fitted interaction model. For each
+    * model, it converts every k value into n = 2^k, combines that n with every
+    * requested m value, evaluates the r_beta formulas from the model's
+    * coefficients, stores NaN when a denominator is zero, and returns the full
+    * list of computed values.
+    */
+   static List<RBetaResult> computeRBetaValues(
          Map<String, InteractionResult> interactionResults,
          int[] kValues, int[] mValues) {
       List<RBetaResult> results = new ArrayList<>();
@@ -173,7 +258,15 @@ public class CsvRegression {
       return results;
    }
 
-   private static void writeRBetaResults(Path outputFile,
+   /**
+    * Writes computed r_beta values.
+    *
+    * <p>The method opens the CSV writer when file output is enabled, emits the
+    * header, formats each finite r_beta value with a fixed locale, writes NA
+    * for non-finite values, and sends each line to the enabled output
+    * destinations.
+    */
+   static void writeRBetaResults(Path outputFile,
          List<RBetaResult> results,
          boolean writeCsv, boolean printResults) throws IOException {
       try (BufferedWriter writer = openWriter(outputFile, writeCsv)) {
@@ -192,7 +285,16 @@ public class CsvRegression {
       }
    }
 
-   private static void summarizeInteractions(
+   /**
+    * Summarizes interaction-regression and r_beta results by method.
+    *
+    * <p>The method first groups interaction fits and finite r_beta values by
+    * method. For each method, it collects r-squared values, coefficientMN / s
+    * values, q = coefficientN / coefficientMN values when defined, and r_beta
+    * values. It then computes the requested minima, maxima, and medians and
+    * writes one compact summary row per method.
+    */
+   static void summarizeInteractions(
          Map<String, InteractionResult> results,
          List<RBetaResult> rBetaResults, Path outputFile,
          boolean writeCsv, boolean printResults) throws IOException {
@@ -286,7 +388,18 @@ public class CsvRegression {
       }
    }
 
-   private static Map<String, InteractionResult> fitInteractionModel(
+   /**
+    * Fits one interaction timing model per method for a selected dimension.
+    *
+    * <p>The method finds the relevant CSV columns, filters rows to the selected
+    * dimension, optionally removes rows above the m and k cutoffs, and groups
+    * the remaining rows by method. For each method, it checks that enough
+    * observations remain, scales m and n to improve the numerical fit, builds
+    * the design matrix with m, n, and m*n terms, fits the least-squares model,
+    * converts the coefficients back to the original scale, computes r-squared,
+    * and stores the result by method.
+    */
+   static Map<String, InteractionResult> fitInteractionModel(
          Path inputFile, int s, Double maxM, Double maxK) throws IOException {
       int methodColumnIndex =
             expUtil.getCsvColumnIndex(inputFile, "method");
@@ -361,7 +474,17 @@ public class CsvRegression {
       return results;
    }
 
-   private static Map<String, RegressionResult> regress(Path inputFile,
+   /**
+    * Fits one simple linear regression per CSV group.
+    *
+    * <p>The method finds the group, x, and y columns, filters rows using two
+    * fixed column-value conditions, optionally removes rows above the x cutoff,
+    * and groups the remaining rows. For each group, it builds the x and y
+    * arrays, applies the requested x transformation, optionally transforms y to
+    * base-2 logarithms, checks that there are enough distinct x values, fits a
+    * least-squares line, computes r-squared, and stores the regression result.
+    */
+   static Map<String, RegressionResult> regress(Path inputFile,
          String filterColumn1, int filterValue1,
          String filterColumn2, int filterValue2,
          String groupColumn, String xColumn, String xTransformName,
@@ -436,6 +559,14 @@ public class CsvRegression {
       return results;
    }
 
+   /**
+    * Computes the coefficient of determination for a simple linear regression.
+    *
+    * <p>The method computes the mean of the observed y values, evaluates the
+    * fitted line at every x value, accumulates residual and total sums of
+    * squares, and returns 1 minus their ratio. If all y values are equal, it
+    * returns NaN because the total sum of squares is zero.
+    */
    private static double coefficientOfDetermination(double[] x, double[] y,
          double[] coefficients) {
       double mean = 0.0;
@@ -457,6 +588,15 @@ public class CsvRegression {
             : 1.0 - residualSumSquares / totalSumSquares;
    }
 
+   /**
+    * Computes the coefficient of determination for a multiple linear
+    * regression.
+    *
+    * <p>The method computes the mean of the observed y values, evaluates the
+    * fitted model for each row of the design matrix, accumulates residual and
+    * total sums of squares, and returns 1 minus their ratio. If all y values
+    * are equal, it returns NaN because the total sum of squares is zero.
+    */
    private static double coefficientOfDetermination(double[][] x, double[] y,
          double[] coefficients) {
       double mean = 0.0;
@@ -480,7 +620,15 @@ public class CsvRegression {
             : 1.0 - residualSumSquares / totalSumSquares;
    }
 
-   private static void writeRegressionResults(Path outputFile,
+   /**
+    * Writes one or more sets of simple regression results.
+    *
+    * <p>The method opens the CSV writer when requested, emits one common header
+    * for the simple-regression output format, walks through each supplied
+    * result set in order, and delegates the formatting of each result row to
+    * {@link #outputRegressionResult(BufferedWriter, boolean, RegressionResult)}.
+    */
+   static void writeRegressionResults(Path outputFile,
          List<Map<String, RegressionResult>> resultSets,
          boolean writeCsv, boolean printResults) throws IOException {
       try (BufferedWriter writer = openWriter(outputFile, writeCsv)) {
@@ -495,6 +643,13 @@ public class CsvRegression {
       }
    }
 
+   /**
+    * Formats and outputs one simple regression result row.
+    *
+    * <p>The method converts all stored fields of a regression result into the
+    * expected comma-separated row, leaves the max-x column blank when no cutoff
+    * was used, and sends the row to the enabled output destinations.
+    */
    private static void outputRegressionResult(BufferedWriter writer,
          boolean printResults, RegressionResult result) throws IOException {
       String line = String.format(Locale.US,
@@ -509,7 +664,16 @@ public class CsvRegression {
       outputLine(writer, printResults, line);
    }
 
-   private static void writeComparison(Path outputFile,
+   /**
+    * Writes a paired comparison of two simple regression result sets.
+    *
+    * <p>The method first checks that both result sets contain the same groups,
+    * converts k into n = 2^k, validates that each pair of regressions can be
+    * compared, and opens the output writer. It then writes one row per group
+    * containing the two fitted regressions and computes r_beta from the two
+    * slopes using the selected n and m values.
+    */
+   static void writeComparison(Path outputFile,
          Map<String, RegressionResult> results1,
          Map<String, RegressionResult> results2,
          int k, int m, boolean writeCsv, boolean printResults)
@@ -557,6 +721,14 @@ public class CsvRegression {
       }
    }
 
+   /**
+    * Checks that two simple regression results are a valid comparison pair.
+    *
+    * <p>The method verifies that the two results describe the same group, share
+    * the same first filter and y variable, use the expected fixed k and m
+    * values, and have finite slopes with a nonzero denominator slope for the
+    * r_beta calculation.
+    */
    private static void validateComparison(RegressionResult result1,
          RegressionResult result2, int k, int m) {
       if (!result1.groupColumn.equals(result2.groupColumn)
@@ -579,7 +751,14 @@ public class CsvRegression {
                "Invalid slope for group " + result1.groupValue + ".");
    }
 
-   private static void writeInteractionResults(Path outputFile,
+   /**
+    * Writes fitted interaction-model coefficients.
+    *
+    * <p>The method opens the CSV writer when requested, emits the interaction
+    * result header, formats each fitted model as one CSV row, and sends each
+    * row to the enabled output destinations.
+    */
+   static void writeInteractionResults(Path outputFile,
          Map<String, InteractionResult> results,
          boolean writeCsv, boolean printResults) throws IOException {
       try (BufferedWriter writer = openWriter(outputFile, writeCsv)) {
@@ -597,6 +776,13 @@ public class CsvRegression {
       }
    }
 
+   /**
+    * Opens a CSV writer when file output is enabled.
+    *
+    * <p>The method returns null when CSV writing is disabled. Otherwise, it
+    * creates the output directory if necessary and returns a UTF-8 writer for
+    * the requested file.
+    */
    private static BufferedWriter openWriter(Path outputFile, boolean writeCsv)
          throws IOException {
       if (!writeCsv)
@@ -607,6 +793,13 @@ public class CsvRegression {
       return Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8);
    }
 
+   /**
+    * Sends one output line to the configured destinations.
+    *
+    * <p>The method prints the line when console output is enabled, writes it to
+    * the CSV writer when a writer exists, and appends a newline after file
+    * output.
+    */
    private static void outputLine(BufferedWriter writer,
          boolean printResults, String line) throws IOException {
       if (printResults)

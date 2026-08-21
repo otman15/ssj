@@ -25,7 +25,8 @@ import umontreal.ssj.util.Chrono;
 import umontreal.ssj.util.Misc;
 
 /**
- * Times the two NUS methods and the Burley padded method used by
+ * Times the NUS, Adaptive Tiles, PBRT-Hashed-Owen32, and Burley padded
+ * methods. The NUS and Burley padded methods are also used by
  * {@link WSC23MoreSamples}.
  */
 public class NusTimingExperiment extends RQMCExperiment64 {
@@ -41,12 +42,12 @@ public class NusTimingExperiment extends RQMCExperiment64 {
          OUTPUT_DIRECTORY.resolve("dat");
 
    public static void main(String[] args) throws IOException {
-      int[] sValues = { 2, 4, 8, 16, 32};
-      int[] kValues = { 8, 10, 12, 14, 15};
-      int[] timingMValues = { 1, 2, 5, 10, 20, 30, 50};
+      int[] sValues = {16, 32};
+      int[] kValues = { 8, 10, 12, };
+      int[] timingMValues = { 30, 50};
       int statisticsM = 1000;
-      int timingRuns = 11;
-      String mode = TIMING;
+      int timingRuns = 33;
+      String mode = STATISTICS;
       boolean printResults = true;
       boolean writeCsv = true;
 
@@ -109,10 +110,9 @@ public class NusTimingExperiment extends RQMCExperiment64 {
    }
 
    /**
-    * The two NUS blocks and the Burley padded block from
-    * WSC23MoreSamples.simulRepsAllTypes. Timing executions repeat the blocks
-    * to obtain median times, while statistics executions save one set of RQMC
-    * replication estimates for each block.
+    * Times each configured method. Timing executions repeat the blocks to obtain
+    * median times, while statistics executions save one set of RQMC replication
+    * estimates for each block.
     */
    private static void simulRepsAllTypes(MonteCarloModelDouble model, int s,
          int k, int m, int nRuns, boolean isStatistics,
@@ -120,6 +120,10 @@ public class NusTimingExperiment extends RQMCExperiment64 {
       int effectiveRuns = isStatistics ? 1 : nRuns;
       double[] nusSsjTimes = isStatistics ? null : new double[effectiveRuns];
       double[] nusPresortedTimes =
+            isStatistics ? null : new double[effectiveRuns];
+      double[] adaptiveTilesTimes =
+            isStatistics ? null : new double[effectiveRuns];
+      double[] pbrtHashedOwen32Times =
             isStatistics ? null : new double[effectiveRuns];
       double[] burleyPaddedTimes =
             isStatistics ? null : new double[effectiveRuns];
@@ -157,6 +161,37 @@ public class NusTimingExperiment extends RQMCExperiment64 {
          if (!isStatistics)
             nusPresortedTimes[run] = nusPresortedTime;
 
+         // Adaptive Tiles using SSJ Sobol directions
+         CachedPointSet cpAdaptiveTiles = new CachedPointSet(p);
+         stream.resetStartSubstream();
+         PointSetRandomization adaptiveTiles =
+               new NestedUniformScramblingExperimental(
+                     stream,
+                     NestedUniformScramblingExperimental.Method.ADAPTIVE_TILES_SSJ_DIR,
+                     30);
+         statReps.setName(
+               modelTag + "-" + s + "-Adaptive-Tiles-SSJ-" + k + "-" + m);
+         double adaptiveTilesTime = simulRepsRQMCSort(
+               model, cpAdaptiveTiles, adaptiveTiles, m, statReps, isStatistics);
+         if (!isStatistics)
+            adaptiveTilesTimes[run] = adaptiveTilesTime;
+
+         // PBRT-Hashed-Owen32 using SSJ Sobol directions
+         CachedPointSet cpPbrtHashedOwen32 = new CachedPointSet(p);
+         stream.resetStartSubstream();
+         PointSetRandomization pbrtHashedOwen32 =
+               new NestedUniformScramblingExperimental(
+                     stream,
+                     NestedUniformScramblingExperimental.Method.PBRT_HASHED_OWEN32_SSJ_DIR,
+                     30);
+         statReps.setName(
+               modelTag + "-" + s + "-PBRT-Hashed-Owen32-SSJ-" + k + "-" + m);
+         double pbrtHashedOwen32Time = simulRepsRQMCSort(
+               model, cpPbrtHashedOwen32, pbrtHashedOwen32, m, statReps,
+               isStatistics);
+         if (!isStatistics)
+            pbrtHashedOwen32Times[run] = pbrtHashedOwen32Time;
+
          // Burley padded using SSJ Sobol directions
          stream.resetStartSubstream();
          BurleySSJPadded.PaddedPointSet pBurleySSJ =
@@ -176,6 +211,11 @@ public class NusTimingExperiment extends RQMCExperiment64 {
                Misc.getMedian(nusSsjTimes, nusSsjTimes.length));
          outputResult(writer, printResults, "NUS64-PRESORTED", s, k, m,
                Misc.getMedian(nusPresortedTimes, nusPresortedTimes.length));
+         outputResult(writer, printResults, "ADAPTIVE-TILES-SSJ", s, k, m,
+               Misc.getMedian(adaptiveTilesTimes, adaptiveTilesTimes.length));
+         outputResult(writer, printResults, "PBRT-HASHED-OWEN32-SSJ", s, k, m,
+               Misc.getMedian(pbrtHashedOwen32Times,
+                     pbrtHashedOwen32Times.length));
          outputResult(writer, printResults, "Burley-Padded", s, k, m,
                Misc.getMedian(burleyPaddedTimes, burleyPaddedTimes.length));
       }

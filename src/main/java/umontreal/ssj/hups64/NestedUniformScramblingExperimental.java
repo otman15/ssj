@@ -9,9 +9,9 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
       SSJ_NUS64,
       SSJ_NUS64_PRESORTED,
       SCIML_JL_OWEN_PACKED_CACHED,
-      BURLEY_OWEN_SSJ_DIR,
+      BURLEY_HASHED_OWEN_SSJ_DIR,
       ADAPTIVE_TILES_SSJ_DIR,
-      HASHED32_OWEN,
+      PBRT_HASHED_OWEN32_SSJ_DIR,
 
       // SCIML_JL_OWEN,
       // SCIML_JL_OWEN_INCREMENTAL,
@@ -100,14 +100,14 @@ public class NestedUniformScramblingExperimental implements PointSetRandomizatio
          scimlJlOwenPackedCached(net, cp.getArray(), numBits);
          break;
 
-      case BURLEY_OWEN_SSJ_DIR:
+      case BURLEY_HASHED_OWEN_SSJ_DIR:
          burleyOwenSsjDirections(net, cp.getArray(), numBits);
          break;
       case ADAPTIVE_TILES_SSJ_DIR:
          adaptiveTilesSsjDirections(net, cp.getArray(), numBits);
          break;
-      case HASHED32_OWEN:
-         hashed32OwenSsjDirections(net, cp.getArray(), numBits);
+      case PBRT_HASHED_OWEN32_SSJ_DIR:
+         pbrtHashedOwen32SsjDirections(net, cp.getArray(), numBits);
          break;
 
       // case SCIML_JL_OWEN:
@@ -977,9 +977,9 @@ private long adaptiveTilesScrambleLeadingBits(long bits,
  * @param output the array receiving the scrambled points
  * @param numBits the number of leading bits scrambled; 0 means min(outDigits, 32)
  */
-private void hashed32OwenSsjDirections(DigitalNetBase2 net,
-                                       double[][] output,
-                                       int numBits) {
+private void pbrtHashedOwen32SsjDirections(DigitalNetBase2 net,
+                                           double[][] output,
+                                           int numBits) {
    assert output.length == net.numPoints;
    assert output.length > 0;
    assert output[0].length == net.dim;
@@ -989,7 +989,7 @@ private void hashed32OwenSsjDirections(DigitalNetBase2 net,
       numBits = Math.min(net.outDigits, 32);
    if (numBits < 0 || numBits > net.outDigits || numBits > 32)
       throw new IllegalArgumentException(
-            "Hashed32-Owen scrambling supports from 0 to min(outDigits, 32) bits");
+            "PBRT-Hashed-Owen32 scrambling supports from 0 to min(outDigits, 32) bits");
 
    int[] seeds = new int[net.dim];
    for (int j = 0; j < net.dim; j++)
@@ -1006,7 +1006,7 @@ private void hashed32OwenSsjDirections(DigitalNetBase2 net,
             x ^= net.genMat[j * net.numCols + pos];
          }
 
-         long scrambledBits = hashed32OwenScrambleLeadingBits(
+         long scrambledBits = pbrtHashedOwen32ScrambleLeadingBits(
                x, seeds[j], numBits, net.outDigits);
          output[i][j] = scrambledBits * normFactor;
       }
@@ -1017,16 +1017,16 @@ private void hashed32OwenSsjDirections(DigitalNetBase2 net,
  * Scrambles the first {@code numBits} leading bits of one coordinate with
  * PBRT's 32-bit hash-based Owen scrambling, preserving the remaining bits.
  */
-private static long hashed32OwenScrambleLeadingBits(long bits,
-                                                     int seed,
-                                                     int numBits,
-                                                     int outDigits) {
+private static long pbrtHashedOwen32ScrambleLeadingBits(long bits,
+                                                         int seed,
+                                                         int numBits,
+                                                         int outDigits) {
    int tailBits = outDigits - numBits;
    long tailMask = tailBits == 0 ? 0L : (1L << tailBits) - 1L;
    long tail = bits & tailMask;
 
    int word = ((int) (bits >>> tailBits)) << (32 - numBits);
-   int scrambled = hashed32OwenScramble(word, seed);
+   int scrambled = pbrtHashedOwen32Scramble(word, seed);
 
    long prefixMask = numBits == 32
          ? 0xffffffffL
@@ -1040,7 +1040,7 @@ private static long hashed32OwenScrambleLeadingBits(long bits,
 /**
  * PBRT's 32-bit hash-based Owen scrambling of one fixed-point coordinate.
  */
-private static int hashed32OwenScramble(int value, int seed) {
+private static int pbrtHashedOwen32Scramble(int value, int seed) {
    int scrambled = value;
 
    if ((seed & 1) != 0)
@@ -1049,7 +1049,7 @@ private static int hashed32OwenScramble(int value, int seed) {
    for (int b = 1; b < 32; b++) {
       int prefixMask = -1 << (32 - b);
       int nodeKey = (scrambled & prefixMask) ^ seed;
-      int mixed = (int) hashed32OwenMixBits(Integer.toUnsignedLong(nodeKey));
+      int mixed = (int) pbrtHashedOwen32MixBits(Integer.toUnsignedLong(nodeKey));
 
       if ((mixed & (1 << b)) != 0)
          scrambled ^= 1 << (31 - b);
@@ -1061,7 +1061,7 @@ private static int hashed32OwenScramble(int value, int seed) {
 /**
  * PBRT's 64-bit MixBits finalizer.
  */
-private static long hashed32OwenMixBits(long value) {
+private static long pbrtHashedOwen32MixBits(long value) {
    value ^= value >>> 31;
    value *= 0x7fb5d329728ea185L;
    value ^= value >>> 27;

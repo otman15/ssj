@@ -20,17 +20,64 @@ import org.jfree.data.xy.XYDataset;
 import umontreal.ssj.charts.XYLineChart;
 
 /**
- * Contains utility methods that help with some experiments.
+ * Provides helper routines for experiment post-processing tasks such as
+ * exporting charts to LaTeX, merging CSV result files, filtering CSV rows, and
+ * arranging timing results for comparison.
  */
 public final class expUtil {
 
+   /**
+    * Prevents this utility class from being instantiated.
+    */
    private expUtil() {
    }
 
    /**
-    * Writes an SSJ line chart to LaTeX using PGFPlots.
-    */
+    * Writes an SSJ line chart as a complete LaTeX document using PGFPlots,
+    * preserving the chart title, axis labels, series colors, legend entries,
+    * and axis bounds.
+   */
    public static void writeLatexFile(XYLineChart chart, String outputFile,
+         double width, double height, boolean logYAxis) throws IOException {
+      Path path = prepareOutputPath(outputFile);
+      try (BufferedWriter writer =
+            Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+         writer.write("\\documentclass[12pt]{article}");
+         writer.newLine();
+         writer.write("\\usepackage{pgfplots}");
+         writer.newLine();
+         writer.write("\\pgfplotsset{compat=1.18}");
+         writer.newLine();
+         writer.write("\\begin{document}");
+         writer.newLine();
+         writer.write("\\begin{figure}");
+         writer.newLine();
+         writer.write("\\centering");
+         writer.newLine();
+         writeTikzPicture(writer, chart, width, height, logYAxis);
+         writer.write("\\end{figure}");
+         writer.newLine();
+         writer.write("\\end{document}");
+         writer.newLine();
+      }
+   }
+
+   /**
+    * Writes an SSJ line chart as a TikZ picture that can be included in an
+    * existing LaTeX document with {@code \input}. The containing document must
+    * load the {@code pgfplots} package.
+    */
+   public static void writeTikzPictureFile(XYLineChart chart, String outputFile,
+         double width, double height, boolean logYAxis) throws IOException {
+      Path path = prepareOutputPath(outputFile);
+      try (BufferedWriter writer =
+            Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+         writeTikzPicture(writer, chart, width, height, logYAxis);
+      }
+   }
+
+   /** Writes the TikZ and PGFPlots content shared by both chart exporters. */
+   private static void writeTikzPicture(BufferedWriter writer, XYLineChart chart,
          double width, double height, boolean logYAxis) throws IOException {
       XYDataset dataset =
             chart.getSeriesCollection().getSeriesCollection();
@@ -58,80 +105,69 @@ public final class expUtil {
          xTickOptions = "scaled x ticks=false,"
                + "xticklabel style={/pgf/number format/1000 sep={,}},";
 
+      writer.write("\\begin{tikzpicture}");
+      writer.newLine();
+      writer.write(String.format(Locale.US,
+            "\\begin{%s}[width=%.3fcm,height=%.3fcm,"
+                  + "title={%s},xlabel={%s},ylabel={%s},"
+                  + "xmin=%.15g,xmax=%.15g,ymin=%.15g,ymax=%.15g,"
+                  + "%s"
+                  + "tick label style={font=\\small},"
+                  + "title style={at={(axis description cs:0.5,1.18)},"
+                  + "anchor=south},"
+                  + "grid=major,legend style={at={(0.5,1.02)},"
+                  + "anchor=south,legend columns=3,"
+                  + "font=\\scriptsize,draw=none}]",
+            axisEnvironment, width, height,
+            latexText(chart.getTitle()),
+            latexText(chart.getJFreeChart().getXYPlot()
+                  .getDomainAxis().getLabel()),
+            latexText(chart.getJFreeChart().getXYPlot()
+                  .getRangeAxis().getLabel()),
+            xmin, xmax, ymin, ymax, xTickOptions));
+      writer.newLine();
+
+      for (int series = 0; series < dataset.getSeriesCount(); series++) {
+         Color color = chart.getSeriesCollection().getColor(series);
+         writer.write(String.format(Locale.US,
+               "\\definecolor{series%d}{RGB}{%d,%d,%d}",
+               series, color.getRed(), color.getGreen(), color.getBlue()));
+         writer.newLine();
+         writer.write(String.format(
+               "\\addplot[color=series%d,mark=*] coordinates {", series));
+         writer.newLine();
+         for (int item = 0; item < dataset.getItemCount(series); item++) {
+            writer.write(String.format(Locale.US, "(%.15g,%.15g)",
+                  dataset.getXValue(series, item),
+                  dataset.getYValue(series, item)));
+            writer.newLine();
+         }
+         writer.write("};");
+         writer.newLine();
+         writer.write("\\addlegendentry{"
+               + latexText(dataset.getSeriesKey(series).toString()) + "}");
+         writer.newLine();
+      }
+
+      writer.write("\\end{" + axisEnvironment + "}");
+      writer.newLine();
+      writer.write("\\end{tikzpicture}");
+      writer.newLine();
+   }
+
+   /** Creates the parent directory for a chart file and returns its path. */
+   private static Path prepareOutputPath(String outputFile) throws IOException {
       Path path = Path.of(outputFile);
       Path parent = path.getParent();
       if (parent != null)
          Files.createDirectories(parent);
-
-      try (BufferedWriter writer =
-            Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-         writer.write("\\documentclass[12pt]{article}");
-         writer.newLine();
-         writer.write("\\usepackage{pgfplots}");
-         writer.newLine();
-         writer.write("\\pgfplotsset{compat=1.18}");
-         writer.newLine();
-         writer.write("\\begin{document}");
-         writer.newLine();
-         writer.write("\\begin{figure}");
-         writer.newLine();
-         writer.write("\\centering");
-         writer.newLine();
-         writer.write("\\begin{tikzpicture}");
-         writer.newLine();
-         writer.write(String.format(Locale.US,
-               "\\begin{%s}[width=%.3fcm,height=%.3fcm,"
-                     + "title={%s},xlabel={%s},ylabel={%s},"
-                     + "xmin=%.15g,xmax=%.15g,ymin=%.15g,ymax=%.15g,"
-                     + "%s"
-                     + "tick label style={font=\\small},"
-                     + "title style={at={(axis description cs:0.5,1.18)},"
-                     + "anchor=south},"
-                     + "grid=major,legend style={at={(0.5,1.02)},"
-                     + "anchor=south,legend columns=3,"
-                     + "font=\\scriptsize,draw=none}]",
-               axisEnvironment, width, height,
-               latexText(chart.getTitle()),
-               latexText(chart.getJFreeChart().getXYPlot()
-                     .getDomainAxis().getLabel()),
-               latexText(chart.getJFreeChart().getXYPlot()
-                     .getRangeAxis().getLabel()),
-               xmin, xmax, ymin, ymax, xTickOptions));
-         writer.newLine();
-
-         for (int series = 0; series < dataset.getSeriesCount(); series++) {
-            Color color = chart.getSeriesCollection().getColor(series);
-            writer.write(String.format(Locale.US,
-                  "\\definecolor{series%d}{RGB}{%d,%d,%d}",
-                  series, color.getRed(), color.getGreen(), color.getBlue()));
-            writer.newLine();
-            writer.write(String.format(
-                  "\\addplot[color=series%d,mark=*] coordinates {", series));
-            writer.newLine();
-            for (int item = 0; item < dataset.getItemCount(series); item++) {
-               writer.write(String.format(Locale.US, "(%.15g,%.15g)",
-                     dataset.getXValue(series, item),
-                     dataset.getYValue(series, item)));
-               writer.newLine();
-            }
-            writer.write("};");
-            writer.newLine();
-            writer.write("\\addlegendentry{"
-                  + latexText(dataset.getSeriesKey(series).toString()) + "}");
-            writer.newLine();
-         }
-
-         writer.write("\\end{" + axisEnvironment + "}");
-         writer.newLine();
-         writer.write("\\end{tikzpicture}");
-         writer.newLine();
-         writer.write("\\end{figure}");
-         writer.newLine();
-         writer.write("\\end{document}");
-         writer.newLine();
-      }
+      return path;
    }
 
+   /**
+    * Builds PGFPlots tick settings when every x value is a positive power of
+    * two, so the LaTeX chart can display those ticks as powers of two.
+    */
    private static String powerOfTwoTickOptions(XYDataset dataset) {
       SortedSet<Double> xValues = new TreeSet<>();
       for (int series = 0; series < dataset.getSeriesCount(); series++) {
@@ -169,6 +205,10 @@ public final class expUtil {
       return "scaled x ticks=false," + positions + labels;
    }
 
+   /**
+    * Escapes text so it can be safely inserted into LaTeX labels, titles, and
+    * legend entries.
+    */
    private static String latexText(String text) {
       if (text == null)
          return "";
@@ -182,22 +222,12 @@ public final class expUtil {
    }
 
    /**
-    * Merges multiple CSV files into one output file while preserving the order
-    * of the input files and the order of the rows inside each file.
+    * Merges several CSV files into one file while keeping the input order and
+    * row order unchanged.
     *
-    * <p>If {@code hasHeader} is {@code true}, all input files must have the
-    * same header. The header is written only once in the output file.
-    *
-    * <p>If {@code hasHeader} is {@code false}, all rows in all input files
-    * must have the same number of columns.
-    *
-    * @param inputFiles the CSV files to merge, in the desired order
-    * @param outputFile the merged CSV file
-    * @param hasHeader  {@code true} if the first row of each file is a header
-    * @throws IOException if a file cannot be read or written
-    * @throws IllegalArgumentException if no input file is provided, an input
-    *         file is empty, the headers differ, or rows do not have the same
-    *         number of columns
+    * <p>When the files have headers, this method checks that the headers match
+    * and writes the header only once. When the files do not have headers, it
+    * checks that all rows have the same number of columns.
     */
    public static void mergeCsvFiles(
          Path[] inputFiles,
@@ -268,6 +298,10 @@ public final class expUtil {
       }
    }
 
+   /**
+    * Counts the number of CSV columns in a row while respecting quoted fields
+    * and escaped quotes.
+    */
    private static int countColumns(String line) {
       int columns = 1;
       boolean insideQuotes = false;
@@ -296,20 +330,12 @@ public final class expUtil {
    }
 
    /**
- * Reads a CSV file and returns the rows whose values match all the specified
- * filtering conditions.
- *
- * <p>The CSV file must contain a header. Each condition associates a column
- * name with the exact value required in that column. The returned rows
- * preserve their original order and do not include the header.
- *
- * @param inputFile the CSV file to filter
- * @param conditions the column names and values that rows must match
- * @return the matching rows, with each row represented as an array of values
- * @throws IOException if the file cannot be read
- * @throws IllegalArgumentException if the file is empty, a requested column
- *         does not exist, or a row has an invalid number of columns
- */
+    * Reads a CSV file with a header and returns only the data rows that match
+    * all requested column-value conditions.
+    *
+    * <p>The returned rows keep their original order and do not include the
+    * header.
+    */
     public static List<String[]> filterCsvRows(
         Path inputFile,
         Map<String, String> conditions) throws IOException {
@@ -381,6 +407,10 @@ public final class expUtil {
     return filteredRows;
     }
 
+    /**
+     * Parses one CSV row into individual values while handling quoted fields
+     * and escaped quotes.
+     */
     private static String[] parseCsvRow(String line) {
     List<String> values = new ArrayList<>();
     StringBuilder value = new StringBuilder();
@@ -416,13 +446,8 @@ public final class expUtil {
     }
 
     /**
-     * Groups CSV rows by the value of one column and sorts each group in ascending
+     * Groups CSV rows by one column value and sorts each group in increasing
      * numeric order using another column.
-     *
-     * @param rows the CSV rows
-     * @param groupColumn the column used to group the rows
-     * @param sortColumn the numeric column used to sort each group
-     * @return the grouped and sorted rows
      */
     public static Map<String, List<String[]>> groupAndSortCsvRows(
         List<String[]> rows,
@@ -443,13 +468,8 @@ public final class expUtil {
     }
 
     /**
- * Returns the index of a column in a CSV file header.
- *
- * @param inputFile the CSV file
- * @param columnName the column name to find
- * @return the column index
- * @throws IOException if the CSV file cannot be read
- */
+     * Finds the position of a named column in the header row of a CSV file.
+     */
 public static int getCsvColumnIndex(
       Path inputFile,
       String columnName) throws IOException {
@@ -475,44 +495,53 @@ public static int getCsvColumnIndex(
          "Column not found in the CSV header: " + columnName);
 }
 
+   /**
+    * Runs a small example workflow for combining and inspecting timing results.
+    *
+    * <p>The workflow merges timing CSV files produced by the R, Julia, and
+    * Python experiment scripts into one result file. It then filters the merged
+    * data for one selected problem size, groups the matching rows by method,
+    * sorts each method's rows by the value of {@code m}, and prints the median
+    * running time for each sorted row.
+    */
    public static void main(String[] args) throws IOException {
-   Path[] inputFiles = {
-         Path.of("/home/otman/Documents/GitHub/rqmc-experiments/R/R-results/owen_time_by_rep.csv"),
-         Path.of("/home/otman/Documents/GitHub/rqmc-experiments/julia/jl-results/sciMl_time_by_rep.csv"),
-         Path.of("/home/otman/Documents/GitHub/rqmc-experiments/python/py-results/qmcpy_time_by_rep.csv")
-   };
+      Path[] inputFiles = {
+            Path.of("/home/otman/Documents/GitHub/rqmc-experiments/R/R-results/owen_time_by_rep.csv"),
+            Path.of("/home/otman/Documents/GitHub/rqmc-experiments/julia/jl-results/sciMl_time_by_rep.csv"),
+            Path.of("/home/otman/Documents/GitHub/rqmc-experiments/python/py-results/qmcpy_time_by_rep.csv")
+      };
 
-   Path outputFile = Path.of(
-         "/home/otman/Documents/GitHub/rqmc-experiments/results/all-methods.csv");
+      Path outputFile = Path.of(
+            "/home/otman/Documents/GitHub/rqmc-experiments/results/all-methods.csv");
 
-   mergeCsvFiles(inputFiles, outputFile, true);
+      mergeCsvFiles(inputFiles, outputFile, true);
 
-   System.out.println("Merged CSV written to " + outputFile);
+      System.out.println("Merged CSV written to " + outputFile);
 
-      Path inputFile = Path.of(
-         "/home/otman/Documents/GitHub/rqmc-experiments/results/all-methods.csv");
+         Path inputFile = Path.of(
+            "/home/otman/Documents/GitHub/rqmc-experiments/results/all-methods.csv");
 
-   Map<String, String> conditions = Map.of(
-         "s", "2",
-         "k", "10"
-   );
+      Map<String, String> conditions = Map.of(
+            "s", "2",
+            "k", "10"
+      );
 
-   List<String[]> rows = filterCsvRows(inputFile, conditions);
+      List<String[]> rows = filterCsvRows(inputFile, conditions);
 
-//    for (String[] row : rows)
-//       System.out.println(String.join(",", row));
+      //    for (String[] row : rows)
+      //       System.out.println(String.join(",", row));
 
-   Map<String, List<String[]>> groupedRows =
-      groupAndSortCsvRows(rows, 0, 3);
+      Map<String, List<String[]>> groupedRows =
+         groupAndSortCsvRows(rows, 0, 3);
 
-for (Map.Entry<String, List<String[]>> entry : groupedRows.entrySet()) {
-   String method = entry.getKey();
+      for (Map.Entry<String, List<String[]>> entry : groupedRows.entrySet()) {
+         String method = entry.getKey();
 
-   System.out.println(method);
+         System.out.println(method);
 
-   for (String[] row : entry.getValue())
-      System.out.println("m = " + row[3]
-            + ", median_time = " + row[4]);
-}
-}
+         for (String[] row : entry.getValue())
+            System.out.println("m = " + row[3]
+                  + ", median_time = " + row[4]);
+      }
+   }
 }
