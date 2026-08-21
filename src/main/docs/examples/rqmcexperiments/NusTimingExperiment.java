@@ -34,7 +34,11 @@ public class NusTimingExperiment extends RQMCExperiment64 {
    private static final String TIMING = "TIMING";
    private static final String STATISTICS = "STATISTICS";
    private static final String[] MODEL_NAMES = {
-         "MC2", "SumUeU", "SmoothPerB4", "Polynomial"
+         "MC2", "SumUeU", "SmoothPerB4", "Polynomial", "Oscillatory",
+         "SmoothGauss", "PieceLinGauss", "IndSumNormal"
+   };
+   private static final String[] TIMING_MODEL_NAMES = {
+         "MC2"
    };
    private static final Path OUTPUT_DIRECTORY = Path.of(
          "/home/otman/Documents/GitHub/Data/o-test/nus/nus-timing");
@@ -56,7 +60,7 @@ public class NusTimingExperiment extends RQMCExperiment64 {
             throw new IllegalArgumentException(
                   "At least one of printResults or writeCsv must be true.");
 
-         for (String modelName : MODEL_NAMES) {
+         for (String modelName : TIMING_MODEL_NAMES) {
             String csvPath = OUTPUT_DIRECTORY.resolve(
                   "ssj_" + modelName + "_time_rep-" + timingRuns + ".csv")
                   .toString();
@@ -104,6 +108,14 @@ public class NusTimingExperiment extends RQMCExperiment64 {
          return new SmoothPerB4(s, 1.0);
       case "Polynomial":
          return new Polynomial(s);
+      case "Oscillatory":
+         return new Oscillatory(s);
+      case "SmoothGauss":
+         return new SmoothGauss(s);
+      case "PieceLinGauss":
+         return new PieceLinGauss(s);
+      case "IndSumNormal":
+         return new IndSumNormal(s);
       default:
          throw new IllegalArgumentException("Unknown model: " + modelName);
       }
