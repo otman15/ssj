@@ -676,12 +676,13 @@ public class DigitalNetBase2 extends DigitalNet {
             // We use Gray code order (could be optional).
             // We could have used a point set iterator here, but the iterator computes all
             // coordinates at once and we need only one at a time.
-            int pos = 0;
-            int bv = 1;
-            while ((i & bv) == 0) {
-               pos++;
-               bv <<= 1;
-            }
+            // int pos = 0;
+            // int bv = 1;
+            // while ((i & bv) == 0) {
+            //    pos++;
+            //    bv <<= 1;
+            // }
+            int pos = Integer.numberOfTrailingZeros(i);
             bvlist[i] = bvlist[i - 1] ^ ((genMat[j * numCols + pos]) >>> (outDigits - 31));
             // bvlist[i] = bvlist[i - 1] ^ (int) ((genMat[j * numCols + pos]) >>> (outDigits - 31));
             poslist[i] = i;
@@ -729,7 +730,7 @@ public class DigitalNetBase2 extends DigitalNet {
             bv2 ^= bvlistL;
             //System.out.println("bv2 = " + Long.toBinaryString(bv2));
             bv2 = (stream.nextLong(0, (1L << numBits)-1) << (outDigits - numBits))
-                  & ((1L << (long) Num.log2((double) bv2)) - 1); // (Long.highestOneBit(bv2) - 1L); // this is diffrent for k=8,must be handeled
+                  & (Long.highestOneBit(bv2) - 1L); // ((1L << (long) Num.log2((double) bv2)) - 1); // this is diffrent for k=8,must be handeled
             // System.out.println("bv2 = " + Long.toBinaryString(bv2));
             bv ^= bv2;
             output[poslist[i]][j] = (bvlistL ^ bv) * localNormFactor + EpsilonHalf;

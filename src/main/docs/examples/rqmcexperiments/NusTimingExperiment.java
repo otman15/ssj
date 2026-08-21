@@ -25,9 +25,7 @@ import umontreal.ssj.util.Chrono;
 import umontreal.ssj.util.Misc;
 
 /**
- * Times the NUS, Adaptive Tiles, PBRT-Hashed-Owen32, and Burley padded
- * methods. The NUS and Burley padded methods are also used by
- * {@link WSC23MoreSamples}.
+ * Times the two NUS methods.
  */
 public class NusTimingExperiment extends RQMCExperiment64 {
 
@@ -133,12 +131,8 @@ public class NusTimingExperiment extends RQMCExperiment64 {
       double[] nusSsjTimes = isStatistics ? null : new double[effectiveRuns];
       double[] nusPresortedTimes =
             isStatistics ? null : new double[effectiveRuns];
-      double[] adaptiveTilesTimes =
-            isStatistics ? null : new double[effectiveRuns];
-      double[] pbrtHashedOwen32Times =
-            isStatistics ? null : new double[effectiveRuns];
-      double[] burleyPaddedTimes =
-            isStatistics ? null : new double[effectiveRuns];
+      // double[] burleyPaddedTimes =
+      //       isStatistics ? null : new double[effectiveRuns];
       String modelTag = model.getTag();
 
       for (int run = 0; run < effectiveRuns; run++) {
@@ -173,49 +167,18 @@ public class NusTimingExperiment extends RQMCExperiment64 {
          if (!isStatistics)
             nusPresortedTimes[run] = nusPresortedTime;
 
-         // Adaptive Tiles using SSJ Sobol directions
-         CachedPointSet cpAdaptiveTiles = new CachedPointSet(p);
-         stream.resetStartSubstream();
-         PointSetRandomization adaptiveTiles =
-               new NestedUniformScramblingExperimental(
-                     stream,
-                     NestedUniformScramblingExperimental.Method.ADAPTIVE_TILES_SSJ_DIR,
-                     30);
-         statReps.setName(
-               modelTag + "-" + s + "-Adaptive-Tiles-SSJ-" + k + "-" + m);
-         double adaptiveTilesTime = simulRepsRQMCSort(
-               model, cpAdaptiveTiles, adaptiveTiles, m, statReps, isStatistics);
-         if (!isStatistics)
-            adaptiveTilesTimes[run] = adaptiveTilesTime;
-
-         // PBRT-Hashed-Owen32 using SSJ Sobol directions
-         CachedPointSet cpPbrtHashedOwen32 = new CachedPointSet(p);
-         stream.resetStartSubstream();
-         PointSetRandomization pbrtHashedOwen32 =
-               new NestedUniformScramblingExperimental(
-                     stream,
-                     NestedUniformScramblingExperimental.Method.PBRT_HASHED_OWEN32_SSJ_DIR,
-                     30);
-         statReps.setName(
-               modelTag + "-" + s + "-PBRT-Hashed-Owen32-SSJ-" + k + "-" + m);
-         double pbrtHashedOwen32Time = simulRepsRQMCSort(
-               model, cpPbrtHashedOwen32, pbrtHashedOwen32, m, statReps,
-               isStatistics);
-         if (!isStatistics)
-            pbrtHashedOwen32Times[run] = pbrtHashedOwen32Time;
-
-         // Burley padded using SSJ Sobol directions
-         stream.resetStartSubstream();
-         BurleySSJPadded.PaddedPointSet pBurleySSJ =
-               new BurleySSJPadded.PaddedPointSet(k, s, 32, 1);
-         PointSetRandomization burleySSJRandomization =
-               new BurleySSJPadded.Randomization(stream);
-         statReps.setName(
-               modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
-         double burleyPaddedTime = simulRepsRQMCSort(model, pBurleySSJ,
-               burleySSJRandomization, m, statReps, isStatistics);
-         if (!isStatistics)
-            burleyPaddedTimes[run] = burleyPaddedTime;
+         // // Burley padded using SSJ Sobol directions
+         // stream.resetStartSubstream();
+         // BurleySSJPadded.PaddedPointSet pBurleySSJ =
+         //       new BurleySSJPadded.PaddedPointSet(k, s, 32, 1);
+         // PointSetRandomization burleySSJRandomization =
+         //       new BurleySSJPadded.Randomization(stream);
+         // statReps.setName(
+         //       modelTag + "-" + s + "-Burley-Padded-" + k + "-" + m);
+         // double burleyPaddedTime = simulRepsRQMCSort(model, pBurleySSJ,
+         //       burleySSJRandomization, m, statReps, isStatistics);
+         // if (!isStatistics)
+         //    burleyPaddedTimes[run] = burleyPaddedTime;
       }
 
       if (!isStatistics) {
@@ -223,13 +186,8 @@ public class NusTimingExperiment extends RQMCExperiment64 {
                Misc.getMedian(nusSsjTimes, nusSsjTimes.length));
          outputResult(writer, printResults, "NUS64-PRESORTED", s, k, m,
                Misc.getMedian(nusPresortedTimes, nusPresortedTimes.length));
-         outputResult(writer, printResults, "ADAPTIVE-TILES-SSJ", s, k, m,
-               Misc.getMedian(adaptiveTilesTimes, adaptiveTilesTimes.length));
-         outputResult(writer, printResults, "PBRT-HASHED-OWEN32-SSJ", s, k, m,
-               Misc.getMedian(pbrtHashedOwen32Times,
-                     pbrtHashedOwen32Times.length));
-         outputResult(writer, printResults, "Burley-Padded", s, k, m,
-               Misc.getMedian(burleyPaddedTimes, burleyPaddedTimes.length));
+         // outputResult(writer, printResults, "Burley-Padded", s, k, m,
+         //       Misc.getMedian(burleyPaddedTimes, burleyPaddedTimes.length));
       }
    }
 
