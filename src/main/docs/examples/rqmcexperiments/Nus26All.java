@@ -20,22 +20,19 @@ public class Nus26All {
       String outputFolder = "/home/otman/Documents/GitHub/rqmc-experiments/plots/histograms/";
 
       String[] modelTags = new String[] {
-        "MC2" , "SumUeU", "SmoothPerB4", "Polynomial"
+         "MC2", "SumUeU", "SmoothPerB4", "Polynomial", "Oscillatory",
+         "SmoothGauss", "PieceLinGauss", "IndSumNormal"
       };
       
       String[] methods = new String[] {
          "NUS-SSJ","SSJ-PRESORTED","Friedel-Keller-libseq","Art-Owen","Burley-QuantLib",
-         "Adaptive-Regular-Tiles","NUS-SciML","NUS-QMCPy","Helmer-Stochastic-Sobol",
+         "NUS-SciML","Helmer-Stochastic-Sobol", "Adaptive-Regular-Tiles", 
          "PBRT-OwenScrambler","PBRT-FastOwenScrambler"
-      };
+      };//"NUS-QMCPy"
 
       int[] sDims = new int[] {2, 4, 8, 16, 32};  // Dimensions s.
       int[] ks = new int[] {10, 12, 14, 16};      // Values of k = log_2 n.
-      int m = 1000;                    // Number of observations per file.
-
-      // modelTags = new String[] {"SmoothPerB4"};
-      // int[] sDims = new int[] {2};  // Dimensions s.
-      // int[] ks = new int[] {10};      // Values of k = log_2 n.
+      int m = 10000;                    // Number of observations per file.
          
       HistCollectionLatex.writeCollection(
          inputFolder, outputFolder, modelTags, methods, sDims, ks, m);

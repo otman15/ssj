@@ -121,7 +121,10 @@ public class AllMethodsNusTimeAnalysis {
             "coefficient_mn / s",
             outputDirectory.resolve(
                   "repeated-cost-per-point-per-replication-per-dimension"
-                        + "-by-method-r" + runs + ".png"));
+                        + "-by-method-r" + runs + ".png"),
+            outputDirectory.resolve(
+                  "repeated-cost-per-point-per-replication-per-dimension"
+                        + "-by-method-r" + runs + ".tex"));
 
       // Plot: min-to-max range, interquartile range, and median of
       // coefficient_n / coefficient_mn for each method. This compares the
@@ -132,7 +135,10 @@ public class AllMethodsNusTimeAnalysis {
             "coefficient_n / coefficient_mn",
             outputDirectory.resolve(
                   "n-dependent-cost-to-repeated-cost-ratio-by-method-r"
-                        + runs + ".png"));
+                        + runs + ".png"),
+            outputDirectory.resolve(
+                  "n-dependent-cost-to-repeated-cost-ratio-by-method-r"
+                        + runs + ".tex"));
 
       // Plot: median execution time versus m for the selected s and k. The PNG
       // is convenient for reports, and the LaTeX file can be included in papers

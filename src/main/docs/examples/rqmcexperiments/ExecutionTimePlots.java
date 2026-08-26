@@ -114,8 +114,8 @@ double ymax = Double.NEGATIVE_INFINITY;
          + filterColumn1 + " = " + filterValue1
          + ", " + filterColumn2 + " = " + filterValue2;
    String yAxisLabel = logYaxis
-         ? "Median execution time (seconds, logarithmic scale)"
-         : "Median execution time (seconds)";
+         ? "Med. Time (sec, log. scale)"
+         : "Med. Time (sec)";
 
    XYLineChart chart = new XYLineChart(
          title,

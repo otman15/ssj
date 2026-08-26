@@ -26,10 +26,63 @@ import umontreal.ssj.charts.XYLineChart;
  */
 public final class expUtil {
 
+   /** Default formatting used by the existing chart-export methods. */
+   private static final TikzPictureOptions DEFAULT_TIKZ_PICTURE_OPTIONS =
+         new TikzPictureOptions(true, true, true, false, false,
+               "font=\\small",
+               "at={(axis description cs:0.5,1.18)},anchor=south",
+               "at={(0.5,1.02)},anchor=south,legend columns=3,"
+                     + "font=\\scriptsize,draw=none");
+
    /**
     * Prevents this utility class from being instantiated.
     */
    private expUtil() {
+   }
+
+   /**
+    * Formatting controls for a generated TikZ picture.
+    *
+    * <p>The existing exporters retain their current formatting by using the
+    * default options internally. Other report generators can use this class to
+    * place charts in a grid without inheriting a per-chart legend or title.</p>
+    */
+   public static final class TikzPictureOptions {
+      private final boolean includeTitle;
+      private final boolean includeXAxisLabel;
+      private final boolean includeYAxisLabel;
+      private final boolean scaleOnlyAxis;
+      private final boolean logXAxis;
+      private final String tickLabelStyle;
+      private final String titleStyle;
+      private final String legendStyle;
+
+      /**
+       * Creates TikZ formatting options.
+       *
+       * @param includeTitle whether to include the chart title
+       * @param includeXAxisLabel whether to include the x-axis label
+       * @param includeYAxisLabel whether to include the y-axis label
+       * @param scaleOnlyAxis whether width and height apply only to the axis
+       * @param logXAxis whether to use a logarithmic x-axis
+       * @param tickLabelStyle PGFPlots tick-label style options, or {@code null}
+       * @param titleStyle PGFPlots title-style options, or {@code null}
+       * @param legendStyle PGFPlots legend-style options, or {@code null} to
+       *        omit the legend
+       */
+      public TikzPictureOptions(boolean includeTitle, boolean includeXAxisLabel,
+            boolean includeYAxisLabel, boolean scaleOnlyAxis, boolean logXAxis,
+            String tickLabelStyle, String titleStyle,
+            String legendStyle) {
+         this.includeTitle = includeTitle;
+         this.includeXAxisLabel = includeXAxisLabel;
+         this.includeYAxisLabel = includeYAxisLabel;
+         this.scaleOnlyAxis = scaleOnlyAxis;
+         this.logXAxis = logXAxis;
+         this.tickLabelStyle = tickLabelStyle;
+         this.titleStyle = titleStyle;
+         this.legendStyle = legendStyle;
+      }
    }
 
    /**
@@ -54,7 +107,9 @@ public final class expUtil {
          writer.newLine();
          writer.write("\\centering");
          writer.newLine();
-         writeTikzPicture(writer, chart, width, height, logYAxis);
+         writeTikzPicture(writer, chart, formatDimension(width),
+               formatDimension(height), logYAxis,
+               DEFAULT_TIKZ_PICTURE_OPTIONS);
          writer.write("\\end{figure}");
          writer.newLine();
          writer.write("\\end{document}");
@@ -69,16 +124,33 @@ public final class expUtil {
     */
    public static void writeTikzPictureFile(XYLineChart chart, String outputFile,
          double width, double height, boolean logYAxis) throws IOException {
+      writeTikzPictureFile(chart, outputFile, formatDimension(width),
+            formatDimension(height), logYAxis, DEFAULT_TIKZ_PICTURE_OPTIONS);
+   }
+
+   /**
+    * Writes an SSJ line chart as a TikZ picture using configurable plot
+    * formatting. Width and height may be LaTeX dimensions or length macros.
+    */
+   public static void writeTikzPictureFile(XYLineChart chart, String outputFile,
+         String width, String height, boolean logYAxis,
+         TikzPictureOptions options) throws IOException {
+      if (width == null || width.isBlank() || height == null || height.isBlank())
+         throw new IllegalArgumentException(
+               "TikZ picture width and height must not be null or blank.");
+      if (options == null)
+         throw new IllegalArgumentException("TikZ picture options must not be null.");
       Path path = prepareOutputPath(outputFile);
       try (BufferedWriter writer =
             Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-         writeTikzPicture(writer, chart, width, height, logYAxis);
+         writeTikzPicture(writer, chart, width, height, logYAxis, options);
       }
    }
 
    /** Writes the TikZ and PGFPlots content shared by both chart exporters. */
    private static void writeTikzPicture(BufferedWriter writer, XYLineChart chart,
-         double width, double height, boolean logYAxis) throws IOException {
+         String width, String height, boolean logYAxis,
+         TikzPictureOptions options) throws IOException {
       XYDataset dataset =
             chart.getSeriesCollection().getSeriesCollection();
       if (logYAxis) {
@@ -91,7 +163,11 @@ public final class expUtil {
          }
       }
 
-      String axisEnvironment = logYAxis ? "semilogyaxis" : "axis";
+      String axisEnvironment;
+      if (options.logXAxis)
+         axisEnvironment = logYAxis ? "loglogaxis" : "semilogxaxis";
+      else
+         axisEnvironment = logYAxis ? "semilogyaxis" : "axis";
       double xmin = chart.getJFreeChart().getXYPlot()
             .getDomainAxis().getLowerBound();
       double xmax = chart.getJFreeChart().getXYPlot()
@@ -105,26 +181,52 @@ public final class expUtil {
          xTickOptions = "scaled x ticks=false,"
                + "xticklabel style={/pgf/number format/1000 sep={,}},";
 
+      if (options.logXAxis) {
+         for (int series = 0; series < dataset.getSeriesCount(); series++) {
+            for (int item = 0; item < dataset.getItemCount(series); item++) {
+               if (dataset.getXValue(series, item) <= 0.0)
+                  throw new IllegalArgumentException(
+                        "Logarithmic plots require positive x values.");
+            }
+         }
+      }
+
       writer.write("\\begin{tikzpicture}");
       writer.newLine();
-      writer.write(String.format(Locale.US,
-            "\\begin{%s}[width=%.3fcm,height=%.3fcm,"
-                  + "title={%s},xlabel={%s},ylabel={%s},"
-                  + "xmin=%.15g,xmax=%.15g,ymin=%.15g,ymax=%.15g,"
-                  + "%s"
-                  + "tick label style={font=\\small},"
-                  + "title style={at={(axis description cs:0.5,1.18)},"
-                  + "anchor=south},"
-                  + "grid=major,legend style={at={(0.5,1.02)},"
-                  + "anchor=south,legend columns=3,"
-                  + "font=\\scriptsize,draw=none}]",
-            axisEnvironment, width, height,
-            latexText(chart.getTitle()),
-            latexText(chart.getJFreeChart().getXYPlot()
-                  .getDomainAxis().getLabel()),
-            latexText(chart.getJFreeChart().getXYPlot()
-                  .getRangeAxis().getLabel()),
-            xmin, xmax, ymin, ymax, xTickOptions));
+      StringBuilder axisOptions = new StringBuilder();
+      axisOptions.append("width=").append(width).append(",height=")
+            .append(height).append(',');
+      if (options.includeTitle)
+         axisOptions.append("title={").append(latexText(chart.getTitle()))
+               .append("},");
+      if (options.includeXAxisLabel)
+         axisOptions.append("xlabel={")
+               .append(latexText(chart.getJFreeChart().getXYPlot()
+                     .getDomainAxis().getLabel()))
+               .append("},");
+      if (options.includeYAxisLabel)
+         axisOptions.append("ylabel={")
+               .append(latexText(chart.getJFreeChart().getXYPlot()
+                     .getRangeAxis().getLabel()))
+               .append("},");
+      axisOptions.append(String.format(Locale.US,
+            "xmin=%.15g,xmax=%.15g,ymin=%.15g,ymax=%.15g,",
+            xmin, xmax, ymin, ymax));
+      axisOptions.append(xTickOptions);
+      if (options.tickLabelStyle != null && !options.tickLabelStyle.isBlank())
+         axisOptions.append("tick label style={")
+               .append(options.tickLabelStyle).append("},");
+      axisOptions.append("grid=major,");
+      if (options.scaleOnlyAxis)
+         axisOptions.append("scale only axis,");
+      if (options.titleStyle != null && !options.titleStyle.isBlank())
+         axisOptions.append("title style={").append(options.titleStyle)
+               .append("},");
+      if (options.legendStyle != null && !options.legendStyle.isBlank())
+         axisOptions.append("legend style={").append(options.legendStyle)
+               .append("},");
+
+      writer.write("\\begin{" + axisEnvironment + "}[" + axisOptions + "]");
       writer.newLine();
 
       for (int series = 0; series < dataset.getSeriesCount(); series++) {
@@ -144,15 +246,22 @@ public final class expUtil {
          }
          writer.write("};");
          writer.newLine();
-         writer.write("\\addlegendentry{"
-               + latexText(dataset.getSeriesKey(series).toString()) + "}");
-         writer.newLine();
+         if (options.legendStyle != null && !options.legendStyle.isBlank()) {
+            writer.write("\\addlegendentry{"
+                  + latexText(dataset.getSeriesKey(series).toString()) + "}");
+            writer.newLine();
+         }
       }
 
       writer.write("\\end{" + axisEnvironment + "}");
       writer.newLine();
       writer.write("\\end{tikzpicture}");
       writer.newLine();
+   }
+
+   /** Formats a numerical dimension for the original public exporter API. */
+   private static String formatDimension(double value) {
+      return String.format(Locale.US, "%.3fcm", value);
    }
 
    /** Creates the parent directory for a chart file and returns its path. */

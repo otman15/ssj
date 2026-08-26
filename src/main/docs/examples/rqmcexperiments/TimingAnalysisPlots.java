@@ -65,6 +65,18 @@ public class TimingAnalysisPlots {
    }
 
    /**
+    * Holds the values needed to draw one horizontal comparison plot.
+    */
+   private static class HorizontalComparisonData {
+      String[] methods;
+      double[] medians;
+      double[] minimums;
+      double[] maximums;
+      double[] firstQuartiles;
+      double[] thirdQuartiles;
+   }
+
+   /**
     * Runs the full timing-analysis plotting workflow.
     *
     * <p>The workflow reads the interaction r_beta table, the interaction
@@ -332,44 +344,39 @@ public class TimingAnalysisPlots {
    static void saveHorizontalComparison(Path summaryFile,
          boolean logarithmic, String title, String valueLabel,
          Path outputFile) throws IOException {
-      int methodIndex = expUtil.getCsvColumnIndex(summaryFile, "method");
-      String suffix = logarithmic
-            ? "repeated_cost_per_point_replication_dimension"
-            : "n_dependent_to_repeated_cost_ratio";
-      int medianIndex =
-            expUtil.getCsvColumnIndex(summaryFile, "median_" + suffix);
-      int minIndex = expUtil.getCsvColumnIndex(summaryFile, "min_" + suffix);
-      int maxIndex = expUtil.getCsvColumnIndex(summaryFile, "max_" + suffix);
-      int q1Index = expUtil.getCsvColumnIndex(summaryFile, "q1_" + suffix);
-      int q3Index = expUtil.getCsvColumnIndex(summaryFile, "q3_" + suffix);
-      List<String[]> rows = expUtil.filterCsvRows(summaryFile, Map.of());
-      rows.sort(Comparator.comparing(row -> row[methodIndex]));
+      saveHorizontalComparison(summaryFile, logarithmic, title, valueLabel,
+            outputFile, null);
+   }
 
-      String[] methods = new String[rows.size()];
+   /**
+    * Saves a horizontal comparison plot as a PNG image and, when requested, as
+    * a TikZ picture fragment.
+    *
+    * <p>The TikZ file contains only the {@code tikzpicture} environment so it
+    * can be included directly in a larger LaTeX document.
+    */
+   static void saveHorizontalComparison(Path summaryFile,
+         boolean logarithmic, String title, String valueLabel,
+         Path pngFile, Path tikzFile) throws IOException {
+      HorizontalComparisonData data =
+            readHorizontalComparisonData(summaryFile, logarithmic);
+
+      String[] methods = data.methods;
       XYSeriesCollection ranges = new XYSeriesCollection();
       XYSeriesCollection intervals = new XYSeriesCollection();
       XYSeries medians = new XYSeries("Median");
-      for (int i = 0; i < rows.size(); i++) {
-         String[] row = rows.get(i);
-         methods[i] = row[methodIndex];
-         double minimum = Double.parseDouble(row[minIndex]);
-         double maximum = Double.parseDouble(row[maxIndex]);
-         double q1 = Double.parseDouble(row[q1Index]);
-         double q3 = Double.parseDouble(row[q3Index]);
-         if (logarithmic && (minimum <= 0.0 || q1 <= 0.0))
-            throw new IllegalArgumentException(
-                  "Logarithmic comparison values must be positive.");
+      for (int i = 0; i < methods.length; i++) {
          // Each method contributes a thin min-max line, a thicker quartile
          // interval, and one point for the median.
          XYSeries range = new XYSeries(methods[i]);
-         range.add(minimum, i);
-         range.add(maximum, i);
+         range.add(data.minimums[i], i);
+         range.add(data.maximums[i], i);
          ranges.addSeries(range);
          XYSeries interval = new XYSeries(methods[i]);
-         interval.add(q1, i);
-         interval.add(q3, i);
+         interval.add(data.firstQuartiles[i], i);
+         interval.add(data.thirdQuartiles[i], i);
          intervals.addSeries(interval);
-         medians.add(Double.parseDouble(row[medianIndex]), i);
+         medians.add(data.medians[i], i);
       }
       XYSeriesCollection medianDataset = new XYSeriesCollection(medians);
 
@@ -383,12 +390,12 @@ public class TimingAnalysisPlots {
       methodAxis.setRange(-0.6, methods.length - 0.4);
       XYLineAndShapeRenderer rangeRenderer =
             new XYLineAndShapeRenderer(true, false);
-      rangeRenderer.setDefaultStroke(new BasicStroke(1.0f));
-      rangeRenderer.setDefaultPaint(Color.GRAY);
+      rangeRenderer.setDefaultStroke(new BasicStroke(1.8f));
+      rangeRenderer.setDefaultPaint(new Color(205, 70, 35));
       XYLineAndShapeRenderer intervalRenderer =
             new XYLineAndShapeRenderer(true, false);
       intervalRenderer.setDefaultStroke(new BasicStroke(5.0f));
-      intervalRenderer.setDefaultPaint(new Color(80, 120, 190));
+      intervalRenderer.setDefaultPaint(new Color(35, 140, 90));
       XYLineAndShapeRenderer medianRenderer =
             new XYLineAndShapeRenderer(false, true);
       medianRenderer.setDefaultPaint(Color.BLACK);
@@ -405,7 +412,141 @@ public class TimingAnalysisPlots {
       JFreeChart chart =
             new JFreeChart(title, JFreeChart.DEFAULT_TITLE_FONT, plot, false);
       chart.setPadding(new RectangleInsets(5.0, 110.0, 5.0, 10.0));
-      savePng(chart, outputFile);
+      savePng(chart, pngFile);
+      if (tikzFile != null)
+         writeHorizontalComparisonTikz(
+               data, logarithmic, title, valueLabel, tikzFile);
+   }
+
+   /**
+    * Reads the summarized horizontal comparison values.
+    */
+   private static HorizontalComparisonData readHorizontalComparisonData(
+         Path summaryFile, boolean logarithmic) throws IOException {
+      int methodIndex = expUtil.getCsvColumnIndex(summaryFile, "method");
+      String suffix = logarithmic
+            ? "repeated_cost_per_point_replication_dimension"
+            : "n_dependent_to_repeated_cost_ratio";
+      int medianIndex =
+            expUtil.getCsvColumnIndex(summaryFile, "median_" + suffix);
+      int minIndex = expUtil.getCsvColumnIndex(summaryFile, "min_" + suffix);
+      int maxIndex = expUtil.getCsvColumnIndex(summaryFile, "max_" + suffix);
+      int q1Index = expUtil.getCsvColumnIndex(summaryFile, "q1_" + suffix);
+      int q3Index = expUtil.getCsvColumnIndex(summaryFile, "q3_" + suffix);
+      List<String[]> rows = expUtil.filterCsvRows(summaryFile, Map.of());
+      rows.sort(Comparator.comparing(row -> row[methodIndex]));
+
+      HorizontalComparisonData data = new HorizontalComparisonData();
+      data.methods = new String[rows.size()];
+      data.medians = new double[rows.size()];
+      data.minimums = new double[rows.size()];
+      data.maximums = new double[rows.size()];
+      data.firstQuartiles = new double[rows.size()];
+      data.thirdQuartiles = new double[rows.size()];
+      for (int i = 0; i < rows.size(); i++) {
+         String[] row = rows.get(i);
+         data.methods[i] = row[methodIndex];
+         data.medians[i] = Double.parseDouble(row[medianIndex]);
+         data.minimums[i] = Double.parseDouble(row[minIndex]);
+         data.maximums[i] = Double.parseDouble(row[maxIndex]);
+         data.firstQuartiles[i] = Double.parseDouble(row[q1Index]);
+         data.thirdQuartiles[i] = Double.parseDouble(row[q3Index]);
+         if (logarithmic && (data.minimums[i] <= 0.0
+               || data.firstQuartiles[i] <= 0.0))
+            throw new IllegalArgumentException(
+                  "Logarithmic comparison values must be positive.");
+      }
+      return data;
+   }
+
+   /**
+    * Writes a horizontal comparison as a TikZ picture fragment.
+    */
+   private static void writeHorizontalComparisonTikz(
+         HorizontalComparisonData data, boolean logarithmic, String title,
+         String valueLabel, Path outputFile) throws IOException {
+      try (BufferedWriter writer = newWriter(outputFile)) {
+         String axisEnvironment = logarithmic ? "semilogxaxis" : "axis";
+         writer.write("\\begin{tikzpicture}");
+         writer.newLine();
+         writer.write("\\definecolor{rangecolor}{RGB}{205,70,35}");
+         writer.newLine();
+         writer.write("\\definecolor{quartilecolor}{RGB}{35,140,90}");
+         writer.newLine();
+         writer.write("\\begin{" + axisEnvironment + "}[");
+         writer.newLine();
+         writer.write("width=13.000cm,height=7.000cm,");
+         writer.newLine();
+         writer.write("title={" + latexText(title) + "},");
+         writer.newLine();
+         writer.write("xlabel={" + latexText(logarithmic
+               ? valueLabel + " (logarithmic scale)" : valueLabel) + "},");
+         writer.newLine();
+         writer.write("ylabel={Method},");
+         writer.newLine();
+         writer.write(String.format(Locale.US,
+               "ymin=%.15g,ymax=%.15g,",
+               -0.6, data.methods.length - 0.4));
+         writer.newLine();
+         writer.write("ytick={");
+         for (int i = 0; i < data.methods.length; i++) {
+            if (i > 0)
+               writer.write(",");
+            writer.write(Integer.toString(i));
+         }
+         writer.write("},");
+         writer.newLine();
+         writer.write("yticklabels={");
+         for (int i = 0; i < data.methods.length; i++) {
+            if (i > 0)
+               writer.write(",");
+            writer.write("{" + latexText(data.methods[i]) + "}");
+         }
+         writer.write("},");
+         writer.newLine();
+         writer.write("grid=major,");
+         writer.newLine();
+         writer.write("tick label style={font=\\small},");
+         writer.newLine();
+         writer.write("title style={font=\\small},");
+         writer.newLine();
+         writer.write("]");
+         writer.newLine();
+
+         for (int i = 0; i < data.methods.length; i++) {
+            writer.write("\\addplot[color=rangecolor,line width=1.4pt,"
+                  + "mark=none] coordinates {");
+            writer.newLine();
+            writer.write("(" + texNum(data.minimums[i]) + "," + i + ")");
+            writer.newLine();
+            writer.write("(" + texNum(data.maximums[i]) + "," + i + ")");
+            writer.newLine();
+            writer.write("};");
+            writer.newLine();
+            writer.write("\\addplot[color=quartilecolor,line width=4pt,"
+                  + "mark=none] coordinates {");
+            writer.newLine();
+            writer.write("(" + texNum(data.firstQuartiles[i]) + "," + i
+                  + ")");
+            writer.newLine();
+            writer.write("(" + texNum(data.thirdQuartiles[i]) + "," + i
+                  + ")");
+            writer.newLine();
+            writer.write("};");
+            writer.newLine();
+            writer.write("\\addplot[color=black,only marks,mark=*] coordinates {");
+            writer.newLine();
+            writer.write("(" + texNum(data.medians[i]) + "," + i + ")");
+            writer.newLine();
+            writer.write("};");
+            writer.newLine();
+         }
+
+         writer.write("\\end{" + axisEnvironment + "}");
+         writer.newLine();
+         writer.write("\\end{tikzpicture}");
+         writer.newLine();
+      }
    }
 
    /**
@@ -511,6 +652,31 @@ public class TimingAnalysisPlots {
          throws IOException {
       writer.write(line);
       writer.newLine();
+   }
+
+   /**
+    * Formats a finite number for PGFPlots coordinates.
+    */
+   private static String texNum(double value) {
+      return String.format(Locale.US, "%.15g", value);
+   }
+
+   /**
+    * Escapes text for use in LaTeX labels and tick labels.
+    */
+   private static String latexText(String text) {
+      if (text == null)
+         return "";
+      return text.replace("\\", "\\textbackslash{}")
+            .replace("{", "\\{")
+            .replace("}", "\\}")
+            .replace("_", "\\_")
+            .replace("^", "\\textasciicircum{}")
+            .replace("%", "\\%")
+            .replace("&", "\\&")
+            .replace("#", "\\#")
+            .replace("$", "\\$")
+            .replace("~", "\\textasciitilde{}");
    }
 
    /**

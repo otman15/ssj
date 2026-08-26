@@ -61,6 +61,7 @@ public class AllMethodsExp {
       int[] kValues = {8, 12, 16};
       boolean logYaxis = true;
       String yLogScaled = logYaxis ? "yLogScaled" : "";
+      boolean viewChart = true;
 
       Color[] colors = {
             Color.RED, Color.BLUE, new Color(0, 160, 0), // green
@@ -77,7 +78,7 @@ public class AllMethodsExp {
             XYLineChart chart = ExecutionTimePlots.createMedianTimePlot(outputFile, "s", s, "k", k,
                   "m", "Number of replications m", 50.0, x -> x, logYaxis);
             setSeriesColors(chart, colors);
-            chart.view(800, 500);
+            if(viewChart) chart.view(800, 500);
             expUtil.writeTikzPictureFile(
                   chart, outputDir + "plots/median-time-r" + runs + "-s" + s + "-k" + k
                         + yLogScaled + ".tex", 13, 7, logYaxis);
@@ -90,8 +91,9 @@ public class AllMethodsExp {
             XYLineChart chart = ExecutionTimePlots.createMedianTimePlot(outputFile, "s", s, "m", m,
                   "k", "Number of points n", 16.0, kValue -> Math.pow(2.0, kValue), logYaxis);
             setSeriesColors(chart, colors);
-            expUtil.writeTikzPictureFile(
-                  chart, outputDir + "plots/median-time-r" + runs + "-s" + s + "-m" + m
+            if(viewChart) chart.view(800, 500);
+            expUtil.writeLatexFile(
+                  chart, outputDir + "plots/ex-median-time-r" + runs + "-s" + s + "-m" + m
                         + yLogScaled + ".tex", 13, 7, logYaxis);
          }
       }
