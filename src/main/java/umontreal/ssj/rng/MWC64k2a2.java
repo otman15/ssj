@@ -280,7 +280,7 @@ public class MWC64k2a2 extends RandomStreamBase {
     * Returns a random long in the inclusive range {@code [i, j]}.
     *
     * Uses 63 random bits and rejection sampling when the range size fits in a
-    * positive long. when the range size does not fit in a positive long, 
+    * positive long. when the range size does not fit in a positive long,
     * it samples full 64-bit values until one falls inside the interval.
     *
     * @param i lower bound, inclusive
@@ -841,14 +841,14 @@ public class MWC64k2a2 extends RandomStreamBase {
 
    /**
     * Advances the current stream state by arbitrary {@code n} steps.
-    * 
+    *
     * {@code n} is a nonnegative {@link BigInteger}, so jumps larger than
     * {@code Long.MAX_VALUE}, are supported.
     *
     * This method advances only the current state. It does not change the
     * stream-start or substream-start states; a subsequent reset restores the
     * corresponding saved state.
-    * 
+    *
     * @param n nonnegative number of steps to jump
     * @throws IllegalArgumentException if {@code n} is negative
     */
