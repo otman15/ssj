@@ -124,6 +124,27 @@ public class CachedPointSet extends PointSet {
    }
 
    /**
+    * Allocates a cache for all points of p, optionally filling it immediately.
+    * If filling is skipped, coordinates remain zero until populated.
+    *
+    * @param p         parent point set with finite point count and dimension
+    * @param fillCache whether to extract its coordinates immediately
+    * @throws IllegalArgumentException if either size is infinite
+    */
+   public CachedPointSet(PointSet p, boolean fillCache) {
+      numPoints = p.getNumPoints();
+      dim = p.getDimension();
+      if (numPoints == Integer.MAX_VALUE)
+         throw new IllegalArgumentException("Cannot cache infinite number of points");
+      if (dim == Integer.MAX_VALUE)
+         throw new IllegalArgumentException("Cannot cache infinite dimensional points");
+      this.P = p;
+      x = new double[numPoints][dim];
+      if (fillCache)
+         fillCache(0, dim);
+   }
+
+   /**
     * Constructs and returns a point set iterator that gets the values directly
     * from the cached array.
     */
