@@ -393,7 +393,7 @@ private void nestedUniformScramble64Presorted(DigitalNetBase2 net,
          bvlistL = bvlist[i] << (net.outDigits - 31);
          bv2 ^= bvlistL;
          bv2 = (stream.nextLong(0, (1L << numBits) - 1) << (net.outDigits - numBits))
-               & (Long.highestOneBit(bv2) - 1L);// faster thatn log2
+               & (bv2 == 0L ? 0L : Long.highestOneBit(bv2) - 1L);// faster thatn log2
          // bv2 = (stream.nextLong(0, (1L << numBits) - 1)
          //        << (net.outDigits - numBits))
          //       & ((1L << (long) Num.log2((double) bv2)) - 1);

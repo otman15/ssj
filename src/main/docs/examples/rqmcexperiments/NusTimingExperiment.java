@@ -32,9 +32,9 @@ public class NusTimingExperiment extends RQMCExperiment64 {
    private static final String TIMING = "TIMING";
    private static final String STATISTICS = "STATISTICS";
    private static final String[] MODEL_NAMES = {
-         "MC2", "SumUeU", "SmoothPerB4", "Polynomial", "Oscillatory",
-         "SmoothGauss", "PieceLinGauss", "IndSumNormal"
-   };
+         "MC2", "SumUeU"};///, "SmoothPerB4", "Polynomial", "Oscillatory",
+   //       "SmoothGauss", "PieceLinGauss", "IndSumNormal"
+   // };
    private static final String[] TIMING_MODEL_NAMES = {
          "MC2"
    };
@@ -44,14 +44,14 @@ public class NusTimingExperiment extends RQMCExperiment64 {
          OUTPUT_DIRECTORY.resolve("dat");
 
    public static void main(String[] args) throws IOException {
-      int[] sValues = {16, 32};
-      int[] kValues = { 8, 10, 12, };
+      int[] sValues = {4};
+      int[] kValues = { 8, 10, 12};
       int[] timingMValues = { 30, 50};
       int statisticsM = 1000;
       int timingRuns = 33;
       String mode = STATISTICS;
       boolean printResults = true;
-      boolean writeCsv = true;
+      boolean writeCsv = false;
 
       if (TIMING.equals(mode)) {
          if (!printResults && !writeCsv)
@@ -140,7 +140,7 @@ public class NusTimingExperiment extends RQMCExperiment64 {
          TallyStore statReps = new TallyStore(m);
 
          // Objects for Sobol' points.
-         DigitalNetBase2 p = new SobolSequence(k, 32, s);
+         DigitalNetBase2 p = new SobolSequence(k, 30, s);
 
          // Sob-NUS
          CachedPointSet cp = new CachedPointSet(p);
