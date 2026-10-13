@@ -29,7 +29,7 @@ import umontreal.ssj.util.Chrono;
  * Cached NUS maps random words differently from the original algorithms, so
  * their comparison uses statistics and timings.
  */
-public class CompareFK02MC2 {
+public class CompareNUSMethods {
 
    private static double runExperiment(MC2 model, RQMCPointSet points, int m, TallyStore estimates) {
       points.getRandomization().getStream().resetStartStream();
@@ -53,10 +53,10 @@ public class CompareFK02MC2 {
    }
 
    private static void printTiming(String name, double preparationSeconds, double experimentSeconds,
-         double scramblingSeconds, int m) {
-      System.out.printf(Locale.ROOT, "%-26s %12.6f %16.6f %12.6f %12.6f %12.6f %16.6f%n",
+         double scramblingSeconds) {
+      System.out.printf(Locale.ROOT, "%-26s %12.6f %16.6f %12.6f %12.6f%n",
             name, preparationSeconds, scramblingSeconds, preparationSeconds + scramblingSeconds,
-            experimentSeconds, 1000.0 * experimentSeconds / m, 1.0e6 * scramblingSeconds / m);
+            experimentSeconds);
    }
 
    // Compare replication estimates outside the timed loops.
@@ -79,8 +79,8 @@ public class CompareFK02MC2 {
 
    public static void main(String[] args) {
       int s = 4;          // Dimension.
-      int k = 10  ;         // Number of points is 2^k.
-      int m = 1000;       // Number of measured replications.
+      int k = 14  ;         // Number of points is 2^k.
+      int m = 10000;       // Number of measured replications.
       int w = 32;         // Output precision.
       int numBits = w;    // Full scrambling for all five methods.
       int warmup = 1000;
@@ -98,7 +98,7 @@ public class CompareFK02MC2 {
       RQMCPointSet legacy = new RQMCPointSet(new CachedPointSet(legacyNet, false),
             new NestedUniformScrambling(legacyStream, numBits));
       double legacyPreparationSeconds = preparationTimer.getSeconds();
-      int n = legacy.getNumPoints();
+      int n = legacy.getNumPoints();// to avoid refrencing the net at the end.
 
       preparationTimer.init();
       DigitalNetBase2 fk02Net = new SobolSequence(k, w, s);
@@ -170,14 +170,13 @@ public class CompareFK02MC2 {
       printStatistics("HCK", hckEstimates);
 
       System.out.println();
-      System.out.printf("%-26s %12s %16s %12s %12s %12s %16s%n",
-            "Method", "Prep CPU (s)", "Scramble CPU (s)", "Total CPU (s)",
-            "MC2 CPU (s)", "MC2 ms/rep", "Scramble us/rep");
-      printTiming("NestedUniformScrambling", legacyPreparationSeconds, legacySeconds, legacyScramblingSeconds, m);
-      printTiming("RQMCDigitalNet2FK02", fk02PreparationSeconds, fk02Seconds, fk02ScramblingSeconds, m);
-      printTiming("RQMCCachedNUS (cache)", cachedPreparationSeconds, cachedSeconds, cachedScramblingSeconds, m);
-      printTiming("RQMCCachedNUS (digital)", digitalPreparationSeconds, digitalSeconds, digitalScramblingSeconds, m);
-      printTiming("HCK", hckPreparationSeconds, hckSeconds, hckScramblingSeconds, m);
+      System.out.printf("%-26s %12s %16s %12s %12s%n",
+            "Method", "Prep CPU (s)", "Scramble CPU (s)", "Total CPU (s)", "MC2 CPU (s)");
+      printTiming("NestedUniformScrambling", legacyPreparationSeconds, legacySeconds, legacyScramblingSeconds);
+      printTiming("RQMCDigitalNet2FK02", fk02PreparationSeconds, fk02Seconds, fk02ScramblingSeconds);
+      printTiming("RQMCCachedNUS (cache)", cachedPreparationSeconds, cachedSeconds, cachedScramblingSeconds);
+      printTiming("RQMCCachedNUS (digital)", digitalPreparationSeconds, digitalSeconds, digitalScramblingSeconds);
+      printTiming("HCK", hckPreparationSeconds, hckSeconds, hckScramblingSeconds);
       System.out.printf(Locale.ROOT, "FK02 speedup (legacy / FK02): MC2 %.3fx, scrambling %.3fx%n",
             legacySeconds / fk02Seconds, legacyScramblingSeconds / fk02ScramblingSeconds);
       System.out.printf(Locale.ROOT, "Cached NUS speedup (legacy / cached): MC2 %.3fx, scrambling %.3fx%n",
@@ -199,6 +198,5 @@ public class CompareFK02MC2 {
       if (mismatches != 0)
          System.out.println("Their current mask calculations differ: FK02 uses highestOneBit; original NUS uses Num.log2.");
       compareEstimates("Cached-input vs digital-input NUS", cachedEstimates, digitalEstimates);
-      compareEstimates("HCK vs digital-input NUS", hckEstimates, digitalEstimates);
    }
 }

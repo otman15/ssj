@@ -18,19 +18,18 @@ import java.util.Arrays;
 import umontreal.ssj.rng.RandomStream;
 
 /**
- * Generates a fully scrambled base-2 digital sequence using the sequential
- * method of Helmer, Christensen, and Kensler. The input net must have
- * non-singular upper-triangular (NUT) generating matrices. The construction
- * follows Sections 3 and 4 of
+ * Generates an Owen-scrambled base-2 digital point set using the sequential method
+ * of Helmer, Christensen, and Kensler. The input net must have
+ * non-singular upper-triangular (NUT) generating matrices.
+ * This implementation requires the number of points to be a power of two, {@code n = 2^k}.
+ * The construction follows Sections 3 and 4 of
  * <a href="https://doi.org/10.2312/sr.20211287">Stochastic Generation of
  * (t,s) Sample Sequences</a>.
  *
  * <p>The constructor derives the index XOR values from the current generator
  * matrices. It does not store the input net directly or consume random numbers. Each
  * call to {@link #randomize()} generates the sequence afresh in ordinary binary
- * index order and writes it into the caller-supplied output cache. Digital
- * shifts and iterator-added independent random bits on the input net are
- * ignored, as in the existing SSJ nested uniform scrambling method.
+ * index order and writes it into the caller-supplied output cache.
  *
  * <p>Internal coordinates use integers so that rounding the output doubles
  * cannot change the strata used to generate later points. Output follows the
@@ -40,8 +39,7 @@ import umontreal.ssj.rng.RandomStream;
  *
  * <p>Full scrambling requires the random stream to provide sufficiently
  * uniform and independent random bits up to {@code outputBits}. This class
- * uses {@link RandomStream#nextLong(long, long)}; implementations based on
- * {@code nextDouble()} may not supply all 62 bits.
+ * uses {@link RandomStream#nextLong(long, long)}.
  */
 public final class RQMCDigitalNet2HCK extends RQMCPointSet {
    private static final double EPSILON_HALF = 0x1.0p-55;
@@ -53,7 +51,7 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
    private final double normFactor;
    private final long maxWord;
 
-   // xorValues[j][m] selects the previous point for dimension j at level m.
+   // XOR mask used to select the previous point for dimension j at level m.
    private final int[][] xorValues;
 
    // Keep exact coordinates between stages; the output cache contains doubles.
@@ -63,7 +61,8 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
     * Prepares an HCK randomization without generating any points.
     *
     * @param inputNet digital net supplying the NUT generator matrices
-    * @param outputPoints caller-supplied cache for the scrambled sequence
+    * @param outputPoints caller-supplied cache for the scrambled sequence.
+    *                      The constructor disables parent randomization on this cache.
     * @param stream source of random bits
     * @param outputBits number of scrambled output bits, from
     *        {@code max(1, log2(numPoints))} up to 62
@@ -108,9 +107,10 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
       this.maxWord = (1L << outputBits) - 1L;
       this.xorValues = new int[dim][k];
 
-      // The first k rows of each column form an upper-triangular matrix over
-      // GF(2). Solve C v = e_m by back substitution; removing v's diagonal bit
-      // gives the m-th column of C^(-1) used as HCK's XOR lookup value.
+      // For each dimension, extract the leading k x k NUT generating matrix C.
+      // For each level m, solve C v = e_m by back substitution to obtain
+      // the m-th column of C^(-1). Clearing its diagonal bit gives
+      // HCK's XOR lookup value: xorValues[j][m] = C^(-1)e_m XOR e_m.
       int[] rows = new int[k];
       for (int j = 0; j < dim; j++) {
          Arrays.fill(rows, 0);
@@ -125,23 +125,25 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
             }
          }
          for (int m = 0; m < k; m++) {
-            int inverseColumn = 1 << m;
-            for (int r = m - 1; r >= 0; r--)
+            int em = 1 << m;
+            int inverseColumn = em; // v_m = 1
+            for (int r = m - 1; r >= 0; r--) // Use back substitution to compute v_r for r < m, where v = C^(-1)e_m.
+               // Count products equal to 1 and check their parity instead of XORing them.
                if ((Integer.bitCount(rows[r] & inverseColumn) & 1) != 0)
-                  inverseColumn |= 1 << r;
-            xorValues[j][m] = inverseColumn ^ (1 << m);
+                  inverseColumn |= 1 << r; // computed vector v packed in an integer
+            xorValues[j][m] = inverseColumn ^ em; // Xorval = v xor e_m
          }
       }
 
-      this.scrambledBits = new long[n];
+      this.scrambledBits = new long[n]; // Keep exact integer coordinates between levels to avoid double rounding.
       rand = new HCKRandomization();
       outputPoints.setRandomizeParent(false);
    }
 
    /**
     * Generates a new scrambled sequence in the supplied cache. The first point
-    * is uniform; at each doubling level, a new point is drawn in the stratum
-    * adjacent to the one selected by the precomputed XOR value. This method
+    * is uniform; at each doubling level, new points are drawn in the stratum
+    * adjacent to the ones selected by the precomputed XOR value. This method
     * allocates no objects in this class.
     */
    @Override
@@ -161,7 +163,7 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
                int newIndex = previousLength + i;
                long previous = scrambledBits[i ^ xorValues[j][m]];
                long adjacentStratum = (previous >>> suffixBits) ^ 1L;
-               long suffix = stream.nextLong(0, maxSuffix);
+               long suffix = suffixBits == 0 ? 0L : stream.nextLong(0, maxSuffix);
 
                z = (adjacentStratum << suffixBits) | suffix;
                scrambledBits[newIndex] = z;

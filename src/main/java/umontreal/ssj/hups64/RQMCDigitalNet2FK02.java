@@ -14,7 +14,6 @@
 package umontreal.ssj.hups64;
 
 import umontreal.ssj.rng.RandomStream;
-import umontreal.ssj.util.Num;
 
 /**
  * Applies the historical FK02 nested uniform scrambling algorithm to a digital
@@ -119,12 +118,6 @@ public final class RQMCDigitalNet2FK02 extends RQMCPointSet {
          poslist[0] = 0;
          // Generate coordinates in Gray-code order, retaining the first 31 bits.
          for (int i = 1; i < numPoints; i++) {
-            // int pos = 0;
-            // int bv = 1;
-            // while ((i & bv) == 0) {
-            //    pos++;
-            //    bv <<= 1;
-            // }
             int pos = Integer.numberOfTrailingZeros(i);
             bvlist[i] = bvlist[i - 1] ^ (genMat[j * numCols + pos] >>> (outDigits - 31));
             poslist[i] = i;
@@ -159,18 +152,6 @@ public final class RQMCDigitalNet2FK02 extends RQMCPointSet {
             bv2 ^= bvlistL;
 
             long mask = bv2 == 0L ? 0L : Long.highestOneBit(bv2) - 1L;
-
-      //       long diff = bv2;
-
-      //       int l = 65;
-
-      //       while (diff != 0L) {
-      //          diff >>>= 1;
-      //          l--;
-      //       }
-
-      //       long mask = (l == 0)
-      //   ? 0L : (1L << (64 - l)) - 1L;
             
             bv2 = (stream.nextLong(0, (1L << numBits) - 1) << (outDigits - numBits))
                   &  mask;
