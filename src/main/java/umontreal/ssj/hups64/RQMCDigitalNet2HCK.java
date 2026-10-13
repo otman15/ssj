@@ -26,7 +26,7 @@ import umontreal.ssj.rng.RandomStream;
  * <a href="https://doi.org/10.2312/sr.20211287">Stochastic Generation of
  * (t,s) Sample Sequences</a>.
  *
- * <p>The constructor derives the index XOR values from the current generator
+ * <p>The constructor derives the index XOR masks from the current generator
  * matrices. It does not store the input net directly or consume random numbers. Each
  * call to {@link #randomize()} generates the sequence afresh in ordinary binary
  * index order and writes it into the caller-supplied output cache.
@@ -52,7 +52,7 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
    private final long maxWord;
 
    // XOR mask used to select the previous point for dimension j at level m.
-   private final int[][] xorValues;
+   private final int[][] truncatedInverseColumns;
 
    // Keep exact coordinates between stages; the output cache contains doubles.
    private final long[] scrambledBits;
@@ -105,12 +105,12 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
       this.numLevels = k;
       this.normFactor = Math.scalb(1.0, -outputBits);
       this.maxWord = (1L << outputBits) - 1L;
-      this.xorValues = new int[dim][k];
+      this.truncatedInverseColumns = new int[dim][k];
 
       // For each dimension, extract the leading k x k NUT generating matrix C.
       // For each level m, solve C v = e_m by back substitution to obtain
       // the m-th column of C^(-1). Clearing its diagonal bit gives
-      // HCK's XOR lookup value: xorValues[j][m] = C^(-1)e_m XOR e_m.
+      // HCK's XOR lookup value: truncatedInverseColumns[j][m] = C^(-1)e_m XOR e_m.
       int[] rows = new int[k];
       for (int j = 0; j < dim; j++) {
          Arrays.fill(rows, 0);
@@ -131,7 +131,7 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
                // Count products equal to 1 and check their parity instead of XORing them.
                if ((Integer.bitCount(rows[r] & inverseColumn) & 1) != 0)
                   inverseColumn |= 1 << r; // computed vector v packed in an integer
-            xorValues[j][m] = inverseColumn ^ em; // Xorval = v xor e_m
+            truncatedInverseColumns[j][m] = inverseColumn ^ em; // truncatedInverseColumns = C^(-1)e_m xor e_m
          }
       }
 
@@ -161,7 +161,7 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
 
             for (int i = 0; i < previousLength; i++) {
                int newIndex = previousLength + i;
-               long previous = scrambledBits[i ^ xorValues[j][m]];
+               long previous = scrambledBits[i ^ truncatedInverseColumns[j][m]];
                long adjacentStratum = (previous >>> suffixBits) ^ 1L;
                long suffix = suffixBits == 0 ? 0L : stream.nextLong(0, maxSuffix);
 
