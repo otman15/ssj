@@ -59,7 +59,7 @@ public final class RQMCCachedNUS extends RQMCPointSet {
    // To map each sorted coordinate position back to its original output row.
    private final int[][] originalIndices;
 
-   // Reusable coordinate buffer indexed by dimension and original point.
+   // Reusable coordinate buffer indexed by dimension and original point order.
    private final double[][] scrambledCoordinates;
 
    // One mask per consecutive sorted coordinates in each dimension, including
