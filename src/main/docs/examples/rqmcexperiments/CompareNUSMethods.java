@@ -83,7 +83,7 @@ public class CompareNUSMethods {
    }
 
    public static void main(String[] args) {
-      int s = 10;          // Dimension.
+      int s = 8;          // Dimension.
       int k = 20  ;         // Number of points is 2^k.
       int m = 10;       // Number of measured replications.
       int w = 31;         // Output precision.
@@ -93,7 +93,7 @@ public class CompareNUSMethods {
 
       MWC64k3a2 ssjNusStream = new MWC64k3a2();
       ssjNusStream.setSeed(seed);
-      // MWC64k3a2 fk02Stream = ssjNusStream.clone();
+       MWC64k3a2 fk02Stream = ssjNusStream.clone();
       // MWC64k3a2 cachedStream = ssjNusStream.clone();
       MWC64k3a2 digitalStream = ssjNusStream.clone();
       // MWC64k3a2 digitalRngBufferStream = ssjNusStream.clone();
@@ -107,11 +107,11 @@ public class CompareNUSMethods {
       // double ssjNusPreparationSeconds = preparationTimer.getSeconds();
       int n = ssjNus.getNumPoints();// to avoid refrencing the net at the end.
 
-      // preparationTimer.init();
-      // DigitalNetBase2 fk02Net = new SobolSequence(k, w, s);
-      // RQMCDigitalNet2FK02 fk02 = new RQMCDigitalNet2FK02(fk02Net,
-      //       new CachedPointSet(fk02Net, false), fk02Stream, numBits);
-      // double fk02PreparationSeconds = preparationTimer.getSeconds();
+      preparationTimer.init();
+      DigitalNetBase2 fk02Net = new SobolSequence(k, w, s);
+      RQMCDigitalNet2FK02 fk02 = new RQMCDigitalNet2FK02(fk02Net,
+            new CachedPointSet(fk02Net, false), fk02Stream, numBits);
+      double fk02PreparationSeconds = preparationTimer.getSeconds();
 
       // preparationTimer.init();
       // CachedPointSet cachedPoints = new CachedPointSet(new SobolSequence(k, w, s));
@@ -149,7 +149,7 @@ public class CompareNUSMethods {
       Gaussian model = new Gaussian(s);
       Tally warmupEstimates = new Tally();
 
-      // RQMCExperiment64.simulReplicatesRQMC(model, fk02, warmup, warmupEstimates);
+       RQMCExperiment64.simulReplicatesRQMC(model, fk02, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, ssjNus, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, cachedNus, warmup, warmupEstimates);
       RQMCExperiment64.simulReplicatesRQMC(model, digitalNus, warmup, warmupEstimates);
@@ -159,14 +159,14 @@ public class CompareNUSMethods {
 
       // Reset once per experiment, so successive replications use fresh randomness.
       // TallyStore ssjNusEstimates = new TallyStore(m);
-      // TallyStore fk02Estimates = new TallyStore(m);
+       TallyStore fk02Estimates = new TallyStore(m);
       // TallyStore cachedEstimates = new TallyStore(m);
       TallyStore digitalEstimates = new TallyStore(m);
       // TallyStore digitalRngBufferEstimates = new TallyStore(m);
       TallyStore hckEstimates = new TallyStore(m);
       // TallyStore hckRngBufferEstimates = new TallyStore(m);
 
-      // double fk02Seconds = runExperiment(model, fk02, m, fk02Estimates);
+       double fk02Seconds = runExperiment(model, fk02, m, fk02Estimates);
       // double ssjNusSeconds = runExperiment(model, ssjNus, m, ssjNusEstimates);
       // double cachedSeconds = runExperiment(model, cachedNus, m, cachedEstimates);
       double digitalSeconds = runExperiment(model, digitalNus, m, digitalEstimates);
@@ -174,7 +174,7 @@ public class CompareNUSMethods {
       double hckSeconds = runExperiment(model, digitalHCK, m, hckEstimates);
       // double hckRngBufferSeconds = runExperiment(model, digitalHCKRngBuffer, m, hckRngBufferEstimates);
 
-      // double fk02ScramblingSeconds = timeRandomizations(fk02, m);
+       double fk02ScramblingSeconds = timeRandomizations(fk02, m);
       // double ssjNusScramblingSeconds = timeRandomizations(ssjNus, m);
       // double cachedScramblingSeconds = timeRandomizations(cachedNus, m);
       double digitalScramblingSeconds = timeRandomizations(digitalNus, m);
@@ -193,7 +193,7 @@ public class CompareNUSMethods {
       System.out.printf("%-26s %14s %14s %14s %12s %14s%n",
             "Method", "Mean", "Variance", "Std. deviation", "Skewness", "Excess kurtosis");
       // printStatistics("NestedUniformScrambling", ssjNusEstimates);
-      // printStatistics("RQMCDigitalNet2FK02", fk02Estimates);
+       printStatistics("RQMCDigitalNet2FK02", fk02Estimates);
       // printStatistics("RQMCCachedNUS (cache)", cachedEstimates);
       printStatistics("RQMCCachedNUS (digital)", digitalEstimates);
       // printStatistics("RQMCCachedNUS (dig, buf)", digitalRngBufferEstimates);
@@ -204,7 +204,7 @@ public class CompareNUSMethods {
       System.out.printf("%-26s %12s %16s %12s %12s%n",
             "Method", "Prep CPU (s)", "Scramble CPU (s)", "Total CPU (s)", model.getTag()+" CPU (s)");
       // printTiming("NestedUniformScrambling", ssjNusPreparationSeconds, ssjNusSeconds, ssjNusScramblingSeconds);
-      // printTiming("RQMCDigitalNet2FK02", fk02PreparationSeconds, fk02Seconds, fk02ScramblingSeconds);
+       printTiming("RQMCDigitalNet2FK02", fk02PreparationSeconds, fk02Seconds, fk02ScramblingSeconds);
       // printTiming("RQMCCachedNUS (cache)", cachedPreparationSeconds, cachedSeconds, cachedScramblingSeconds);
       printTiming("RQMCCachedNUS (digital)", digitalPreparationSeconds, digitalSeconds, digitalScramblingSeconds);
       // printTiming("RQMCCachedNUS (dig, buf)", digitalRngBufferPreparationSeconds,

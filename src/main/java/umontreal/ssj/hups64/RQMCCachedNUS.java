@@ -258,7 +258,7 @@ public final class RQMCCachedNUS extends RQMCPointSet {
             // Preserve the common prefix, flip the branching bit, and randomize the suffix.
             // For duplicates, keep z unchanged but still consume a random word.
             z = ((z ^ firstDiffBit) & ~lowerMask) | (word & lowerMask);
-            scrambledCoordinates[j][indices[i]] = z * normFactor + EPSILON_HALF;
+            coordinates[indices[i]] = z * normFactor + EPSILON_HALF;
          }
       }
 
