@@ -39,7 +39,7 @@ import umontreal.ssj.rng.RandomStream;
  *
  * <p>Full scrambling requires the random stream to provide sufficiently
  * uniform and independent random bits up to {@code outputBits}. This class
- * refills a 53-bit reservoir with {@link RandomStream#nextBitsLong(int)} and
+ * refills a 62-bit reservoir with {@link RandomStream#nextBitsLong(int)} and
  * uses the buffered bits to generate each coordinate.
  */
 public final class RQMCDigitalNet2HCKRngBuffer extends RQMCPointSet {
@@ -149,11 +149,11 @@ public final class RQMCDigitalNet2HCKRngBuffer extends RQMCPointSet {
     */
    @Override
    public void randomize() {
-      randomBitsRemaining = 0;
       double[][] output = getPointSet().getArray();
 
       for (int j = 0; j < dimension; j++) {
-         long z = nextRandomBits(outputBits);
+         randomBitsRemaining = 0;
+         long z = stream.nextLong(0L, (1L << outputBits) - 1L);
          scrambledBits[0] = z;
          output[0][j] = z * normFactor + EPSILON_HALF;
 
@@ -164,7 +164,17 @@ public final class RQMCDigitalNet2HCKRngBuffer extends RQMCPointSet {
                int newIndex = previousLength + i;
                long previous = scrambledBits[i ^ truncatedInverseColumns[j][m]];
                long adjacentStratum = (previous >>> suffixBits) ^ 1L;
-               long suffix = nextRandomBits(suffixBits);
+               long suffix = 0L;
+               if (suffixBits > 0) {
+                  if (randomBitsRemaining < suffixBits) {
+                     randomBitsBuffer = stream.nextBitsLong(62);
+                     randomBitsRemaining = 62;
+                  }
+                  long mask = (1L << suffixBits) - 1L;
+                  suffix = randomBitsBuffer & mask;
+                  randomBitsBuffer >>>= suffixBits;
+                  randomBitsRemaining -= suffixBits;
+               }
 
                z = (adjacentStratum << suffixBits) | suffix;
                scrambledBits[newIndex] = z;
@@ -172,25 +182,6 @@ public final class RQMCDigitalNet2HCKRngBuffer extends RQMCPointSet {
             }
          }
       }
-   }
-
-   private long nextRandomBits(int numBits) {
-      long result = 0L;
-      int resultBits = 0;
-      while (resultBits < numBits) {
-         if (randomBitsRemaining == 0) {
-            randomBitsBuffer = stream.nextBitsLong(53);
-            randomBitsRemaining = 53;
-         }
-
-         int bitsToTake = Math.min(numBits - resultBits, randomBitsRemaining);
-         long mask = (1L << bitsToTake) - 1L;
-         result |= (randomBitsBuffer & mask) << resultBits;
-         randomBitsBuffer >>>= bitsToTake;
-         randomBitsRemaining -= bitsToTake;
-         resultBits += bitsToTake;
-      }
-      return result;
    }
 
    /** Returns the caller-supplied output cache. */

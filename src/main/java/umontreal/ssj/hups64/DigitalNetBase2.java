@@ -508,6 +508,26 @@ public class DigitalNetBase2 extends DigitalNet {
          rightMultiplyMat(j, scrambleMat);
    }
 
+   /**
+    * Restores the original generator matrices and removes the random shift.
+    */
+   @Override
+   public void unrandomize() {
+      resetGeneratorMatrices();
+      digitalShift = null;
+   }
+
+   /**
+    * Restores the original generator matrices. This removes the current linear
+    * matrix scrambles.
+    */
+   @Override
+   public void resetGeneratorMatrices() {
+      if (originalMat != null) {
+         genMat = originalMat;
+         originalMat = null;
+      }
+   }
 
    /**
     * Generate a vector of `numBits <= 31` random bits using the random stream

@@ -59,6 +59,9 @@ public final class RQMCCachedNUS extends RQMCPointSet {
    // To map each sorted coordinate position back to its original output row.
    private final int[][] originalIndices;
 
+   // Reusable coordinate buffer indexed by dimension and original point.
+   private final double[][] scrambledCoordinates;
+
    // One mask per consecutive sorted coordinates in each dimension, including
    // the first differing bit and all lower bits. Including that bit lets
    // randomize() recover the branch to flip without retaining sorted coordinates.
@@ -132,6 +135,7 @@ public final class RQMCCachedNUS extends RQMCPointSet {
 
       checkArrayShape(outputPoints.getArray(), "Output");
       originalIndices = new int[dimension][numPoints];
+      scrambledCoordinates = new double[dimension][numPoints];
       firstDiffMasks = new long[dimension][numPoints - 1];
       prepare(inputPoints);
 
@@ -228,9 +232,9 @@ public final class RQMCCachedNUS extends RQMCPointSet {
    }
 
    /**
-    * Scrambles the prepared snapshot and writes it into the supplied output
-    * cache. Performs no sorting or preprocessing and allocates no objects in
-    * this class. Consumes one random word per point per dimension,
+    * Scrambles the prepared snapshot into a reusable buffer, then writes output
+    * rows in point order. Performs no sorting or preprocessing and allocates no
+    * objects in this class. Consumes one random word per point per dimension,
     * including duplicate coordinates.
     */
    @Override
@@ -239,11 +243,12 @@ public final class RQMCCachedNUS extends RQMCPointSet {
       for (int j = 0; j < dimension; j++) {
          int[] indices = originalIndices[j];
          long[] masks = firstDiffMasks[j];
+         double[] coordinates = scrambledCoordinates[j];
 
          // Under full NUS, the first scrambled coordinate is a uniform word;
          // its original bits can be absorbed into the random permutations.
          long z = stream.nextLong(0, maxWord);
-         output[indices[0]][j] = z * normFactor + EPSILON_HALF;
+         coordinates[indices[0]] = z * normFactor + EPSILON_HALF;
          for (int i = 1; i < numPoints; i++) {
             long word = stream.nextLong(0, maxWord);
             long mask = masks[i - 1];
@@ -253,8 +258,14 @@ public final class RQMCCachedNUS extends RQMCPointSet {
             // Preserve the common prefix, flip the branching bit, and randomize the suffix.
             // For duplicates, keep z unchanged but still consume a random word.
             z = ((z ^ firstDiffBit) & ~lowerMask) | (word & lowerMask);
-            output[indices[i]][j] = z * normFactor + EPSILON_HALF;
+            scrambledCoordinates[j][indices[i]] = z * normFactor + EPSILON_HALF;
          }
+      }
+
+      for (int i = 0; i < numPoints; i++) {
+         double[] point = output[i];
+         for (int j = 0; j < dimension; j++)
+            point[j] = scrambledCoordinates[j][i];
       }
    }
 
