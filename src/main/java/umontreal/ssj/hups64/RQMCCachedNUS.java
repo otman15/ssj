@@ -173,12 +173,15 @@ public final class RQMCCachedNUS extends RQMCPointSet {
       double scale = Math.scalb(1.0, outputBits);
       long[] bits = new long[numPoints];
       long[] sortedBits = new long[numPoints];
-      int[] indices = new int[numPoints];
-      int[] sortedIndices = new int[numPoints];
+      int[] tempIndices = new int[numPoints];
       int[] counts = new int[256];
       int[] positions = new int[256];
+      int numPasses = (outputBits + 7) / 8;
 
       for (int j = 0; j < dimension; j++) {
+         // Choose the starting buffer so the final pass ends in originalIndices[j].
+         int[] indices = (numPasses & 1) == 0 ? originalIndices[j] : tempIndices;
+         int[] sortedIndices = (numPasses & 1) == 0 ? tempIndices : originalIndices[j];
          if (net == null) {
             for (int i = 0; i < numPoints; i++) {
                double u = input[i][j];
@@ -221,7 +224,6 @@ public final class RQMCCachedNUS extends RQMCPointSet {
             sortedIndices = indexBuffer;
          }
 
-         System.arraycopy(indices, 0, originalIndices[j], 0, numPoints);
          for (int i = 1; i < numPoints; i++) {
             long firstDifference = Long.highestOneBit(bits[i - 1] ^ bits[i]);
             // Equal integer coordinates share all permutation bits.

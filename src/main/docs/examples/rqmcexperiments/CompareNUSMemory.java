@@ -10,11 +10,12 @@ import umontreal.ssj.hups64.DigitalNetBase2;
 import umontreal.ssj.hups64.NestedUniformScrambling;
 import umontreal.ssj.hups64.RQMCCachedNUS;
 import umontreal.ssj.hups64.RQMCDigitalNet2FK02;
+import umontreal.ssj.hups64.RQMCDigitalNet2HCK;
 import umontreal.ssj.hups64.RQMCPointSet;
 import umontreal.ssj.hups64.SobolSequence;
 import umontreal.ssj.rng.MWC64k3a2;
 
-/** Compares retained heap and allocated bytes for the four NUS methods. */
+/** Compares retained heap and allocated bytes for the five NUS methods. */
 public class CompareNUSMemory {
    private static ThreadMXBean allocationBean;
 
@@ -47,6 +48,10 @@ public class CompareNUSMemory {
       net = new SobolSequence(k, w, s);
       new RQMCCachedNUS(net, new CachedPointSet(net, false),
             newStream(seed)).randomize();
+
+      net = new SobolSequence(k, w, s);
+      new RQMCDigitalNet2HCK(net, new CachedPointSet(net, false),
+            newStream(seed), w).randomize();
    }
 
    private static void report(String name, RQMCPointSet points, long baselineHeap,
@@ -112,11 +117,23 @@ public class CompareNUSMemory {
       report("RQMCCachedNUS (digital)", points, baselineHeap, preparationBytes, m);
    }
 
+   private static void measureHCK(int s, int k, int w, int m, long[] seed) {
+      System.gc();
+      long baselineHeap = usedHeap();
+      long before = allocatedBytes();
+      MWC64k3a2 stream = newStream(seed);
+      DigitalNetBase2 net = new SobolSequence(k, w, s);
+      RQMCDigitalNet2HCK points = new RQMCDigitalNet2HCK(net,
+            new CachedPointSet(net, false), stream, w);
+      long preparationBytes = allocatedBytes() - before;
+      report("RQMCDigitalNet2HCK", points, baselineHeap, preparationBytes, m);
+   }
+
    public static void main(String[] args) {
       int s = 10;
-      int k = 4;
+      int k = 22;
       int w = 32;
-      int m = 10000;
+      int m = 2;
       long[] seed = { 1L, 3L, 4L, 5L };
 
       java.lang.management.ThreadMXBean bean = ManagementFactory.getThreadMXBean();
@@ -137,5 +154,6 @@ public class CompareNUSMemory {
       measureFK02(s, k, w, m, seed);
       measureCached(s, k, w, m, seed);
       measureDigital(s, k, w, m, seed);
+      measureHCK(s, k, w, m, seed);
    }
 }
