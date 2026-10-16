@@ -162,7 +162,7 @@ public class TestRQMCSpeed64 {
       testSpeedAll(m, p, lmsrds, s);
       p.clearIndepRandomBits();
  
-      p.resetGeneratorMatrices();
+      p.unrandomize();
 
       System.out.println("Sobol points with NUS, new FK \n");
       RQMCPointSet fk = new RQMCCachedNUS(p, cp, noise);
