@@ -11,11 +11,12 @@ import umontreal.ssj.hups64.NestedUniformScrambling;
 import umontreal.ssj.hups64.RQMCCachedNUS;
 import umontreal.ssj.hups64.RQMCDigitalNet2FK02;
 import umontreal.ssj.hups64.RQMCDigitalNet2HCK;
+import umontreal.ssj.hups64.RQMCDigitalNet2HCKLong;
 import umontreal.ssj.hups64.RQMCPointSet;
 import umontreal.ssj.hups64.SobolSequence;
 import umontreal.ssj.rng.MWC64k3a2;
 
-/** Compares retained heap and allocated bytes for the five NUS methods. */
+/** Compares retained heap and allocated bytes for the six NUS methods. */
 public class CompareNUSMemory {
    private static ThreadMXBean allocationBean;
 
@@ -24,7 +25,7 @@ public class CompareNUSMemory {
    }
 
    private static long allocatedBytes() {
-      return allocationBean.getThreadAllocatedBytes(Thread.currentThread().getId());
+      return allocationBean.getThreadAllocatedBytes(Thread.currentThread().threadId());
    }
 
    private static MWC64k3a2 newStream(long[] seed) {
@@ -52,6 +53,9 @@ public class CompareNUSMemory {
       net = new SobolSequence(k, w, s);
       new RQMCDigitalNet2HCK(net, new CachedPointSet(net, false),
             newStream(seed), w).randomize();
+
+      net = new SobolSequence(k, w, s);
+      new RQMCDigitalNet2HCKLong(net, newStream(seed), w).randomize();
    }
 
    private static void report(String name, RQMCPointSet points, long baselineHeap,
@@ -129,6 +133,17 @@ public class CompareNUSMemory {
       report("RQMCDigitalNet2HCK", points, baselineHeap, preparationBytes, m);
    }
 
+   private static void measureHCKLong(int s, int k, int w, int m, long[] seed) {
+      System.gc();
+      long baselineHeap = usedHeap();
+      long before = allocatedBytes();
+      MWC64k3a2 stream = newStream(seed);
+      DigitalNetBase2 net = new SobolSequence(k, w, s);
+      RQMCDigitalNet2HCKLong points = new RQMCDigitalNet2HCKLong(net, stream, w);
+      long preparationBytes = allocatedBytes() - before;
+      report("RQMCDigitalNet2HCKLong", points, baselineHeap, preparationBytes, m);
+   }
+
    public static void main(String[] args) {
       int s = 10;
       int k = 22;
@@ -155,5 +170,6 @@ public class CompareNUSMemory {
       measureCached(s, k, w, m, seed);
       measureDigital(s, k, w, m, seed);
       measureHCK(s, k, w, m, seed);
+      measureHCKLong(s, k, w, m, seed);
    }
 }

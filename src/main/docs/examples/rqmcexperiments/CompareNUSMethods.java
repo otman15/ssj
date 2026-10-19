@@ -8,8 +8,10 @@ import umontreal.ssj.hups64.DigitalNetBase2;
 import umontreal.ssj.hups64.NestedUniformScrambling;
 import umontreal.ssj.hups64.RQMCCachedNUS;
 import umontreal.ssj.hups64.RQMCCachedNUSRngBuffer;
+import umontreal.ssj.hups64.RQMCDigNet2HCKlongIter;
 import umontreal.ssj.hups64.RQMCDigitalNet2FK02;
 import umontreal.ssj.hups64.RQMCDigitalNet2HCK;
+import umontreal.ssj.hups64.RQMCDigitalNet2HCKLong;
 import umontreal.ssj.hups64.RQMCDigitalNet2HCKRngBuffer;
 import umontreal.ssj.hups64.RQMCPointSet;
 import umontreal.ssj.hups64.SobolSequence;
@@ -23,7 +25,7 @@ import umontreal.ssj.util.Chrono;
 
 /**
  * Compares original NUS, FK02, digital-input cached NUS with and without RNG
- * buffering, and HCK on MC2,
+ * buffering, and HCK with double or integer storage on the selected model,
  * using the same seed and scrambling precision. Statistics describe the RQMC replication estimates;
  * skewness and excess kurtosis use bias correction. CPU timings exclude
  * preparation and warmup; preparation time is reported separately for all
@@ -84,11 +86,11 @@ public class CompareNUSMethods {
 
    public static void main(String[] args) {
       int s = 10;          // Dimension.
-      int k = 14  ;         // Number of points is 2^k.
-      int m = 10000;       // Number of measured replications.
+      int k = 16  ;         // Number of points is 2^k.
+      int m = 1000;       // Number of measured replications.
       int w = 31;         // Output precision.
-      int numBits = w;    // Full scrambling for all five active methods.
-      int warmup = 1000;
+      int numBits = w;    // Full scrambling at the selected output precision.
+      int warmup = 100;
       long[] seed = { 1L, 2L, 3L, 4L};
 
       MWC64k3a2 ssjNusStream = new MWC64k3a2();
@@ -98,6 +100,8 @@ public class CompareNUSMethods {
       MWC64k3a2 digitalStream = ssjNusStream.clone();
       // MWC64k3a2 digitalRngBufferStream = ssjNusStream.clone();
       MWC64k3a2 hckStream = ssjNusStream.clone();
+      MWC64k3a2 hckLongStream = ssjNusStream.clone();
+      MWC64k3a2 hckLongIterStream = ssjNusStream.clone();
       // MWC64k3a2 hckRngBufferStream = ssjNusStream.clone();
 
       Chrono preparationTimer = new Chrono();
@@ -138,6 +142,18 @@ public class CompareNUSMethods {
       RQMCDigitalNet2HCK digitalHCK = new RQMCDigitalNet2HCK(digitalNetHCK, hckOutput, hckStream, w);
       double hckPreparationSeconds = preparationTimer.getSeconds();
 
+      preparationTimer.init();
+      DigitalNetBase2 digitalNetHCKLong = new SobolSequence(k, w, s);
+      RQMCDigitalNet2HCKLong digitalHCKLong = new RQMCDigitalNet2HCKLong(
+            digitalNetHCKLong, hckLongStream, w);
+      double hckLongPreparationSeconds = preparationTimer.getSeconds();
+
+      preparationTimer.init();
+      DigitalNetBase2 digitalNetHCKLongIter = new SobolSequence(k, w, s);
+      RQMCDigNet2HCKlongIter digitalHCKLongIter = new RQMCDigNet2HCKlongIter(
+            digitalNetHCKLongIter, hckLongIterStream, w);
+      double hckLongIterPreparationSeconds = preparationTimer.getSeconds();
+
       // preparationTimer.init();
       // DigitalNetBase2 digitalNetHCKRngBuffer = new SobolSequence(k, w, s);
       // CachedPointSet hckRngBufferOutput = new CachedPointSet(digitalNetHCKRngBuffer, false);
@@ -155,6 +171,8 @@ public class CompareNUSMethods {
       RQMCExperiment64.simulReplicatesRQMC(model, digitalNus, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, digitalRngBufferNus, warmup, warmupEstimates);
       RQMCExperiment64.simulReplicatesRQMC(model, digitalHCK, warmup, warmupEstimates);
+      RQMCExperiment64.simulReplicatesRQMC(model, digitalHCKLong, warmup, warmupEstimates);
+      RQMCExperiment64.simulReplicatesRQMC(model, digitalHCKLongIter, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, digitalHCKRngBuffer, warmup, warmupEstimates);
 
       // Reset once per experiment, so successive replications use fresh randomness.
@@ -164,6 +182,8 @@ public class CompareNUSMethods {
       TallyStore digitalEstimates = new TallyStore(m);
       // TallyStore digitalRngBufferEstimates = new TallyStore(m);
       TallyStore hckEstimates = new TallyStore(m);
+      TallyStore hckLongEstimates = new TallyStore(m);
+      TallyStore hckLongIterEstimates = new TallyStore(m);
       // TallyStore hckRngBufferEstimates = new TallyStore(m);
 
        double fk02Seconds = runExperiment(model, fk02, m, fk02Estimates);
@@ -172,6 +192,8 @@ public class CompareNUSMethods {
       double digitalSeconds = runExperiment(model, digitalNus, m, digitalEstimates);
       // double digitalRngBufferSeconds = runExperiment(model, digitalRngBufferNus, m, digitalRngBufferEstimates);
       double hckSeconds = runExperiment(model, digitalHCK, m, hckEstimates);
+      double hckLongSeconds = runExperiment(model, digitalHCKLong, m, hckLongEstimates);
+      double hckLongIterSeconds = runExperiment(model, digitalHCKLongIter, m, hckLongIterEstimates);
       // double hckRngBufferSeconds = runExperiment(model, digitalHCKRngBuffer, m, hckRngBufferEstimates);
 
        double fk02ScramblingSeconds = timeRandomizations(fk02, m);
@@ -180,6 +202,8 @@ public class CompareNUSMethods {
       double digitalScramblingSeconds = timeRandomizations(digitalNus, m);
       // double digitalRngBufferScramblingSeconds = timeRandomizations(digitalRngBufferNus, m);
       double hckScramblingSeconds = timeRandomizations(digitalHCK, m);
+      double hckLongScramblingSeconds = timeRandomizations(digitalHCKLong, m);
+      double hckLongIterScramblingSeconds = timeRandomizations(digitalHCKLongIter, m);
       // double hckRngBufferScramblingSeconds = timeRandomizations(digitalHCKRngBuffer, m);
 
       System.out.printf(Locale.ROOT, model.getTag()+": s=%d, n=%d, m=%d, w=%d, numBits=%d, warmup=%d%n",
@@ -198,6 +222,8 @@ public class CompareNUSMethods {
       printStatistics("RQMCCachedNUS (digital)", digitalEstimates);
       // printStatistics("RQMCCachedNUS (dig, buf)", digitalRngBufferEstimates);
       printStatistics("HCK", hckEstimates);
+      printStatistics("HCK (integer storage)", hckLongEstimates);
+      printStatistics("HCK (integer, iterator)", hckLongIterEstimates);
       // printStatistics("HCK (53-bit RNG buffer)", hckRngBufferEstimates);
 
       System.out.println();
@@ -210,6 +236,10 @@ public class CompareNUSMethods {
       // printTiming("RQMCCachedNUS (dig, buf)", digitalRngBufferPreparationSeconds,
       //       digitalRngBufferSeconds, digitalRngBufferScramblingSeconds);
       printTiming("HCK", hckPreparationSeconds, hckSeconds, hckScramblingSeconds);
+      printTiming("HCK (integer storage)", hckLongPreparationSeconds,
+            hckLongSeconds, hckLongScramblingSeconds);
+      printTiming("HCK (integer, iterator)", hckLongIterPreparationSeconds,
+            hckLongIterSeconds, hckLongIterScramblingSeconds);
       // printTiming("HCK (53-bit RNG buffer)", hckRngBufferPreparationSeconds, hckRngBufferSeconds,
       //       hckRngBufferScramblingSeconds);
       // System.out.printf(Locale.ROOT, "FK02 speedup (ssjNus / FK02): "+model.getTag()+" %.3fx, scrambling %.3fx%n",
@@ -230,9 +260,18 @@ public class CompareNUSMethods {
 
       System.out.printf(Locale.ROOT, "HCK speedup (digital-input NUS / HCK): "+model.getTag()+" %.3fx, scrambling %.3fx%n",
              digitalSeconds / hckSeconds, digitalScramblingSeconds / hckScramblingSeconds);
+      System.out.printf(Locale.ROOT, "HCK integer-storage speedup (HCK / integer): "
+            + model.getTag() + " %.3fx, scrambling %.3fx%n",
+            hckSeconds / hckLongSeconds, hckScramblingSeconds / hckLongScramblingSeconds);
+      System.out.printf(Locale.ROOT, "HCK iterator speedup (integer / iterator): "
+            + model.getTag() + " %.3fx, scrambling %.3fx%n",
+            hckLongSeconds / hckLongIterSeconds,
+            hckLongScramblingSeconds / hckLongIterScramblingSeconds);
       // System.out.printf(Locale.ROOT, "HCK -bits RNG buffer speedup (HCK / buffered HCK): "+model.getTag()+" %.3fx, scrambling %.3fx%n",
       //       hckSeconds / hckRngBufferSeconds, hckScramblingSeconds / hckRngBufferScramblingSeconds);
       System.out.println("Cached NUS maps random words differently from ssjNus and FK02; exact equality with them is not required.");
+      compareEstimates("HCK vs HCK (integer storage)", hckEstimates, hckLongEstimates);
+      compareEstimates("HCK integer vs iterator", hckLongEstimates, hckLongIterEstimates);
 
       // int mismatches = compareEstimates("FK02 vs original NUS", ssjNusEstimates, fk02Estimates);
       // if (mismatches != 0)
