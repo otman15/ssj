@@ -86,8 +86,8 @@ public class CompareNUSMethods {
 
    public static void main(String[] args) {
       int s = 10;          // Dimension.
-      int k = 16  ;         // Number of points is 2^k.
-      int m = 1000;       // Number of measured replications.
+      int k = 16;         // Number of points is 2^k.
+      int m = 10;       // Number of measured replications.
       int w = 31;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
       int warmup = 100;

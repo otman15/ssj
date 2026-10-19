@@ -99,7 +99,7 @@ public class TestRQMCSpeed64 {
 
    public static void main(String[] args) {
       int s = 10;    // Dimension
-      int m = 1000;    // Number of QMC randomizations
+      int m = 100;    // Number of QMC randomizations
       int k = 20;
       int n = (int) Num.TWOEXP[k];   // Number of points.
 
