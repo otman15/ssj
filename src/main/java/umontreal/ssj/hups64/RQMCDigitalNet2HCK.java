@@ -39,7 +39,7 @@ import umontreal.ssj.rng.RandomStream;
  *
  * <p>Full scrambling requires the random stream to provide sufficiently
  * uniform and independent random bits up to {@code outputBits}. This class
- * uses {@link RandomStream#nextLong(long, long)}.
+ * uses {@link RandomStream#nextBitsLong(int)}.
  */
 public final class RQMCDigitalNet2HCK extends RQMCPointSet {
    private static final double EPSILON_HALF = 0x1.0p-55;
@@ -49,7 +49,6 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
    private final int outputBits;
    private final int numLevels;
    private final double normFactor;
-   private final long maxWord;
 
    // XOR mask used to select the previous point for dimension j at level m.
    private final int[][] truncatedInverseColumns;
@@ -104,7 +103,6 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
       this.outputBits = outputBits;
       this.numLevels = k;
       this.normFactor = Math.scalb(1.0, -outputBits);
-      this.maxWord = (1L << outputBits) - 1L;
       this.truncatedInverseColumns = new int[dim][k];
 
       // For each dimension, extract the leading k x k NUT generating matrix C.
@@ -151,19 +149,18 @@ public final class RQMCDigitalNet2HCK extends RQMCPointSet {
       double[][] output = getPointSet().getArray();
 
       for (int j = 0; j < dimension; j++) {
-         long z = stream.nextLong(0, maxWord);
+         long z = stream.nextBitsLong(outputBits);
          scrambledBits[0] = z;
          output[0][j] = z * normFactor + EPSILON_HALF;
 
          for (int m = 0, previousLength = 1; m < numLevels; m++, previousLength <<= 1) {
             int suffixBits = outputBits - m - 1;
-            long maxSuffix = (1L << suffixBits) - 1L;
 
             for (int i = 0; i < previousLength; i++) {
                int newIndex = previousLength + i;
                long previous = scrambledBits[i ^ truncatedInverseColumns[j][m]];
                long adjacentStratum = (previous >>> suffixBits) ^ 1L;
-               long suffix = suffixBits == 0 ? 0L : stream.nextLong(0, maxSuffix);
+               long suffix = suffixBits == 0 ? 0L : stream.nextBitsLong(suffixBits);
 
                z = (adjacentStratum << suffixBits) | suffix;
                scrambledBits[newIndex] = z;

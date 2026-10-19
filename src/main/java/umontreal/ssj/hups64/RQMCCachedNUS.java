@@ -36,7 +36,7 @@ import umontreal.ssj.rng.RandomStream;
  *
  * <p>Correct NUS requires sufficiently uniform and independent random bits,
  * within and between random words, up to the requested precision of 62 bits.
- * Random words are obtained through {@link RandomStream#nextLong(long, long)}.
+ * Random words are obtained through {@link RandomStream#nextBitsLong(int)}.
  * Implementations that scale a {@code nextDouble()} result cannot generally
  * supply 62 independent bits, and some supply fewer than 53.
  *
@@ -53,7 +53,6 @@ public final class RQMCCachedNUS extends RQMCPointSet {
    private final int numPoints;
    private final int dimension;
    private final int outputBits;
-   private final long maxWord;// represents the maximum random-word value
    private final double normFactor;
 
    // To map each sorted coordinate position back to its original output row.
@@ -129,7 +128,6 @@ public final class RQMCCachedNUS extends RQMCPointSet {
       this.numPoints = inputPoints.getNumPoints();
       this.dimension = inputPoints.getDimension();
       this.outputBits = outputBits;
-      this.maxWord = (1L << outputBits) - 1L;
       this.normFactor = Math.scalb(1.0, -outputBits);
       this.stream = stream;
 
@@ -249,10 +247,10 @@ public final class RQMCCachedNUS extends RQMCPointSet {
 
          // Under full NUS, the first scrambled coordinate is a uniform word;
          // its original bits can be absorbed into the random permutations.
-         long z = stream.nextLong(0, maxWord);
+         long z = stream.nextBitsLong(outputBits);
          coordinates[indices[0]] = z * normFactor + EPSILON_HALF;
          for (int i = 1; i < numPoints; i++) {
-            long word = stream.nextLong(0, maxWord);
+            long word = stream.nextBitsLong(outputBits);
             long mask = masks[i - 1];
             long lowerMask = mask >>> 1;
             long firstDiffBit = mask ^ lowerMask;

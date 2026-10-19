@@ -86,11 +86,11 @@ public class CompareNUSMethods {
 
    public static void main(String[] args) {
       int s = 10;          // Dimension.
-      int k = 16;         // Number of points is 2^k.
+      int k = 20;         // Number of points is 2^k.
       int m = 10;       // Number of measured replications.
       int w = 31;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
-      int warmup = 100;
+      int warmup = 5;
       long[] seed = { 1L, 2L, 3L, 4L};
 
       MWC64k3a2 ssjNusStream = new MWC64k3a2();

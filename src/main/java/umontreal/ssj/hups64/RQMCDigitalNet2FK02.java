@@ -143,7 +143,7 @@ public final class RQMCDigitalNet2FK02 extends RQMCPointSet {
             }
          }
 
-         long bv = stream.nextLong(0, (1L << numBits) - 1) << (outDigits - numBits);
+         long bv = stream.nextBitsLong(numBits) << (outDigits - numBits);
          long bvlistL = bvlist[0] << (outDigits - 31);
          output[poslist[0]][j] = (bvlistL ^ bv) * localNormFactor + EpsilonHalf;
          for (int i = 1; i < numPoints; i++) {
@@ -153,7 +153,7 @@ public final class RQMCDigitalNet2FK02 extends RQMCPointSet {
 
             long mask = bv2 == 0L ? 0L : Long.highestOneBit(bv2) - 1L;
             
-            bv2 = (stream.nextLong(0, (1L << numBits) - 1) << (outDigits - numBits))
+            bv2 = (stream.nextBitsLong(numBits) << (outDigits - numBits))
                   &  mask;
             bv ^= bv2;
             output[poslist[i]][j] = (bvlistL ^ bv) * localNormFactor + EpsilonHalf;

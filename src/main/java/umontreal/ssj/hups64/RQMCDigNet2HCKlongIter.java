@@ -30,7 +30,7 @@ import umontreal.ssj.rng.RandomStream;
  * {@code z / 2^outputBits + 2^-55}. At high precision, distinct integers may
  * round to the same double, and an output may round to exactly {@code 1.0}.
  * Full scrambling requires the stream to provide sufficiently uniform and
- * independent random bits through {@link RandomStream#nextLong(long, long)}.
+ * independent random bits through {@link RandomStream#nextBitsLong(int)}.
  */
 public final class RQMCDigNet2HCKlongIter extends RQMCPointSet {
    private static final double EPSILON_HALF = 0x1.0p-55;
@@ -40,7 +40,6 @@ public final class RQMCDigNet2HCKlongIter extends RQMCPointSet {
    private final int outputBits;
    private final int numLevels;
    private final double normFactor;
-   private final long maxWord;
    private final int[] invLastCol1;
    private final long[][] scrambledBits;
 
@@ -80,7 +79,6 @@ public final class RQMCDigNet2HCKlongIter extends RQMCPointSet {
       this.outputBits = outputBits;
       this.numLevels = k;
       this.normFactor = Math.scalb(1.0, -outputBits);
-      this.maxWord = (1L << outputBits) - 1L;
       this.invLastCol1 = new int[dim * k];
 
       // Each mask is the m-th column of C^(-1), with its diagonal bit cleared.
@@ -119,19 +117,18 @@ public final class RQMCDigNet2HCKlongIter extends RQMCPointSet {
       for (int j = 0; j < dimension; j++) {
          int dimensionOffset = j * numLevels;
          long[] coordinates = scrambledBits[j];
-         long z = stream.nextLong(0, maxWord);
+         long z = stream.nextBitsLong(outputBits);
          coordinates[0] = z;
 
          for (int m = 0, previousLength = 1; m < numLevels; m++, previousLength <<= 1) {
             int suffixBits = outputBits - m - 1;
-            long maxSuffix = (1L << suffixBits) - 1L;
             int xorMask = invLastCol1[dimensionOffset + m];
 
             for (int i = 0; i < previousLength; i++) {
                int newIndex = previousLength + i;
                long previous = coordinates[i ^ xorMask];
                long adjacentStratum = (previous >>> suffixBits) ^ 1L;
-               long suffix = suffixBits == 0 ? 0L : stream.nextLong(0, maxSuffix);
+               long suffix = suffixBits == 0 ? 0L : stream.nextBitsLong(suffixBits);
 
                z = (adjacentStratum << suffixBits) | suffix;
                coordinates[newIndex] = z;
