@@ -176,6 +176,10 @@ public class TestRQMCSpeed64 {
       RQMCPointSet hckLong = new RQMCDigitalNet2HCKLong(p, noise, 53);
       testSpeedAll(m, hckLong.getPointSet(), hckLong.getRandomization(), s);
 
+      System.out.println("Sobol points with NUS, new HCKPointSet \n");
+      HCKPointSet hckPointSet = new HCKPointSet(p, noise, 53);
+      testSpeedAll(m, hckPointSet, hckPointSet.getRandomization(), s);
+
       System.out.println("Sobol points with NUS, new HCKLong iterator \n");
       RQMCPointSet hckLongIter = new RQMCDigNet2HCKlongIter(p, noise, 53);
       testSpeedAll(m, hckLongIter.getPointSet(), hckLongIter.getRandomization(), s);
