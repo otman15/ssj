@@ -26,16 +26,18 @@ import umontreal.ssj.rng.RandomStream;
  * <p>Construction derives the index XOR masks from the supplied generating
  * matrices without retaining them or consuming random numbers. Call
  * {@link #randomize()} before accessing coordinates. Each randomization generates
- * every coordinate in ordinary binary index order and stores it as an integer
- * in a dimension-major array. The construction and random-number consumption
- * order are the same as in {@link RQMCDigitalNet2HCKLong}.
+ * every coordinate in ordinary binary index order and stores its double value
+ * in a dimension-major array. One integer work array is reused for each
+ * dimension so that rounding cannot affect the generation of later points.
+ * The construction and random-number consumption order are the same as in
+ * {@link RQMCDigitalNet2HCKLong}.
  *
- * <p>Coordinate access converts the stored integer to a double using the SSJ
- * convention {@code z / 2^outputBits + 2^-55}. At high precision, distinct
- * integers may round to the same double, and an output may round to exactly
- * {@code 1.0}. Full scrambling requires the stream to provide sufficiently
- * uniform and independent random bits through
- * {@link RandomStream#nextBitsLong(int)}.
+ * <p>Each integer coordinate is converted once during randomization using the
+ * SSJ convention {@code z / 2^outputBits + 2^-55}. Coordinate access returns the
+ * stored double directly. At high precision, distinct integers may round to the
+ * same double, and an output may round to exactly {@code 1.0}. Full scrambling
+ * requires the stream to provide sufficiently uniform and independent random
+ * bits through {@link RandomStream#nextBitsLong(int)}.
  *
  * <p>The inherited default iterator accesses these stored coordinates. For RQMC
  * experiments, use this point set with {@link #getRandomization()}, or wrap the
@@ -50,8 +52,10 @@ public final class HCKPointSet extends PointSet {
    private final double normFactor;
    // XOR mask for dimension j and level m, stored at j * numLevels + m.
    private final int[] invLastCol1;
-   // Keep exact integer coordinates between levels; convert to doubles only on access.
-   private final long[][] scrambledBits;
+   // Converted coordinates, stored by dimension for direct access.
+   private final double[][] coordinates;
+   // Keep exact integer coordinates between levels; reuse this work array for each dimension.
+   private final long[] scrambledBits;
    private final PointSetRandomization randomization;
 
    /**
@@ -150,7 +154,8 @@ public final class HCKPointSet extends PointSet {
          }
       }
 
-      this.scrambledBits = new long[dim][numPoints];
+      this.coordinates = new double[dim][numPoints];
+      this.scrambledBits = new long[numPoints];
       this.randomization = new HCKRandomization();
    }
 
@@ -161,19 +166,23 @@ public final class HCKPointSet extends PointSet {
    }
 
    /**
-    * Generates every integer coordinate for a fresh scrambling. The first point
-    * is uniform; at each doubling level, new coordinates are drawn in dyadic
-    * strata adjacent to those of the previous points selected by the precomputed
-    * XOR masks. Uses the current stream without resetting it or allocating
-    * coordinate storage.
+    * Generates a fresh scrambling and stores the converted double coordinates.
+    * The first point is uniform; at each doubling level, new coordinates are
+    * drawn in dyadic strata adjacent to those of the previous points selected by
+    * the precomputed XOR masks. Reuses the integer work array for each dimension
+    * and uses the current stream without resetting it or allocating coordinate
+    * storage.
     */
    public void randomize() {
+      // The work array needs no clearing: each level reads only the prefix
+      // already overwritten for the current dimension.
       for (int j = 0; j < dim; j++) {
          int dimensionOffset = j * numLevels;
-         long[] coordinates = scrambledBits[j];
+         double[] output = coordinates[j];
          // Draw point 0's coordinate uniformly on the outputBits-bit grid.
          long z = stream.nextBitsLong(outputBits);
-         coordinates[0] = z;
+         scrambledBits[0] = z;
+         output[0] = z * normFactor + EPSILON_HALF;
 
          // At level m, append 2^m points to the existing 2^m points.
          for (int m = 0, previousLength = 1; m < numLevels; m++, previousLength <<= 1) {
@@ -183,7 +192,7 @@ public final class HCKPointSet extends PointSet {
             for (int i = 0; i < previousLength; i++) {
                int newIndex = previousLength + i;
                // The mask uses only index bits 0..m-1, so this point already exists.
-               long previous = coordinates[i ^ xorMask];
+               long previous = scrambledBits[i ^ xorMask];
                // Keep the first m bits and flip the next bit to select the adjacent stratum.
                long adjacentStratum = (previous >>> suffixBits) ^ 1L;
                // Fill the remaining bits with fresh randomness; skip the draw if none remain.
@@ -191,7 +200,8 @@ public final class HCKPointSet extends PointSet {
 
                // Combine the adjacent-stratum prefix and its random suffix.
                z = (adjacentStratum << suffixBits) | suffix;
-               coordinates[newIndex] = z;
+               scrambledBits[newIndex] = z;
+               output[newIndex] = z * normFactor + EPSILON_HALF;
             }
          }
       }
@@ -199,7 +209,7 @@ public final class HCKPointSet extends PointSet {
 
    @Override
    public double getCoordinate(int i, int j) {
-      return scrambledBits[j][i] * normFactor + EPSILON_HALF;
+      return coordinates[j][i];
    }
 
    /**
@@ -248,7 +258,7 @@ public final class HCKPointSet extends PointSet {
 
    @Override
    public String toString() {
-      return "HCK full nested uniform scrambling with integer storage (outputBits = "
+      return "HCK full nested uniform scrambling with double storage (outputBits = "
             + outputBits + ")";
    }
 
