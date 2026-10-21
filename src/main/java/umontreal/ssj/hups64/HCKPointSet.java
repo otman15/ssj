@@ -39,7 +39,7 @@ import umontreal.ssj.rng.RandomStream;
  * requires the stream to provide sufficiently uniform and independent random
  * bits through {@link RandomStream#nextBitsLong(int)}.
  *
- * <p>The inherited default iterator accesses these stored coordinates. For RQMC
+ * <p>A specialized iterator accesses these stored coordinates directly. For RQMC
  * experiments, use this point set with {@link #getRandomization()}, or wrap the
  * pair in an {@link RQMCPointSet}.
  */
@@ -213,6 +213,16 @@ public final class HCKPointSet extends PointSet {
    }
 
    /**
+    * Returns an iterator that reads the cached double coordinates directly.
+    *
+    * @return an iterator over this point set
+    */
+   @Override
+   public PointSetIterator iterator() {
+      return new HCKIterator();
+   }
+
+   /**
     * Rejects random shifts. Use {@link #randomize()} or the adapter returned by
     * {@link #getRandomization()} to generate a new HCK scrambling.
     *
@@ -260,6 +270,24 @@ public final class HCKPointSet extends PointSet {
    public String toString() {
       return "HCK full nested uniform scrambling with double storage (outputBits = "
             + outputBits + ")";
+   }
+
+   /** Iterator over the cached double coordinates. */
+   private final class HCKIterator extends DefaultPointSetIterator {
+      @Override
+      public double nextCoordinate() {
+         if (curPointIndex >= numPoints || curCoordIndex >= dim)
+            outOfBounds();
+         return coordinates[curCoordIndex++][curPointIndex];
+      }
+
+      @Override
+      public void nextCoordinates(double[] p, int d) {
+         if (d > dim - curCoordIndex || (d > 0 && curPointIndex >= numPoints))
+            outOfBounds();
+         for (int j = 0; j < d; j++)
+            p[j] = coordinates[curCoordIndex++][curPointIndex];
+      }
    }
 
    private final class HCKRandomization implements PointSetRandomization {
