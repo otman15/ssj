@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import umontreal.ssj.hups64.CachedPointSet;
+import umontreal.ssj.hups64.CachedNUSPointSet;
 import umontreal.ssj.hups64.DigitalNetBase2;
 import umontreal.ssj.hups64.HCKPointSet;
 import umontreal.ssj.hups64.NestedUniformScrambling;
@@ -99,7 +100,8 @@ public class CompareNUSMethods {
       ssjNusStream.setSeed(seed);
       //  MWC64k3a2 fk02Stream = ssjNusStream.clone();
       // // MWC64k3a2 cachedStream = ssjNusStream.clone();
-      // MWC64k3a2 digitalStream = ssjNusStream.clone();
+      MWC64k3a2 digitalStream = ssjNusStream.clone();
+      MWC64k3a2 cachedNUSPointSetStream = ssjNusStream.clone();
       // // MWC64k3a2 digitalRngBufferStream = ssjNusStream.clone();
       // MWC64k3a2 hckStream = ssjNusStream.clone();
       MWC64k3a2 hckLongStream = ssjNusStream.clone();
@@ -127,11 +129,19 @@ public class CompareNUSMethods {
       // double cachedPreparationSeconds = preparationTimer.getSeconds();
 
       preparationTimer.init();
-      // DigitalNetBase2 digitalNet = new SobolSequence(k, w, s); 
-      // CachedPointSet digitalOutput = new CachedPointSet(digitalNet, false);
-      // // Only an output cache is needed: preprocessing reads integer generator columns directly.
-      // RQMCCachedNUS digitalNus = new RQMCCachedNUS(digitalNet, digitalOutput, digitalStream);
-      // double digitalPreparationSeconds = preparationTimer.getSeconds();
+      DigitalNetBase2 digitalNet = new SobolSequence(k, w, s);
+      CachedPointSet digitalOutput = new CachedPointSet(digitalNet, false);
+      // Only an output cache is needed: preprocessing reads integer generator columns directly.
+      RQMCCachedNUS digitalNus = new RQMCCachedNUS(digitalNet, digitalOutput, digitalStream);
+      double digitalPreparationSeconds = preparationTimer.getSeconds();
+
+      preparationTimer.init();
+      DigitalNetBase2 cachedNUSPointSetNet = new SobolSequence(k, w, s);
+      CachedNUSPointSet cachedNUSPointSet = new CachedNUSPointSet(
+            cachedNUSPointSetNet, cachedNUSPointSetStream);
+      RQMCPointSet cachedNUSPoints = new RQMCPointSet(
+            cachedNUSPointSet, cachedNUSPointSet.getRandomization());
+      double cachedNUSPointSetPreparationSeconds = preparationTimer.getSeconds();
 
       // preparationTimer.init();
       // CachedPointSet digitalRngBufferOutput = new CachedPointSet(digitalNet, false);
@@ -177,7 +187,8 @@ public class CompareNUSMethods {
       //  RQMCExperiment64.simulReplicatesRQMC(model, fk02, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, ssjNus, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, cachedNus, warmup, warmupEstimates);
-      // RQMCExperiment64.simulReplicatesRQMC(model, digitalNus, warmup, warmupEstimates);
+      RQMCExperiment64.simulReplicatesRQMC(model, digitalNus, warmup, warmupEstimates);
+      RQMCExperiment64.simulReplicatesRQMC(model, cachedNUSPoints, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, digitalRngBufferNus, warmup, warmupEstimates);
       // RQMCExperiment64.simulReplicatesRQMC(model, digitalHCK, warmup, warmupEstimates);
       RQMCExperiment64.simulReplicatesRQMC(model, digitalHCKLong, warmup, warmupEstimates);
@@ -190,6 +201,7 @@ public class CompareNUSMethods {
        TallyStore fk02Estimates = new TallyStore(m);
       // TallyStore cachedEstimates = new TallyStore(m);
       TallyStore digitalEstimates = new TallyStore(m);
+      TallyStore cachedNUSPointSetEstimates = new TallyStore(m);
       // TallyStore digitalRngBufferEstimates = new TallyStore(m);
       TallyStore hckEstimates = new TallyStore(m);
       TallyStore hckLongEstimates = new TallyStore(m);
@@ -200,7 +212,9 @@ public class CompareNUSMethods {
       //  double fk02Seconds = runExperiment(model, fk02, m, fk02Estimates);
       // double ssjNusSeconds = runExperiment(model, ssjNus, m, ssjNusEstimates);
       // double cachedSeconds = runExperiment(model, cachedNus, m, cachedEstimates);
-      // double digitalSeconds = runExperiment(model, digitalNus, m, digitalEstimates);
+      double digitalSeconds = runExperiment(model, digitalNus, m, digitalEstimates);
+      double cachedNUSPointSetSeconds = runExperiment(
+            model, cachedNUSPoints, m, cachedNUSPointSetEstimates);
       // double digitalRngBufferSeconds = runExperiment(model, digitalRngBufferNus, m, digitalRngBufferEstimates);
       // double hckSeconds = runExperiment(model, digitalHCK, m, hckEstimates);
       
@@ -212,7 +226,8 @@ public class CompareNUSMethods {
       //  double fk02ScramblingSeconds = timeRandomizations(fk02, m);
       // double ssjNusScramblingSeconds = timeRandomizations(ssjNus, m);
       // double cachedScramblingSeconds = timeRandomizations(cachedNus, m);
-      // double digitalScramblingSeconds = timeRandomizations(digitalNus, m);
+      double digitalScramblingSeconds = timeRandomizations(digitalNus, m);
+      double cachedNUSPointSetScramblingSeconds = timeRandomizations(cachedNUSPoints, m);
       // double digitalRngBufferScramblingSeconds = timeRandomizations(digitalRngBufferNus, m);
       // double hckScramblingSeconds = timeRandomizations(digitalHCK, m);
       
@@ -235,6 +250,7 @@ public class CompareNUSMethods {
        printStatistics("RQMCDigitalNet2FK02", fk02Estimates);
       // printStatistics("RQMCCachedNUS (cache)", cachedEstimates);
       printStatistics("RQMCCachedNUS (digital)", digitalEstimates);
+      printStatistics("CachedNUSPointSet", cachedNUSPointSetEstimates);
       // printStatistics("RQMCCachedNUS (dig, buf)", digitalRngBufferEstimates);
       printStatistics("HCK", hckEstimates);
       printStatistics("HCK (integer storage)", hckLongEstimates);
@@ -248,7 +264,9 @@ public class CompareNUSMethods {
       // printTiming("NestedUniformScrambling", ssjNusPreparationSeconds, ssjNusSeconds, ssjNusScramblingSeconds);
       //  printTiming("RQMCDigitalNet2FK02", fk02PreparationSeconds, fk02Seconds, fk02ScramblingSeconds);
       // printTiming("RQMCCachedNUS (cache)", cachedPreparationSeconds, cachedSeconds, cachedScramblingSeconds);
-      // printTiming("RQMCCachedNUS (digital)", digitalPreparationSeconds, digitalSeconds, digitalScramblingSeconds);
+      printTiming("RQMCCachedNUS (digital)", digitalPreparationSeconds, digitalSeconds, digitalScramblingSeconds);
+      printTiming("CachedNUSPointSet", cachedNUSPointSetPreparationSeconds,
+            cachedNUSPointSetSeconds, cachedNUSPointSetScramblingSeconds);
       // printTiming("RQMCCachedNUS (dig, buf)", digitalRngBufferPreparationSeconds,
       //       digitalRngBufferSeconds, digitalRngBufferScramblingSeconds);
       // printTiming("HCK", hckPreparationSeconds, hckSeconds, hckScramblingSeconds);
@@ -275,6 +293,10 @@ public class CompareNUSMethods {
       //       digitalScramblingSeconds / digitalRngBufferScramblingSeconds);
       // System.out.printf(Locale.ROOT, "Digital-input NUS speedup (cached / digital): "+model.getTag()+" %.3fx, scrambling %.3fx%n",
       //       cachedSeconds / digitalSeconds, cachedScramblingSeconds / digitalScramblingSeconds);
+      System.out.printf(Locale.ROOT, "CachedNUSPointSet speedup (RQMCCachedNUS / CachedNUSPointSet): "
+            + model.getTag() + " %.3fx, scrambling %.3fx%n",
+            digitalSeconds / cachedNUSPointSetSeconds,
+            digitalScramblingSeconds / cachedNUSPointSetScramblingSeconds);
 
       // System.out.printf(Locale.ROOT, "HCK speedup (digital-input NUS / HCK): "+model.getTag()+" %.3fx, scrambling %.3fx%n",
       //        digitalSeconds / hckSeconds, digitalScramblingSeconds / hckScramblingSeconds);
@@ -292,6 +314,8 @@ public class CompareNUSMethods {
       // System.out.printf(Locale.ROOT, "HCK -bits RNG buffer speedup (HCK / buffered HCK): "+model.getTag()+" %.3fx, scrambling %.3fx%n",
       //       hckSeconds / hckRngBufferSeconds, hckScramblingSeconds / hckRngBufferScramblingSeconds);
       System.out.println("Cached NUS maps random words differently from ssjNus and FK02; exact equality with them is not required.");
+      compareEstimates("RQMCCachedNUS vs CachedNUSPointSet", digitalEstimates,
+            cachedNUSPointSetEstimates);
       compareEstimates("HCK vs HCK (integer storage)", hckEstimates, hckLongEstimates);
       compareEstimates("HCKLong vs HCKPointSet", hckLongEstimates, hckPointSetEstimates);
       compareEstimates("HCK integer vs iterator", hckLongEstimates, hckLongIterEstimates);

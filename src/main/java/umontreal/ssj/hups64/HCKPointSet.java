@@ -18,19 +18,20 @@ import java.util.Arrays;
 import umontreal.ssj.rng.RandomStream;
 
 /**
- * Generates a fully Owen-scrambled base-2 digital point set using the sequential
- * method of Helmer, Christensen, and Kensler (HCK). The point count must be
- * {@code n = 2^k}, and the leading {@code k x k} block of each generating matrix
- * must be non-singular upper-triangular (NUT).
+ * Generates an Owen-scrambled base-2 digital point set using the sequential method
+ * of Helmer, Christensen, and Kensler. The supplied generating matrices must be
+ * non-singular upper-triangular (NUT).
+ * This implementation requires the number of points to be a power of two, {@code n = 2^k}.
+ * The construction follows Sections 3 and 4 of
+ * <a href="https://doi.org/10.2312/sr.20211287">Stochastic Generation of
+ * (t,s) Sample Sequences</a>.
  *
- * <p>Construction derives the index XOR masks from the supplied generating
- * matrices without retaining them or consuming random numbers. Call
- * {@link #randomize()} before accessing coordinates. Each randomization generates
- * every coordinate in ordinary binary index order and stores its double value
- * in a dimension-major array. One integer work array is reused for each
- * dimension so that rounding cannot affect the generation of later points.
- * The construction and random-number consumption order are the same as in
- * {@link RQMCDigitalNet2HCKLong}.
+ * <p>Construction computes the index-selection masks ({@code invLastCol1}) from
+ * the supplied generating matrices without retaining them or consuming random
+ * numbers. Call {@link #randomize()} before accessing coordinates. 
+ * Each randomization generates every coordinate in ordinary binary index order
+ * and stores its double value in a dimension-major array. One integer work array
+ * is reused for each dimension so that rounding cannot affect the generation of later points.
  *
  * <p>Each integer coordinate is converted once during randomization using the
  * SSJ convention {@code z / 2^outputBits + 2^-55}. Coordinate access returns the
@@ -39,9 +40,10 @@ import umontreal.ssj.rng.RandomStream;
  * requires the stream to provide sufficiently uniform and independent random
  * bits through {@link RandomStream#nextBitsLong(int)}.
  *
- * <p>A specialized iterator accesses these stored coordinates directly. For RQMC
- * experiments, use this point set with {@link #getRandomization()}, or wrap the
- * pair in an {@link RQMCPointSet}.
+ * <p>A specialized iterator accesses these stored coordinates directly. Call {@link #randomize()}
+ * directly on this point set to generate new scrambled coordinates. For an RQMC API
+ * that accepts a {@link PointSet} and a {@link PointSetRandomization}, pass this point
+ * set and its {@link #getRandomization()} adapter.
  */
 public final class HCKPointSet extends PointSet {
    private static final double EPSILON_HALF = 0x1.0p-55;
@@ -50,7 +52,7 @@ public final class HCKPointSet extends PointSet {
    private final int outputBits;
    private final int numLevels;
    private final double normFactor;
-   // XOR mask for dimension j and level m, stored at j * numLevels + m.
+   // Index-selection masks for dimension j and level m, stored at j * numLevels + m.
    private final int[] invLastCol1;
    // Converted coordinates, stored by dimension for direct access.
    private final double[][] coordinates;
@@ -59,7 +61,7 @@ public final class HCKPointSet extends PointSet {
    private final PointSetRandomization randomization;
 
    /**
-    * Prepares the XOR masks and allocates coordinate storage from a digital net.
+    * Prepares the index-selection masks and allocates coordinate storage from a digital net.
     * Uses the net's current generating matrices; its separate digital shift is
     * ignored. Later changes to the net do not affect this point set.
     *
@@ -78,7 +80,7 @@ public final class HCKPointSet extends PointSet {
    }
 
    /**
-    * Prepares the XOR masks and allocates coordinate storage from packed
+    * Prepares the index-selection masks and allocates coordinate storage from packed
     * generating matrices, without generating points or consuming random numbers.
     *
     * <p>Column {@code c} of dimension {@code j} is stored at

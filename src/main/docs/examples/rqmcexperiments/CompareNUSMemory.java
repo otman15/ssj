@@ -6,6 +6,7 @@ import java.util.Locale;
 import com.sun.management.ThreadMXBean;
 
 import umontreal.ssj.hups64.CachedPointSet;
+import umontreal.ssj.hups64.CachedNUSPointSet;
 import umontreal.ssj.hups64.DigitalNetBase2;
 import umontreal.ssj.hups64.HCKPointSet;
 import umontreal.ssj.hups64.NestedUniformScrambling;
@@ -17,7 +18,7 @@ import umontreal.ssj.hups64.RQMCPointSet;
 import umontreal.ssj.hups64.SobolSequence;
 import umontreal.ssj.rng.MWC64k3a2;
 
-/** Compares retained heap and allocated bytes for the seven NUS methods. */
+/** Compares retained heap and allocated bytes for the eight NUS methods. */
 public class CompareNUSMemory {
    private static ThreadMXBean allocationBean;
 
@@ -50,6 +51,9 @@ public class CompareNUSMemory {
       net = new SobolSequence(k, w, s);
       new RQMCCachedNUS(net, new CachedPointSet(net, false),
             newStream(seed)).randomize();
+
+      net = new SobolSequence(k, w, s);
+      new CachedNUSPointSet(net, newStream(seed)).randomize();
 
       net = new SobolSequence(k, w, s);
       new RQMCDigitalNet2HCK(net, new CachedPointSet(net, false),
@@ -125,6 +129,18 @@ public class CompareNUSMemory {
       report("RQMCCachedNUS (digital)", points, baselineHeap, preparationBytes, m);
    }
 
+   private static void measureCachedNUSPointSet(int s, int k, int w, int m, long[] seed) {
+      System.gc();
+      long baselineHeap = usedHeap();
+      long before = allocatedBytes();
+      MWC64k3a2 stream = newStream(seed);
+      DigitalNetBase2 net = new SobolSequence(k, w, s);
+      CachedNUSPointSet pointSet = new CachedNUSPointSet(net, stream);
+      RQMCPointSet points = new RQMCPointSet(pointSet, pointSet.getRandomization());
+      long preparationBytes = allocatedBytes() - before;
+      report("CachedNUSPointSet", points, baselineHeap, preparationBytes, m);
+   }
+
    private static void measureHCK(int s, int k, int w, int m, long[] seed) {
       System.gc();
       long baselineHeap = usedHeap();
@@ -185,6 +201,7 @@ public class CompareNUSMemory {
       measureFK02(s, k, w, m, seed);
       measureCached(s, k, w, m, seed);
       measureDigital(s, k, w, m, seed);
+      measureCachedNUSPointSet(s, k, w, m, seed);
       measureHCK(s, k, w, m, seed);
       measureHCKLong(s, k, w, m, seed);
       measureHCKPointSet(s, k, w, m, seed);
