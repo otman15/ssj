@@ -1,8 +1,15 @@
 package rqmcexperiments;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 import umontreal.ssj.hups64.CachedPointSet;
 import umontreal.ssj.hups64.CachedNUSPointSet;
@@ -41,6 +48,76 @@ import umontreal.ssj.util.Chrono;
  */
 public class CompareNUSMethods {
 
+   // Internal worker routing; experiment settings and enabled calls stay in main.
+   private static final String WORKER_METHOD = "rqmcexperiments.CompareNUSMethods.method";
+   private static final String WORKER_RESULT = "rqmcexperiments.CompareNUSMethods.result";
+
+   private static void runMethod(String method, MonteCarloModelDouble model,
+         Supplier<RQMCPointSet> prepare, int m, int warmup) throws IOException, InterruptedException {
+      String workerMethod = System.getProperty(WORKER_METHOD);
+      if (workerMethod != null) {
+         if (method.equals(workerMethod)) {
+            Chrono preparationTimer = new Chrono();
+            RQMCPointSet points = prepare.get();
+            double preparationSeconds = preparationTimer.getSeconds();
+            testAll(method, model, points, m, warmup, preparationSeconds);
+            writeResult(method, Paths.get(System.getProperty(WORKER_RESULT)));
+         }
+         return;
+      }
+      String java = Paths.get(System.getProperty("java.home"), "bin", "java").toString();
+         Path result = Files.createTempFile("compare-nus-", ".bin");
+         try {
+            Process process = new ProcessBuilder(java,
+                  "-Xmx" + Runtime.getRuntime().maxMemory(),
+                  "-D" + WORKER_METHOD + "=" + method,
+                  "-D" + WORKER_RESULT + "=" + result,
+                  "-cp", System.getProperty("java.class.path"),
+                  CompareNUSMethods.class.getName())
+                  .inheritIO().start();
+            int exitCode;
+            try {
+               exitCode = process.waitFor();
+            } catch (InterruptedException e) {
+               process.destroyForcibly();
+               process.waitFor();
+               Thread.currentThread().interrupt();
+               throw e;
+            }
+            if (exitCode != 0)
+               throw new IOException("Worker failed for " + method + " (exit " + exitCode + ")");
+            try (DataInputStream input = new DataInputStream(Files.newInputStream(result))) {
+               if (!method.equals(input.readUTF()))
+                  throw new IOException("Unexpected worker result for " + method);
+               double[] seconds = { input.readDouble(), input.readDouble(), input.readDouble() };
+               if (input.readInt() != m)
+                  throw new IOException("Unexpected replication count for " + method);
+               TallyStore values = new TallyStore(m);
+               for (int rep = 0; rep < m; rep++)
+                  values.add(input.readDouble());
+               estimates.put(method, values);
+               timings.put(method, seconds);
+            }
+         } finally {
+            Files.deleteIfExists(result);
+         }
+   }
+
+   private static void writeResult(String method, Path result) throws IOException {
+      TallyStore values = estimates.get(method);
+      if (values == null)
+         throw new IllegalArgumentException("Unknown or disabled method: " + method);
+      try (DataOutputStream output = new DataOutputStream(Files.newOutputStream(result))) {
+         output.writeUTF(method);
+         for (double seconds : timings.get(method))
+            output.writeDouble(seconds);
+         output.writeInt(values.numberObs());
+         double[] observations = values.getArray();
+         for (int rep = 0; rep < values.numberObs(); rep++)
+            output.writeDouble(observations[rep]);
+      }
+   }
+
    // Keep results in test-call order until the grouped report is printed.
    private static final LinkedHashMap<String, TallyStore> estimates = new LinkedHashMap<>();
    // Each timing array contains preparation, experiment, and scrambling seconds.
@@ -70,9 +147,7 @@ public class CompareNUSMethods {
       estimates.put(name, measuredEstimates);
       timings.put(name, new double[] { preparationSeconds, experimentSeconds, scramblingSeconds });
 
-      // Cleanup and the pause are outside the measured timings.
-      System.gc();
-      Thread.sleep(100);
+      // The worker exits after returning its results; no cross-method cleanup is needed.
    }
 
    private static void printStatistics(String name, TallyStore estimates) {
@@ -125,6 +200,8 @@ public class CompareNUSMethods {
 
    private static void printReport(MonteCarloModelDouble model, int s, int n, int m, int w,
          int numBits, int warmup, long[] seed) {
+      if (System.getProperty(WORKER_METHOD) != null)
+         return;
       String modelTag = model.getTag();
       System.out.printf(Locale.ROOT, modelTag + ": s=%d, n=%d, m=%d, w=%d, numBits=%d, warmup=%d%n",
             s, n, m, w, numBits, warmup);
@@ -191,117 +268,98 @@ public class CompareNUSMethods {
             "RQMCCachedNUS (digital)", "RQMCCachedNUS (dig, buf)");
    }
 
-   public static void main(String[] args) throws InterruptedException {
-      int s = 10;          // Dimension.
-      int k = 12;         // Number of points is 2^k.
-      int m = 10000;       // Number of measured replications.
-      int w = 31;         // Output precision.
+   public static void main(String[] args) throws IOException, InterruptedException {
+      int s = 1;          // Dimension.
+      int k = 20;         // Number of points is 2^k.
+      int m = 1000;       // Number of measured replications.
+      int w = 53;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
-      int warmup = 1000;
+      int warmup = 100;
       long[] seed = { 1L, 2L, 3L, 4L};
 
       estimates.clear();
       timings.clear();
       MWC64k3a2 ssjNusStream = new MWC64k3a2();
       ssjNusStream.setSeed(seed);
-      // MWC64k3a2 fk02Stream = ssjNusStream.clone();
-      // MWC64k3a2 cachedStream = ssjNusStream.clone();
+      MWC64k3a2 fk02Stream = ssjNusStream.clone();
+      MWC64k3a2 cachedStream = ssjNusStream.clone();
       MWC64k3a2 digitalStream = ssjNusStream.clone();
       MWC64k3a2 cachedNUSPointSetStream = ssjNusStream.clone();
-      // MWC64k3a2 digitalRngBufferStream = ssjNusStream.clone();
-      // MWC64k3a2 hckStream = ssjNusStream.clone();
+      MWC64k3a2 digitalRngBufferStream = ssjNusStream.clone();
+      MWC64k3a2 hckStream = ssjNusStream.clone();
       MWC64k3a2 hckLongStream = ssjNusStream.clone();
       MWC64k3a2 hckPointSetStream = ssjNusStream.clone();
-      // MWC64k3a2 hckLongIterStream = ssjNusStream.clone();
-      // MWC64k3a2 hckRngBufferStream = ssjNusStream.clone();
+      MWC64k3a2 hckLongIterStream = ssjNusStream.clone();
+      MWC64k3a2 hckRngBufferStream = ssjNusStream.clone();
 
       // MC2 model = new MC2(s);
       Gaussian model = new Gaussian(s);
 
-      // Comment out a test call to omit its rows and dependent comparisons.
-      Chrono preparationTimer = new Chrono();
-      // DigitalNetBase2 ssjNusNet = new SobolSequence(k, w, s);
-      // RQMCPointSet ssjNus = new RQMCPointSet(new CachedPointSet(ssjNusNet, false),
-      //       new NestedUniformScrambling(ssjNusStream, numBits));
-      // double ssjNusPreparationSeconds = preparationTimer.getSeconds();
-      // testAll("NestedUniformScrambling", model, ssjNus, m, warmup, ssjNusPreparationSeconds);
+      // Comment or uncomment each runMethod call to select methods.
+      // Construction inside the lambda runs only in that method's JVM.
+      /*
+      runMethod("NestedUniformScrambling", model, () -> {
+         DigitalNetBase2 net = new SobolSequence(k, w, s);
+         return new RQMCPointSet(new CachedPointSet(net, false),
+               new NestedUniformScrambling(ssjNusStream, numBits));
+      }, m, warmup);
+      */
 
-      // preparationTimer.init();
-      // DigitalNetBase2 fk02Net = new SobolSequence(k, w, s);
-      // RQMCDigitalNet2FK02 fk02 = new RQMCDigitalNet2FK02(fk02Net,
-      //       new CachedPointSet(fk02Net, false), fk02Stream, numBits);
-      // double fk02PreparationSeconds = preparationTimer.getSeconds();
-      // testAll("RQMCDigitalNet2FK02", model, fk02, m, warmup, fk02PreparationSeconds);
+      /*
+      runMethod("RQMCDigitalNet2FK02", model, () -> {
+         DigitalNetBase2 net = new SobolSequence(k, w, s);
+         return new RQMCDigitalNet2FK02(net, new CachedPointSet(net, false), fk02Stream, numBits);
+      }, m, warmup);
+      */
 
-      // preparationTimer.init();
-      // CachedPointSet cachedPoints = new CachedPointSet(new SobolSequence(k, w, s));
-      // // Use the same cache for input and output; the constructor prepares a snapshot.
-      // RQMCCachedNUS cachedNus = new RQMCCachedNUS(cachedPoints, cachedPoints, cachedStream, w);
-      // double cachedPreparationSeconds = preparationTimer.getSeconds();
-      // testAll("RQMCCachedNUS (cache)", model, cachedNus, m, warmup, cachedPreparationSeconds);
+      /*
+      runMethod("RQMCCachedNUS (cache)", model, () -> {
+         CachedPointSet points = new CachedPointSet(new SobolSequence(k, w, s));
+         return new RQMCCachedNUS(points, points, cachedStream, w);
+      }, m, warmup);
+      */
 
-      preparationTimer.init();
-      DigitalNetBase2 digitalNet = new SobolSequence(k, w, s);
-      CachedPointSet digitalOutput = new CachedPointSet(digitalNet, false);
-      // Only an output cache is needed: preprocessing reads integer generator columns directly.
-      RQMCCachedNUS digitalNus = new RQMCCachedNUS(digitalNet, digitalOutput, digitalStream);
-      double digitalPreparationSeconds = preparationTimer.getSeconds();
-      testAll("RQMCCachedNUS (digital)", model, digitalNus, m, warmup, digitalPreparationSeconds);
+      /*
+      runMethod("RQMCCachedNUS (dig, buf)", model, () -> {
+         DigitalNetBase2 net = new SobolSequence(k, w, s);
+         return new RQMCCachedNUSRngBuffer(net, new CachedPointSet(net, false), digitalRngBufferStream);
+      }, m, warmup);
+      */
 
-      preparationTimer.init();
-      DigitalNetBase2 cachedNUSPointSetNet = new SobolSequence(k, w, s);
-      CachedNUSPointSet cachedNUSPointSet = new CachedNUSPointSet(
-            cachedNUSPointSetNet, cachedNUSPointSetStream);
-      RQMCPointSet cachedNUSPoints = new RQMCPointSet(
-            cachedNUSPointSet, cachedNUSPointSet.getRandomization());
-      double cachedNUSPointSetPreparationSeconds = preparationTimer.getSeconds();
-      testAll("CachedNUSPointSet", model, cachedNUSPoints, m, warmup, cachedNUSPointSetPreparationSeconds);
+      /*
+      runMethod("HCK", model, () -> {
+         DigitalNetBase2 net = new SobolSequence(k, w, s);
+         return new RQMCDigitalNet2HCK(net, new CachedPointSet(net, false), hckStream, w);
+      }, m, warmup);
+      */
 
-      // preparationTimer.init();
-      // DigitalNetBase2 digitalRngBufferNet = new SobolSequence(k, w, s);
-      // CachedPointSet digitalRngBufferOutput = new CachedPointSet(digitalRngBufferNet, false);
-      // RQMCCachedNUSRngBuffer digitalRngBufferNus = new RQMCCachedNUSRngBuffer(
-      //       digitalRngBufferNet, digitalRngBufferOutput, digitalRngBufferStream);
-      // double digitalRngBufferPreparationSeconds = preparationTimer.getSeconds();
-      // testAll("RQMCCachedNUS (dig, buf)", model, digitalRngBufferNus, m, warmup,
-      //       digitalRngBufferPreparationSeconds);
+      runMethod("HCK (integer storage)", model,
+            () -> new RQMCDigitalNet2HCKLong(new SobolSequence(k, w, s), hckLongStream, w), m, warmup);
 
-      // preparationTimer.init();
-      // DigitalNetBase2 digitalNetHCK = new SobolSequence(k, w, s);
-      // CachedPointSet hckOutput = new CachedPointSet(digitalNetHCK, false);
-      // RQMCDigitalNet2HCK digitalHCK = new RQMCDigitalNet2HCK(digitalNetHCK, hckOutput, hckStream, w);
-      // double hckPreparationSeconds = preparationTimer.getSeconds();
-      // testAll("HCK", model, digitalHCK, m, warmup, hckPreparationSeconds);
+      runMethod("HCKPointSet", model, () -> {
+         HCKPointSet points = new HCKPointSet(new SobolSequence(k, w, s), hckPointSetStream, w);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
+      runMethod("RQMCCachedNUS (digital)", model, () -> {
+         DigitalNetBase2 net = new SobolSequence(k, w, s);
+         return new RQMCCachedNUS(net, new CachedPointSet(net, false), digitalStream);
+      }, m, warmup);
 
-      preparationTimer.init();
-      DigitalNetBase2 digitalNetHCKLong = new SobolSequence(k, w, s);
-      RQMCDigitalNet2HCKLong digitalHCKLong = new RQMCDigitalNet2HCKLong(
-            digitalNetHCKLong, hckLongStream, w);
-      double hckLongPreparationSeconds = preparationTimer.getSeconds();
-      testAll("HCK (integer storage)", model, digitalHCKLong, m, warmup, hckLongPreparationSeconds);
+      runMethod("CachedNUSPointSet", model, () -> {
+         CachedNUSPointSet points = new CachedNUSPointSet(new SobolSequence(k, w, s), cachedNUSPointSetStream);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
+      /*
+      runMethod("HCK (integer, iterator)", model,
+            () -> new RQMCDigNet2HCKlongIter(new SobolSequence(k, w, s), hckLongIterStream, w), m, warmup);
+      */
 
-      preparationTimer.init();
-      DigitalNetBase2 digitalNetHCKPointSet = new SobolSequence(k, w, s);
-      HCKPointSet hckPointSet = new HCKPointSet(digitalNetHCKPointSet, hckPointSetStream, w);
-      RQMCPointSet hckPoints = new RQMCPointSet(hckPointSet, hckPointSet.getRandomization());
-      double hckPointSetPreparationSeconds = preparationTimer.getSeconds();
-      testAll("HCKPointSet", model, hckPoints, m, warmup, hckPointSetPreparationSeconds);
-
-      // preparationTimer.init();
-      // DigitalNetBase2 digitalNetHCKLongIter = new SobolSequence(k, w, s);
-      // RQMCDigNet2HCKlongIter digitalHCKLongIter = new RQMCDigNet2HCKlongIter(
-      //       digitalNetHCKLongIter, hckLongIterStream, w);
-      // double hckLongIterPreparationSeconds = preparationTimer.getSeconds();
-      // testAll("HCK (integer, iterator)", model, digitalHCKLongIter, m, warmup, hckLongIterPreparationSeconds);
-
-      // preparationTimer.init();
-      // DigitalNetBase2 digitalNetHCKRngBuffer = new SobolSequence(k, w, s);
-      // CachedPointSet hckRngBufferOutput = new CachedPointSet(digitalNetHCKRngBuffer, false);
-      // RQMCDigitalNet2HCKRngBuffer digitalHCKRngBuffer = new RQMCDigitalNet2HCKRngBuffer(
-      //       digitalNetHCKRngBuffer, hckRngBufferOutput, hckRngBufferStream, w);
-      // double hckRngBufferPreparationSeconds = preparationTimer.getSeconds();
-      // testAll("HCK (53-bit RNG buffer)", model, digitalHCKRngBuffer, m, warmup,
-      //       hckRngBufferPreparationSeconds);
+      /*
+      runMethod("HCK (53-bit RNG buffer)", model, () -> {
+         DigitalNetBase2 net = new SobolSequence(k, w, s);
+         return new RQMCDigitalNet2HCKRngBuffer(net, new CachedPointSet(net, false), hckRngBufferStream, w);
+      }, m, warmup);
+      */
 
       printReport(model, s, 1 << k, m, w, numBits, warmup, seed);
    }
