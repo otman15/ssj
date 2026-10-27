@@ -214,7 +214,7 @@ public class TestRQMCSpeed64 {
       BurleyQuantLibPointSet burleyQuant = new BurleyQuantLibPointSet(k, s, noise);
       testSpeedAll(m, burleyQuant, burleyQuant.getRandomization(), s);
 
-      System.out.println("Sobol points with Burley scrambling, SSJ matrices (32 columns, full index) \n");
+      System.out.println("Sobol points with Burley scrambling, SSJ matrices ((32 output bits,32 columns) \n");
       BurleyPointSet burleySSJ = new BurleyPointSet(k, s, noise, true);
       testSpeedAll(m, burleySSJ, burleySSJ.getRandomization(), s);
 

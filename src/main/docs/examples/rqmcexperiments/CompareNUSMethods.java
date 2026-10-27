@@ -11,6 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.function.Supplier;
 
+import umontreal.ssj.hups64.BurleyPointSet;
+import umontreal.ssj.hups64.BurleyQuantLibPointSet;
 import umontreal.ssj.hups64.CachedPointSet;
 import umontreal.ssj.hups64.CachedNUSPointSet;
 import umontreal.ssj.hups64.DigitalNetBase2;
@@ -34,8 +36,10 @@ import umontreal.ssj.util.Chrono;
 
 /**
  * Compares original NUS, FK02, digital-input cached NUS with and without RNG
- * buffering, and HCK with double or integer storage on the selected model,
- * using the same seed and scrambling precision. Statistics describe the RQMC replication estimates;
+ * buffering, HCK with double or integer storage, and three Burley variants on
+ * the selected model, using streams initialized with the same seed. NUS and HCK
+ * use the selected scrambling precision; Burley uses 32 columns and 32 output
+ * bits. Statistics describe the RQMC replication estimates;
  * skewness and excess kurtosis use bias correction. CPU timings exclude
  * preparation and warmup; preparation time is reported separately for all
  * methods and includes net/cache construction and required coordinate generation.
@@ -224,6 +228,7 @@ public class CompareNUSMethods {
       System.out.printf(Locale.ROOT, modelTag + ": s=%d, n=%d, m=%d, w=%d, numBits=%d, warmup=%d%n",
             s, n, m, w, numBits, warmup);
       System.out.println("MWC64k3a2 seed: " + Arrays.toString(seed));
+      System.out.println("Burley variants use 32 columns and 32 output bits; w and numBits apply to the other methods.");
       System.out.println("Preparation includes net/cache construction and required coordinate generation.");
       System.out.println("Total CPU (s) is preparation plus the measured scrambling runs.");
       System.out.println(modelTag + " timings and speedups exclude preparation.");
@@ -309,6 +314,9 @@ public class CompareNUSMethods {
       MWC64k3a2 hckPointSetStream = ssjNusStream.clone();
       MWC64k3a2 hckLongIterStream = ssjNusStream.clone();
       MWC64k3a2 hckRngBufferStream = ssjNusStream.clone();
+      MWC64k3a2 burleyReferenceStream = ssjNusStream.clone();
+      MWC64k3a2 burleyQuantLibStream = ssjNusStream.clone();
+      MWC64k3a2 burleySsjStream = ssjNusStream.clone();
 
       // MC2 model = new MC2(s);
       Gaussian model = new Gaussian(s);
@@ -378,6 +386,21 @@ public class CompareNUSMethods {
          return new RQMCDigitalNet2HCKRngBuffer(net, new CachedPointSet(net, false), hckRngBufferStream, w);
       }, m, warmup);
       */
+
+      runMethod("Burley (reference, 32 col)", model, () -> {
+         BurleyPointSet points = new BurleyPointSet(k, s, burleyReferenceStream);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
+
+      runMethod("Burley (QuantLib, 32 col)", model, () -> {
+         BurleyQuantLibPointSet points = new BurleyQuantLibPointSet(k, s, burleyQuantLibStream);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
+
+      runMethod("Burley (SSJ, 32 col)", model, () -> {
+         BurleyPointSet points = new BurleyPointSet(k, s, burleySsjStream, true);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
 
       printReport(model, s, 1 << k, m, w, numBits, warmup, seed);
    }
