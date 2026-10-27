@@ -75,14 +75,32 @@ public class CompareNUSMethods {
                   "-cp", System.getProperty("java.class.path"),
                   CompareNUSMethods.class.getName())
                   .inheritIO().start();
+            Thread shutdownHook = new Thread(() -> {
+               process.destroyForcibly();
+               try {
+                  process.waitFor();
+               } catch (InterruptedException e) {
+                  Thread.currentThread().interrupt();
+               }
+            }, "compare-nus-worker-shutdown");
             int exitCode;
             try {
-               exitCode = process.waitFor();
-            } catch (InterruptedException e) {
+               Runtime.getRuntime().addShutdownHook(shutdownHook);
+               try {
+                  exitCode = process.waitFor();
+               } catch (InterruptedException e) {
+                  process.destroyForcibly();
+                  process.waitFor();
+                  Thread.currentThread().interrupt();
+                  throw e;
+               }
+            } finally {
                process.destroyForcibly();
-               process.waitFor();
-               Thread.currentThread().interrupt();
-               throw e;
+               try {
+                  Runtime.getRuntime().removeShutdownHook(shutdownHook);
+               } catch (IllegalStateException e) {
+                  // Shutdown has started; the hook will finish cleaning up the worker.
+               }
             }
             if (exitCode != 0)
                throw new IOException("Worker failed for " + method + " (exit " + exitCode + ")");
@@ -269,9 +287,9 @@ public class CompareNUSMethods {
    }
 
    public static void main(String[] args) throws IOException, InterruptedException {
-      int s = 1;          // Dimension.
-      int k = 20;         // Number of points is 2^k.
-      int m = 1000;       // Number of measured replications.
+      int s = 10;          // Dimension.
+      int k = 14;         // Number of points is 2^k.
+      int m = 10000;       // Number of measured replications.
       int w = 53;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
       int warmup = 100;

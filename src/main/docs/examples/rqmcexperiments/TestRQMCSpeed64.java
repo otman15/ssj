@@ -100,7 +100,7 @@ public class TestRQMCSpeed64 {
    public static void main(String[] args) {
       int s = 10;    // Dimension
       int m = 10000;    // Number of QMC randomizations
-      int k = 16;
+      int k = 12;
       int n = (int) Num.TWOEXP[k];   // Number of points.
 
       // This LCG point set has infinite dim; we have to reset dim for the random shift.
@@ -164,20 +164,24 @@ public class TestRQMCSpeed64 {
  
       p.unrandomize();
 
-      System.out.println("Sobol points with NUS, new CachedNUSPointSet22 reorder indices \n");
-      CachedNUSPointSet22 cachedNUSPointSet22 = new CachedNUSPointSet22(p, noise);
-      testSpeedAll(m, cachedNUSPointSet22, cachedNUSPointSet22.getRandomization(), s);
+      // System.out.println("Sobol points with NUS, new CachedNUSPointSet22 reorder indices \n");
+      // CachedNUSPointSet22 cachedNUSPointSet22 = new CachedNUSPointSet22(p, noise);
+      // testSpeedAll(m, cachedNUSPointSet22, cachedNUSPointSet22.getRandomization(), s);
 
 
       System.out.println("Sobol points with NUS, new FK \n");
       RQMCPointSet fk = new RQMCCachedNUS(p, cp, noise);
       testSpeedAll(m, fk.getPointSet(), fk.getRandomization(), s);
+
+      System.out.println("Sobol points with NUS, updated ssj nus \n");
+      RQMCDigitalNet2FK02 updated_nus = new RQMCDigitalNet2FK02(p, cp, noise, 53);
+      testSpeedAll(m, updated_nus.getPointSet(), updated_nus.getRandomization(), s);
       
 
       System.out.println("Sobol points with NUS, new CachedNUSPointSet \n");
       CachedNUSPointSet cachedNUSPointSet = new CachedNUSPointSet(p, noise);
       testSpeedAll(m, cachedNUSPointSet, cachedNUSPointSet.getRandomization(), s);
-      
+
       // System.out.println("Sobol points with NUS, new HCK \n");
       // RQMCPointSet hck = new RQMCDigitalNet2HCK(p, cp, noise, 53);
       // testSpeedAll(m, hck.getPointSet(), hck.getRandomization(), s);
@@ -194,12 +198,25 @@ public class TestRQMCSpeed64 {
       // RQMCPointSet hckLongIter = new RQMCDigNet2HCKlongIter(p, noise, 53);
       // testSpeedAll(m, hckLongIter.getPointSet(), hckLongIter.getRandomization(), s);
       
-      // System.out.println("Sobol points with NUS, old SSJ \n");
-      // testSpeedAll(m, cp, nus, s);
+      System.out.println("Sobol points with NUS, old SSJ \n");
+      testSpeedAll(m, cp, nus, s);
          
       // System.out.println("Independent random points cached \n");
       // IndependentPointsCached cip = new IndependentPointsCached (n, s);
       // testSpeedAll(m, cip, rs, s);
-      
+
+      // Run the Burley cases after all the other methods.
+      System.out.println("Sobol points with Burley scrambling, reference matrices (32 output bits) \n");
+      BurleyPointSet burleyReference = new BurleyPointSet(k, s, noise);
+      testSpeedAll(m, burleyReference, burleyReference.getRandomization(), s);
+
+      System.out.println("Sobol points with Burley scrambling, QuantLib (32 output bits) \n");
+      BurleyQuantLibPointSet burleyQuant = new BurleyQuantLibPointSet(k, s, noise);
+      testSpeedAll(m, burleyQuant, burleyQuant.getRandomization(), s);
+
+      System.out.println("Sobol points with Burley scrambling, SSJ matrices (32 columns, full index) \n");
+      BurleyPointSet burleySSJ = new BurleyPointSet(k, s, noise, true);
+      testSpeedAll(m, burleySSJ, burleySSJ.getRandomization(), s);
+
    }
 }
