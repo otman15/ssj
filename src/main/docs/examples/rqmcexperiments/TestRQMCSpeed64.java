@@ -222,5 +222,9 @@ public class TestRQMCSpeed64 {
       BurleyPointSet burleySSJ = new BurleyPointSet(k, s, noise, true);
       testSpeedAll(m, burleySSJ, burleySSJ.getRandomization(), s);
 
+      System.out.println("Sobol points with Burley scrambling, SSJ matrices, shared index (30 col, 32 output bits) \n");
+      BurleySSJPointSet burleySSJ30 = new BurleySSJPointSet(k, s, noise);
+      testSpeedAll(m, burleySSJ30, burleySSJ30.getRandomization(), s);
+
    }
 }
