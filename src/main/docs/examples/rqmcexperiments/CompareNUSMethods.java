@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import umontreal.ssj.hups64.BurleyPointSet;
 import umontreal.ssj.hups64.BurleyQuantLibPointSet;
+import umontreal.ssj.hups64.BurleyReferencePointSet;
 import umontreal.ssj.hups64.CachedPointSet;
 import umontreal.ssj.hups64.CachedNUSPointSet;
 import umontreal.ssj.hups64.DigitalNetBase2;
@@ -36,7 +37,7 @@ import umontreal.ssj.util.Chrono;
 
 /**
  * Compares original NUS, FK02, digital-input cached NUS with and without RNG
- * buffering, HCK with double or integer storage, and three Burley variants on
+ * buffering, HCK with double or integer storage, and four Burley variants on
  * the selected model, using streams initialized with the same seed. NUS and HCK
  * use the selected scrambling precision; Burley uses 32 columns and 32 output
  * bits. Statistics describe the RQMC replication estimates;
@@ -49,6 +50,8 @@ import umontreal.ssj.util.Chrono;
  * Cached NUS maps random words differently from the original algorithms, so
  * their comparison uses statistics and timings.
  * HCKPointSet is compared with HCKLong using timings and exact estimate equality.
+ * The direct Burley reference is compared with optimized BurleyPointSet using
+ * Burley's direction numbers, timings, and exact replication-estimate equality.
  */
 public class CompareNUSMethods {
 
@@ -274,6 +277,8 @@ public class CompareNUSMethods {
             "HCK (integer storage)", "HCK (integer, iterator)");
       printSpeedup("HCK -bits RNG buffer speedup (HCK / buffered HCK)", modelTag,
             "HCK", "HCK (53-bit RNG buffer)");
+      printSpeedup("Burley optimization speedup (direct / optimized)", modelTag,
+            "Burley (direct, 32 col)", "Burley (reference, 32 col)");
 
       System.out.println("Cached NUS maps random words differently from ssjNus and FK02; exact equality with them is not required.");
       compareMethods("RQMCCachedNUS vs CachedNUSPointSet",
@@ -289,6 +294,8 @@ public class CompareNUSMethods {
       compareMethods("HCK vs HCK ( -bits RNG buffer)", "HCK", "HCK (53-bit RNG buffer)");
       compareMethods("Digital-input NUS vs buffered digital-input NUS",
             "RQMCCachedNUS (digital)", "RQMCCachedNUS (dig, buf)");
+      compareMethods("Burley direct reference vs optimized (Burley directions)",
+            "Burley (direct, 32 col)", "Burley (reference, 32 col)");
    }
 
    public static void main(String[] args) throws IOException, InterruptedException {
@@ -317,6 +324,7 @@ public class CompareNUSMethods {
       MWC64k3a2 burleyReferenceStream = ssjNusStream.clone();
       MWC64k3a2 burleyQuantLibStream = ssjNusStream.clone();
       MWC64k3a2 burleySsjStream = ssjNusStream.clone();
+      MWC64k3a2 burleyDirectReferenceStream = ssjNusStream.clone();
 
       // MC2 model = new MC2(s);
       Gaussian model = new Gaussian(s);
@@ -399,6 +407,11 @@ public class CompareNUSMethods {
 
       runMethod("Burley (SSJ, 32 col)", model, () -> {
          BurleyPointSet points = new BurleyPointSet(k, s, burleySsjStream, true);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
+
+      runMethod("Burley (direct, 32 col)", model, () -> {
+         BurleyReferencePointSet points = new BurleyReferencePointSet(k, s, burleyDirectReferenceStream);
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);
 

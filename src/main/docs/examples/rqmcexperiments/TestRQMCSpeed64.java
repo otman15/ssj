@@ -99,8 +99,8 @@ public class TestRQMCSpeed64 {
 
    public static void main(String[] args) {
       int s = 10;    // Dimension
-      int m = 10000;    // Number of QMC randomizations
-      int k = 12;
+      int m = 100;    // Number of QMC randomizations
+      int k = 14;
       int n = (int) Num.TWOEXP[k];   // Number of points.
 
       // This LCG point set has infinite dim; we have to reset dim for the random shift.
@@ -209,6 +209,10 @@ public class TestRQMCSpeed64 {
       System.out.println("Sobol points with Burley scrambling, reference matrices (32 output bits) \n");
       BurleyPointSet burleyReference = new BurleyPointSet(k, s, noise);
       testSpeedAll(m, burleyReference, burleyReference.getRandomization(), s);
+
+      System.out.println("Sobol points with Burley scrambling, direct reference (32 col) \n");
+      BurleyReferencePointSet burleyDirectReference = new BurleyReferencePointSet(k, s, noise);
+      testSpeedAll(m, burleyDirectReference, burleyDirectReference.getRandomization(), s);
 
       System.out.println("Sobol points with Burley scrambling, QuantLib (32 output bits) \n");
       BurleyQuantLibPointSet burleyQuant = new BurleyQuantLibPointSet(k, s, noise);
