@@ -116,7 +116,7 @@ public final class NewCachedNusPointSet extends PointSet {
       prepare(inputPoints, inputNet);
    }
 
-   /** Sorts each dimension, then builds its parent links by reverse deletion. */
+   /** Sorts each dimension, then builds its parent links with a monotonic stack. */
    private void prepare(PointSet inputPoints, DigitalNetBase2 inputNet) {
       if (inputNet != null) {
          int requiredColumns = Integer.SIZE - Integer.numberOfLeadingZeros(numPoints - 1);
@@ -130,8 +130,7 @@ public final class NewCachedNusPointSet extends PointSet {
       long[] sortedBits = new long[numPoints];
       int[] indices = new int[numPoints];
       int[] sortedIndices = new int[numPoints];
-      int[] left = new int[numPoints];
-      int[] right = new int[numPoints];
+      int[] stack = new int[numPoints];
       int[] counts = new int[256];
       int[] positions = new int[256];
 
@@ -177,39 +176,37 @@ public final class NewCachedNusPointSet extends PointSet {
 
          int[] dimensionParents = parents[j];
          long[] masks = firstDiffMasks[j];
-         // Initially store inverse ranks in the final parent array. The reverse
-         // sweep replaces a rank only after that point no longer needs it.
-         for (int r = 0; r < numPoints; r++) {
-            dimensionParents[indices[r]] = r;
-            left[r] = r - 1;
-            right[r] = r + 1;
-         }
-         for (int i = numPoints - 1; i > 0; i--) {
-            int r = dimensionParents[i];
-            int previous = left[r];
-            int next = right[r];
-            int parent = -1;
-            long difference = Long.MAX_VALUE;
-            if (previous >= 0) {
-               parent = indices[previous];
-               difference = bits[r] ^ bits[previous];
-            }
-            if (next < numPoints) {
-               long nextDifference = bits[r] ^ bits[next];
-               if (nextDifference < difference) {
-                  parent = indices[next];
-                  difference = nextDifference;
+         int stackSize = 0;
+         // Original indices increase along the stack. When a rank is popped,
+         // the new stack top and current rank are its nearest smaller-index
+         // neighbors, exactly as in the reverse-deletion construction.
+         for (int next = 0; next <= numPoints; next++) {
+            while (stackSize > 0 && (next == numPoints
+                  || indices[stack[stackSize - 1]] > indices[next])) {
+               int r = stack[--stackSize];
+               int i = indices[r];
+               if (i == 0)
+                  continue;
+               int previous = stackSize == 0 ? -1 : stack[stackSize - 1];
+               int parent = -1;
+               long difference = Long.MAX_VALUE;
+               if (previous >= 0) {
+                  parent = indices[previous];
+                  difference = bits[r] ^ bits[previous];
                }
+               if (next < numPoints) {
+                  long nextDifference = bits[r] ^ bits[next];
+                  if (nextDifference < difference) {
+                     parent = indices[next];
+                     difference = nextDifference;
+                  }
+               }
+               dimensionParents[i] = parent;
+               long firstDifference = Long.highestOneBit(difference);
+               masks[i - 1] = firstDifference == 0L ? 0L : (firstDifference << 1) - 1L;
             }
-            // Both remaining neighbors have original indices smaller than i.
-            // The smaller XOR has a longest common prefix among earlier points.
-            dimensionParents[i] = parent;
-            long firstDifference = Long.highestOneBit(difference);
-            masks[i - 1] = firstDifference == 0L ? 0L : (firstDifference << 1) - 1L;
-            if (previous >= 0)
-               right[previous] = next;
             if (next < numPoints)
-               left[next] = previous;
+               stack[stackSize++] = next;
          }
          dimensionParents[0] = -1;
       }

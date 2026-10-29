@@ -7,6 +7,7 @@ import com.sun.management.ThreadMXBean;
 
 import umontreal.ssj.hups64.CachedPointSet;
 import umontreal.ssj.hups64.CachedNUSPointSet;
+import umontreal.ssj.hups64.NewCachedNusPointSet;
 import umontreal.ssj.hups64.DigitalNetBase2;
 import umontreal.ssj.hups64.HCKPointSet;
 import umontreal.ssj.hups64.NestedUniformScrambling;

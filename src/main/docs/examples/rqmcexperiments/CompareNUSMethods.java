@@ -301,12 +301,12 @@ public class CompareNUSMethods {
    }
 
    public static void main(String[] args) throws IOException, InterruptedException {
-      int s = 14;          // Dimension.
-      int k = 20;         // Number of points is 2^k.
-      int m = 100;       // Number of measured replications.
+      int s = 10;          // Dimension.
+      int k = 14;         // Number of points is 2^k.
+      int m = 10000;       // Number of measured replications.
       int w = 32;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
-      int warmup = 10;
+      int warmup = 1000;
       long[] seed = { 1L, 2L, 3L, 4L};
 
       estimates.clear();
