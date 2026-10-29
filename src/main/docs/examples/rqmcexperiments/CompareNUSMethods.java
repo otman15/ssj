@@ -20,6 +20,7 @@ import umontreal.ssj.hups64.CachedNUSPointSet;
 import umontreal.ssj.hups64.DigitalNetBase2;
 import umontreal.ssj.hups64.HCKPointSet;
 import umontreal.ssj.hups64.NestedUniformScrambling;
+import umontreal.ssj.hups64.NewCachedNusPointSet;
 import umontreal.ssj.hups64.RQMCCachedNUS;
 import umontreal.ssj.hups64.RQMCCachedNUSRngBuffer;
 import umontreal.ssj.hups64.RQMCDigNet2HCKlongIter;
@@ -300,12 +301,12 @@ public class CompareNUSMethods {
    }
 
    public static void main(String[] args) throws IOException, InterruptedException {
-      int s = 12;          // Dimension.
-      int k = 10;         // Number of points is 2^k.
-      int m = 10000;       // Number of measured replications.
+      int s = 14;          // Dimension.
+      int k = 20;         // Number of points is 2^k.
+      int m = 100;       // Number of measured replications.
       int w = 32;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
-      int warmup = 100;
+      int warmup = 10;
       long[] seed = { 1L, 2L, 3L, 4L};
 
       estimates.clear();
@@ -316,6 +317,7 @@ public class CompareNUSMethods {
       MWC64k3a2 cachedStream = ssjNusStream.clone();
       MWC64k3a2 digitalStream = ssjNusStream.clone();
       MWC64k3a2 cachedNUSPointSetStream = ssjNusStream.clone();
+      MWC64k3a2 newCachedNusPointSetStream = ssjNusStream.clone();
       MWC64k3a2 digitalRngBufferStream = ssjNusStream.clone();
       MWC64k3a2 hckStream = ssjNusStream.clone();
       MWC64k3a2 hckLongStream = ssjNusStream.clone();
@@ -385,6 +387,12 @@ public class CompareNUSMethods {
          CachedNUSPointSet points = new CachedNUSPointSet(new SobolSequence(k, w, s), cachedNUSPointSetStream);
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);
+
+      runMethod("NewCachedNusPointSet", model, () -> {
+         NewCachedNusPointSet points = new NewCachedNusPointSet(new SobolSequence(k, w, s), newCachedNusPointSetStream);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
+
       /*
       runMethod("HCK (integer, iterator)", model,
             () -> new RQMCDigNet2HCKlongIter(new SobolSequence(k, w, s), hckLongIterStream, w), m, warmup);
@@ -397,25 +405,25 @@ public class CompareNUSMethods {
       }, m, warmup);
       */
 
-      runMethod("Burley (reference, 32 col)", model, () -> {
+      runMethod("Burley (direct, 32 col)", model, () -> {
          BurleyPointSet points = new BurleyPointSet(k, s, burleyReferenceStream);
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);
 
-      runMethod("Burley (QuantLib, 32 col)", model, () -> {
-         BurleyQuantLibPointSet points = new BurleyQuantLibPointSet(k, s, burleyQuantLibStream);
-         return new RQMCPointSet(points, points.getRandomization());
-      }, m, warmup);
+      // runMethod("Burley (QuantLib, 32 col)", model, () -> {
+      //    BurleyQuantLibPointSet points = new BurleyQuantLibPointSet(k, s, burleyQuantLibStream);
+      //    return new RQMCPointSet(points, points.getRandomization());
+      // }, m, warmup);
 
-      runMethod("Burley (SSJ, 32 col)", model, () -> {
-         BurleyPointSet points = new BurleyPointSet(k, s, burleySsjStream, true);
-         return new RQMCPointSet(points, points.getRandomization());
-      }, m, warmup);
+      // runMethod("Burley (SSJ, 32 col)", model, () -> {
+      //    BurleyPointSet points = new BurleyPointSet(k, s, burleySsjStream, true);
+      //    return new RQMCPointSet(points, points.getRandomization());
+      // }, m, warmup);
 
-      runMethod("Burley (direct, 32 col)", model, () -> {
-         BurleyReferencePointSet points = new BurleyReferencePointSet(k, s, burleyDirectReferenceStream);
-         return new RQMCPointSet(points, points.getRandomization());
-      }, m, warmup);
+      // runMethod("Burley (refrerence, 32 col)", model, () -> {
+      //    BurleyReferencePointSet points = new BurleyReferencePointSet(k, s, burleyDirectReferenceStream);
+      //    return new RQMCPointSet(points, points.getRandomization());
+      // }, m, warmup);
 
       runMethod("Burley (SSJ shared, 30 col)", model, () -> {
          BurleySSJPointSet points = new BurleySSJPointSet(k, s, burleySsjSharedStream);
