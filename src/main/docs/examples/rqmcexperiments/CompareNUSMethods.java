@@ -302,11 +302,11 @@ public class CompareNUSMethods {
 
    public static void main(String[] args) throws IOException, InterruptedException {
       int s = 10;          // Dimension.
-      int k = 14;         // Number of points is 2^k.
+      int k = 12;         // Number of points is 2^k.
       int m = 10000;       // Number of measured replications.
       int w = 32;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
-      int warmup = 1000;
+      int warmup = 100;
       long[] seed = { 1L, 2L, 3L, 4L};
 
       estimates.clear();

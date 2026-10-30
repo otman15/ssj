@@ -116,7 +116,7 @@ public final class NewCachedNusPointSet extends PointSet {
       prepare(inputPoints, inputNet);
    }
 
-   /** Sorts each dimension, then builds its parent links with a monotonic stack. */
+   /** Sorts each dimension, then builds parent links using the selected traversal. */
    private void prepare(PointSet inputPoints, DigitalNetBase2 inputNet) {
       if (inputNet != null) {
          int requiredColumns = Integer.SIZE - Integer.numberOfLeadingZeros(numPoints - 1);
@@ -130,7 +130,18 @@ public final class NewCachedNusPointSet extends PointSet {
       long[] sortedBits = new long[numPoints];
       int[] indices = new int[numPoints];
       int[] sortedIndices = new int[numPoints];
+      // Switch the matching declarations and parent-construction blocks together.
+      ///**** using stack declarations BEGIN *////
       int[] stack = new int[numPoints];
+      ///**** using stack declarations END *////
+
+      ///**** using arrays as linked lists declarations BEGIN *////
+      /*
+      int[] left = new int[numPoints];
+      int[] right = new int[numPoints];
+      */
+      ///**** using arrays as linked lists declarations END *////
+
       int[] counts = new int[256];
       int[] positions = new int[256];
 
@@ -176,38 +187,82 @@ public final class NewCachedNusPointSet extends PointSet {
 
          int[] dimensionParents = parents[j];
          long[] masks = firstDiffMasks[j];
+         ///**** using stack parent construction BEGIN *////
          int stackSize = 0;
          // Original indices increase along the stack. When a rank is popped,
          // the new stack top and current rank are its nearest smaller-index
          // neighbors, exactly as in the reverse-deletion construction.
          for (int next = 0; next <= numPoints; next++) {
+            // the while-loop checks if (the stack is not empty) and (the list has no elements or its element is
+            // and elligble parent ), in this case we can pop the last element the compare its two elligible closest parents
+            // which are the new top of the steck and the current element of the list.
             while (stackSize > 0 && (next == numPoints
                   || indices[stack[stackSize - 1]] > indices[next])) {
-               int r = stack[--stackSize];
-               int i = indices[r];
-               if (i == 0)
+               int r = stack[--stackSize];// conditions are met: pop the top of the stack to determine its parent
+               int i = indices[r];// original index of this element
+               if (i == 0) // i=0 has no element before him so it has no parent
                   continue;
-               int previous = stackSize == 0 ? -1 : stack[stackSize - 1];
+               int previous = stackSize == 0 ? -1 : stack[stackSize - 1]; //the element on the right of the poped element (eigher the new top or nothing)
                int parent = -1;
                long difference = Long.MAX_VALUE;
                if (previous >= 0) {
-                  parent = indices[previous];
-                  difference = bits[r] ^ bits[previous];
+                  parent = indices[previous]; // eligible left parent in orginal list
+                  difference = bits[r] ^ bits[previous];// get prefix from the sorted list
                }
                if (next < numPoints) {
                   long nextDifference = bits[r] ^ bits[next];
                   if (nextDifference < difference) {
-                     parent = indices[next];
+                     parent = indices[next]; // chose the eligible right parent as parent
                      difference = nextDifference;
                   }
                }
-               dimensionParents[i] = parent;
-               long firstDifference = Long.highestOneBit(difference);
+               dimensionParents[i] = parent; // store the index of the parent of i
+               long firstDifference = Long.highestOneBit(difference); // store the information of the scrambling relating i and its parent
                masks[i - 1] = firstDifference == 0L ? 0L : (firstDifference << 1) - 1L;
             }
+            //if we cant pop anymore from the stack we just push (whether the stack is empty or top original index < next original index)
             if (next < numPoints)
                stack[stackSize++] = next;
          }
+         ///**** using stack parent construction END *////
+
+         ///**** using arrays as linked lists parent construction BEGIN *////
+         /*
+         // Initially store inverse ranks in the final parent array. The reverse
+         // sweep replaces a rank only after that point no longer needs it.
+         for (int r = 0; r < numPoints; r++) {
+            dimensionParents[indices[r]] = r;
+            left[r] = r - 1;
+            right[r] = r + 1;
+         }
+         for (int i = numPoints - 1; i > 0; i--) {
+            int r = dimensionParents[i];
+            int previous = left[r];
+            int next = right[r];
+            int parent = -1;
+            long difference = Long.MAX_VALUE;
+            if (previous >= 0) {
+               parent = indices[previous];
+               difference = bits[r] ^ bits[previous];
+            }
+            if (next < numPoints) {
+               long nextDifference = bits[r] ^ bits[next];
+               if (nextDifference < difference) {
+                  parent = indices[next];
+                  difference = nextDifference;
+               }
+            }
+            dimensionParents[i] = parent;
+            long firstDifference = Long.highestOneBit(difference);
+            masks[i - 1] = firstDifference == 0L ? 0L : (firstDifference << 1) - 1L;
+            if (previous >= 0)
+               right[previous] = next;
+            if (next < numPoints)
+               left[next] = previous;
+         }
+         */
+         ///**** using arrays as linked lists parent construction END *////
+
          dimensionParents[0] = -1;
       }
    }
