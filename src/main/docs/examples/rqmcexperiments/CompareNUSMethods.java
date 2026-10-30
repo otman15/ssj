@@ -18,6 +18,7 @@ import umontreal.ssj.hups64.BurleySSJPointSet;
 import umontreal.ssj.hups64.CachedPointSet;
 import umontreal.ssj.hups64.CachedNUSPointSet;
 import umontreal.ssj.hups64.DigitalNetBase2;
+import umontreal.ssj.hups64.FK02HCKNUSPointSet;
 import umontreal.ssj.hups64.HCKPointSet;
 import umontreal.ssj.hups64.NestedUniformScrambling;
 import umontreal.ssj.hups64.NewCachedNusPointSet;
@@ -51,6 +52,8 @@ import umontreal.ssj.util.Chrono;
  * net's integer coordinates; it can lose low bits above double precision.
  * Cached NUS maps random words differently from the original algorithms, so
  * their comparison uses statistics and timings.
+ * FK02HCKNUSPointSet prepares parents algebraically and is compared with
+ * NewCachedNusPointSet for exact replication-estimate equality.
  * HCKPointSet is compared with HCKLong using timings and exact estimate equality.
  * The direct Burley reference is compared with optimized BurleyPointSet using
  * Burley's direction numbers, timings, and exact replication-estimate equality.
@@ -285,6 +288,8 @@ public class CompareNUSMethods {
       System.out.println("Cached NUS maps random words differently from ssjNus and FK02; exact equality with them is not required.");
       compareMethods("RQMCCachedNUS vs CachedNUSPointSet",
             "RQMCCachedNUS (digital)", "CachedNUSPointSet");
+      compareMethods("NewCachedNusPointSet vs FK02HCKNUSPointSet",
+            "NewCachedNusPointSet", "FK02HCKNUSPointSet");
       compareMethods("HCK vs HCK (integer storage)", "HCK", "HCK (integer storage)");
       compareMethods("HCKLong vs HCKPointSet", "HCK (integer storage)", "HCKPointSet");
       compareMethods("HCK integer vs iterator", "HCK (integer storage)", "HCK (integer, iterator)");
@@ -302,11 +307,11 @@ public class CompareNUSMethods {
 
    public static void main(String[] args) throws IOException, InterruptedException {
       int s = 10;          // Dimension.
-      int k = 12;         // Number of points is 2^k.
-      int m = 10000;       // Number of measured replications.
+      int k = 20;         // Number of points is 2^k.
+      int m = 100;       // Number of measured replications.
       int w = 32;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
-      int warmup = 100;
+      int warmup = 10;
       long[] seed = { 1L, 2L, 3L, 4L};
 
       estimates.clear();
@@ -318,6 +323,7 @@ public class CompareNUSMethods {
       MWC64k3a2 digitalStream = ssjNusStream.clone();
       MWC64k3a2 cachedNUSPointSetStream = ssjNusStream.clone();
       MWC64k3a2 newCachedNusPointSetStream = ssjNusStream.clone();
+      MWC64k3a2 fk02HckNusPointSetStream = ssjNusStream.clone();
       MWC64k3a2 digitalRngBufferStream = ssjNusStream.clone();
       MWC64k3a2 hckStream = ssjNusStream.clone();
       MWC64k3a2 hckLongStream = ssjNusStream.clone();
@@ -390,6 +396,11 @@ public class CompareNUSMethods {
 
       runMethod("NewCachedNusPointSet", model, () -> {
          NewCachedNusPointSet points = new NewCachedNusPointSet(new SobolSequence(k, w, s), newCachedNusPointSetStream);
+         return new RQMCPointSet(points, points.getRandomization());
+      }, m, warmup);
+
+      runMethod("FK02HCKNUSPointSet", model, () -> {
+         FK02HCKNUSPointSet points = new FK02HCKNUSPointSet(new SobolSequence(k, w, s), fk02HckNusPointSetStream);
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);
 
