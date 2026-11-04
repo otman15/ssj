@@ -39,17 +39,13 @@ import umontreal.ssj.stat.TallyStore;
 import umontreal.ssj.util.Chrono;
 
 /**
- * Compares original NUS, FK02, digital-input cached NUS with and without RNG
- * buffering, HCK with double or integer storage, and five Burley variants on
- * the selected model, using streams initialized with the same seed. NUS and HCK
- * use the selected scrambling precision; Burley variants use 30 or 32 columns
- * as labelled and 32 output bits. Statistics describe the RQMC replication estimates;
- * skewness and excess kurtosis use bias correction. CPU timings exclude
- * preparation and warmup; preparation time is reported separately for all
- * methods and includes net/cache construction and required coordinate generation.
- * Exact estimate equality is reported for FK02 versus original NUS and for the
- * two cached NUS paths. The latter agree when cached conversion preserves the
- * net's integer coordinates; it can lose low bits above double precision.
+ * Compares diffrent methods based on FK02, HCK and burley NUS, FK02, using cache,
+ * buffering, precomputations to make them faste. Compare also when using Long for storage
+ * instead of double. NUS and HCK use the selected scrambling precision; Burley variants use 30 or 32 columns
+ * as labelled and 32 output bits. 
+ * Statistics describe the RQMC replication estimates;
+ * skewness and excess kurtosis use bias correction.
+ * Exact estimate equality is reported for methods that are meant to produce same output.
  * Cached NUS maps random words differently from the original algorithms, so
  * their comparison uses statistics and timings.
  * FK02HCKNUSPointSet prepares parents algebraically and is compared with
@@ -306,9 +302,9 @@ public class CompareNUSMethods {
    }
 
    public static void main(String[] args) throws IOException, InterruptedException {
-      int s = 10;          // Dimension.
+      int s = 10;         // Dimension.
       int k = 20;         // Number of points is 2^k.
-      int m = 100;       // Number of measured replications.
+      int m = 100;        // Number of measured replications.
       int w = 32;         // Output precision.
       int numBits = w;    // Full scrambling at the selected output precision.
       int warmup = 10;
@@ -336,8 +332,8 @@ public class CompareNUSMethods {
       MWC64k3a2 burleyDirectReferenceStream = ssjNusStream.clone();
       MWC64k3a2 burleySsjSharedStream = ssjNusStream.clone();
 
-      // MC2 model = new MC2(s);
-      Gaussian model = new Gaussian(s);
+       MC2 model = new MC2(s);
+      //Gaussian model = new Gaussian(s);
 
       // Comment or uncomment each runMethod call to select methods.
       // Construction inside the lambda runs only in that method's JVM.
@@ -356,12 +352,11 @@ public class CompareNUSMethods {
       }, m, warmup);
       */
 
-      /*
       runMethod("RQMCCachedNUS (cache)", model, () -> {
          CachedPointSet points = new CachedPointSet(new SobolSequence(k, w, s));
          return new RQMCCachedNUS(points, points, cachedStream, w);
       }, m, warmup);
-      */
+      
 
       /*
       runMethod("RQMCCachedNUS (dig, buf)", model, () -> {
@@ -384,6 +379,7 @@ public class CompareNUSMethods {
          HCKPointSet points = new HCKPointSet(new SobolSequence(k, w, s), hckPointSetStream, w);
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);
+      
       runMethod("RQMCCachedNUS (digital)", model, () -> {
          DigitalNetBase2 net = new SobolSequence(k, w, s);
          return new RQMCCachedNUS(net, new CachedPointSet(net, false), digitalStream);
@@ -399,6 +395,7 @@ public class CompareNUSMethods {
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);
 
+      //This need to be proved in the notes
       runMethod("FK02HCKNUSPointSet", model, () -> {
          FK02HCKNUSPointSet points = new FK02HCKNUSPointSet(new SobolSequence(k, w, s), fk02HckNusPointSetStream);
          return new RQMCPointSet(points, points.getRandomization());
