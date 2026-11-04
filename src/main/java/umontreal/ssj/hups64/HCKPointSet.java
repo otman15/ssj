@@ -22,7 +22,7 @@ import umontreal.ssj.rng.RandomStream;
  * of Helmer, Christensen, and Kensler. The supplied generating matrices must be
  * non-singular upper-triangular (NUT).
  * This implementation requires the number of points to be a power of two, {@code n = 2^k}.
- * The construction follows Sections 3 and 4 of
+ * The construction follows Sections 3.3 and 4.3 of
  * <a href="https://doi.org/10.2312/sr.20211287">Stochastic Generation of
  * (t,s) Sample Sequences</a>.
  *

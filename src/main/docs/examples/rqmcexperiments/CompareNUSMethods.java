@@ -416,7 +416,7 @@ public class CompareNUSMethods {
       }, m, warmup);
       */
 
-      runMethod("Burley (direct, 32 col)", model, () -> {
+      runMethod("Burley direc, 32 col -pad", model, () -> {
          BurleyPointSet points = new BurleyPointSet(k, s, burleyReferenceStream);
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);
@@ -436,7 +436,7 @@ public class CompareNUSMethods {
       //    return new RQMCPointSet(points, points.getRandomization());
       // }, m, warmup);
 
-      runMethod("Burley (SSJ shared, 30 col)", model, () -> {
+      runMethod("Burley -SSJ: 30 col, no pad", model, () -> {
          BurleySSJPointSet points = new BurleySSJPointSet(k, s, burleySsjSharedStream);
          return new RQMCPointSet(points, points.getRandomization());
       }, m, warmup);

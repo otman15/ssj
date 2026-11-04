@@ -19,9 +19,8 @@ import umontreal.ssj.rng.RandomStream;
 
 /**
  * Applies full base-2 nested uniform scrambling to a snapshot of a point set
- * or a digital net, generating coordinates in original point order. Like
- * {@link CachedNUSPointSet}, construction sorts each dimension's integer
- * coordinates using the preprocessing idea of Friedel and Keller (2002).
+ * or a digital net, generating coordinates in original point order. Construction 
+ * sorts each dimension's integer coordinates using the preprocessing idea of Friedel and Keller (2002).
  * It then finds, for each point, an earlier point sharing its longest binary
  * prefix and stores that parent and the first-difference mask.
  *
@@ -29,18 +28,13 @@ import umontreal.ssj.rng.RandomStream;
  * the branching bit, and receives a fresh random suffix. No earlier point has
  * entered the new child subtree, so this generates the full NUS distribution.
  * Identical integer coordinates copy the parent's complete scrambled value.
- * This changes the traversal of the permutation tree: fixed-seed results
- * generally differ from {@code CachedNUSPointSet}, although both implement full
- * NUS. This is not the matrix-based construction of {@link HCKPointSet} and
- * requires neither NUT matrices nor a power-of-two point count.
+ * This changes the traversal of the permutation tree used in FK02.
  *
  * <p>Call {@link #randomize()} to fill the dimension-major double cache.
  * Each call consumes one {@link RandomStream#nextBitsLong(int)} word per point
  * per dimension, including duplicates and transitions with no random suffix.
  * Correct NUS requires sufficiently uniform and independent bits within and
- * between these words. No bit reservoir is used. Coordinates are deterministic
- * between randomizations and follow {@code z / 2^outputBits + 2^-55}. At high
- * precision, distinct integers can round to the same double or to {@code 1.0}.
+ * between these words. 
  * A reusable integer work array retains exact parent values before conversion.
  *
  * <p>Construction consumes no randomness and does not retain the input point
@@ -48,8 +42,6 @@ import umontreal.ssj.rng.RandomStream;
  * RQMC experiments, use
  * {@code new RQMCPointSet(points, points.getRandomization())}.
  *
- * @see CachedNUSPointSet
- * @see HCKPointSet
  */
 public final class NewCachedNusPointSet extends PointSet {
    private static final double EPSILON_HALF = 0x1.0p-55;
@@ -130,22 +122,14 @@ public final class NewCachedNusPointSet extends PointSet {
       long[] sortedBits = new long[numPoints];
       int[] indices = new int[numPoints];
       int[] sortedIndices = new int[numPoints];
-      // Switch the matching declarations and parent-construction blocks together.
-      ///**** using stack declarations BEGIN *////
-      int[] stack = new int[numPoints];
-      ///**** using stack declarations END *////
 
-      ///**** using arrays as linked lists declarations BEGIN *////
-      /*
-      int[] left = new int[numPoints];
-      int[] right = new int[numPoints];
-      */
-      ///**** using arrays as linked lists declarations END *////
+      int[] stack = new int[numPoints];
 
       int[] counts = new int[256];
       int[] positions = new int[256];
 
       for (int j = 0; j < dim; j++) {
+         // Here we just read coordinates from the pointset and convert them
          if (inputNet == null) {
             for (int i = 0; i < numPoints; i++) {
                double u = inputPoints.getCoordinate(i, j);
@@ -153,6 +137,7 @@ public final class NewCachedNusPointSet extends PointSet {
                   throw new IllegalArgumentException("Input coordinates must be finite and in [0, 1)");
                bits[i] = (long) (u * scale);
             }
+         // Otherwise we generate the coordinates using generator matrices
          } else {
             bits[0] = 0L;
             int offset = j * inputNet.numCols;
@@ -187,32 +172,38 @@ public final class NewCachedNusPointSet extends PointSet {
 
          int[] dimensionParents = parents[j];
          long[] masks = firstDiffMasks[j];
-         ///**** using stack parent construction BEGIN *////
          int stackSize = 0;
-         // Original indices increase along the stack. When a rank is popped,
-         // the new stack top and current rank are its nearest smaller-index
-         // neighbors, exactly as in the reverse-deletion construction.
+         //The next loop will find for each point i, its parent in the range (0,i-1), 
+         //to do so we use sorting to find the  neighbors, then choose the closest one that
+         // is smaller than i. (we find some p<i such that up and ui share the longest prefix
+         // between all points p in 0:i-1). 
+         // We can implement this using linked lists, but a stack seems faster here.
+         // Points are processed in sorted coordinate order, and their original indices
+         // increase from bottom to top of the stack. When the next point has a smaller
+         // original index than the stack top, the top is popped. The new stack top and
+         // the next point, when present, are the eligible left and right neighbors of
+         // the popped point. One of these neighbors is chosen as its parent.
          for (int next = 0; next <= numPoints; next++) {
             // the while-loop checks if (the stack is not empty) and (the list has no elements or its element is
-            // and elligble parent ), in this case we can pop the last element the compare its two elligible closest parents
-            // which are the new top of the steck and the current element of the list.
+            // an eligble parent ), in this case we can pop the last element to compare it with its two eligible closest parents
+            // which are the new top of the stack and the current element of the list.
             while (stackSize > 0 && (next == numPoints
                   || indices[stack[stackSize - 1]] > indices[next])) {
                int r = stack[--stackSize];// conditions are met: pop the top of the stack to determine its parent
                int i = indices[r];// original index of this element
                if (i == 0) // i=0 has no element before him so it has no parent
                   continue;
-               int previous = stackSize == 0 ? -1 : stack[stackSize - 1]; //the element on the right of the poped element (eigher the new top or nothing)
+               int previous = stackSize == 0 ? -1 : stack[stackSize - 1]; //the new top in the stack (represend left neighbor in the sorted list)
                int parent = -1;
                long difference = Long.MAX_VALUE;
                if (previous >= 0) {
-                  parent = indices[previous]; // eligible left parent in orginal list
-                  difference = bits[r] ^ bits[previous];// get prefix from the sorted list
+                  parent = indices[previous]; // get the index in the original order
+                  difference = bits[r] ^ bits[previous];// identify first different position
                }
                if (next < numPoints) {
                   long nextDifference = bits[r] ^ bits[next];
                   if (nextDifference < difference) {
-                     parent = indices[next]; // chose the eligible right parent as parent
+                     parent = indices[next]; // choose the eligible right parent as parent
                      difference = nextDifference;
                   }
                }
@@ -220,48 +211,10 @@ public final class NewCachedNusPointSet extends PointSet {
                long firstDifference = Long.highestOneBit(difference); // store the information of the scrambling relating i and its parent
                masks[i - 1] = firstDifference == 0L ? 0L : (firstDifference << 1) - 1L;
             }
-            //if we cant pop anymore from the stack we just push (whether the stack is empty or top original index < next original index)
+            //if we can't pop anymore from the stack we just push (whether the stack is empty or top original index < next original index)
             if (next < numPoints)
                stack[stackSize++] = next;
          }
-         ///**** using stack parent construction END *////
-
-         ///**** using arrays as linked lists parent construction BEGIN *////
-         /*
-         // Initially store inverse ranks in the final parent array. The reverse
-         // sweep replaces a rank only after that point no longer needs it.
-         for (int r = 0; r < numPoints; r++) {
-            dimensionParents[indices[r]] = r;
-            left[r] = r - 1;
-            right[r] = r + 1;
-         }
-         for (int i = numPoints - 1; i > 0; i--) {
-            int r = dimensionParents[i];
-            int previous = left[r];
-            int next = right[r];
-            int parent = -1;
-            long difference = Long.MAX_VALUE;
-            if (previous >= 0) {
-               parent = indices[previous];
-               difference = bits[r] ^ bits[previous];
-            }
-            if (next < numPoints) {
-               long nextDifference = bits[r] ^ bits[next];
-               if (nextDifference < difference) {
-                  parent = indices[next];
-                  difference = nextDifference;
-               }
-            }
-            dimensionParents[i] = parent;
-            long firstDifference = Long.highestOneBit(difference);
-            masks[i - 1] = firstDifference == 0L ? 0L : (firstDifference << 1) - 1L;
-            if (previous >= 0)
-               right[previous] = next;
-            if (next < numPoints)
-               left[next] = previous;
-         }
-         */
-         ///**** using arrays as linked lists parent construction END *////
 
          dimensionParents[0] = -1;
       }

@@ -19,13 +19,19 @@ public class TestRQMCSpeed64 {
    /**
     * Here we only randomize the points `numRep` times, but do not generate them.
     */
-   public static void testSpeedRandomize(int numReps, PointSet p, PointSetRandomization rand, int dim) {
+   public static void testSpeedRandomize(int numReps, int warmup, PointSet p, PointSetRandomization rand, int dim) {
+      if (warmup < 0)
+         throw new IllegalArgumentException("warmup must be nonnegative");
       double sum = 0.0;
       noise.resetStartStream();
       // RQMCPointSet ps = new RQMCPointSet(p, rand);
       System.out.println("Time to randomize the points only: ");
-      timer.init();
-      for (int rep = 0; rep < numReps; rep++) {
+      for (int rep = -warmup; rep < numReps; rep++) {
+         if (rep == 0) {
+            noise.resetStartStream();
+            sum = 0.0;
+            timer.init();
+         }
          rand.randomize(p);
          sum += p.getNumPoints();
       }
@@ -36,7 +42,9 @@ public class TestRQMCSpeed64 {
    /** Here we randomize the points, the generate them explicitly one point at a time, 
     *  and we compute the average of all the coordinates.
     */
-   public static void testSpeedGeneratePoints(int numReps, PointSet p, PointSetRandomization rand, int dim) {
+   public static void testSpeedGeneratePoints(int numReps, int warmup, PointSet p, PointSetRandomization rand, int dim) {
+      if (warmup < 0)
+         throw new IllegalArgumentException("warmup must be nonnegative");
       int n = p.getNumPoints();
       // RQMCPointSet ps = new RQMCPointSet(p, rand);
       PointSetIterator iter = p.iterator();
@@ -44,8 +52,12 @@ public class TestRQMCSpeed64 {
       double sum = 0.0;
       noise.resetStartStream();
       System.out.println("Time to randomize, generate with nextPoint(), and add the points coordinates: ");
-      timer.init();
-      for (int rep = 0; rep < numReps; rep++) {
+      for (int rep = -warmup; rep < numReps; rep++) {
+         if (rep == 0) {
+            noise.resetStartStream();
+            sum = 0.0;
+            timer.init();
+         }
          rand.randomize(p);
          iter.resetStartStream();
          for (int i = 0; i < n; i++) {
@@ -61,7 +73,9 @@ public class TestRQMCSpeed64 {
    /**
     * Same as previous method, except that here we generate only one coordinate at a time.
     */
-   public static void testSpeedGenerateCoord(int numReps, PointSet p, PointSetRandomization rand, int dim) {
+   public static void testSpeedGenerateCoord(int numReps, int warmup, PointSet p, PointSetRandomization rand, int dim) {
+      if (warmup < 0)
+         throw new IllegalArgumentException("warmup must be nonnegative");
       int n = p.getNumPoints();
       // RQMCPointSet ps = new RQMCPointSet(p, rand);
       PointSetIterator stream = p.iterator();
@@ -69,8 +83,12 @@ public class TestRQMCSpeed64 {
       double sum = 0.0;
       noise.resetStartStream();
       System.out.println("Time to randomize, generate with nextDouble(), and add the points coordinates: ");
-      timer.init();
-      for (int rep = 0; rep < numReps; rep++) {
+      for (int rep = -warmup; rep < numReps; rep++) {
+         if (rep == 0) {
+            noise.resetStartStream();
+            sum = 0.0;
+            timer.init();
+         }
          rand.randomize(p);
          stream.resetStartStream();
          for (int i = 0; i < n; i++) {
@@ -84,15 +102,16 @@ public class TestRQMCSpeed64 {
    }
 
    /** 
-    * Applies all the previous tests in succession.  
+    * Applies all the previous tests in succession, each preceded by
+    * {@code warmup} untimed replications.
     */
-   public static void testSpeedAll(int numReps, PointSet p, PointSetRandomization rand, int s) {
+   public static void testSpeedAll(int numReps, int warmup, PointSet p, PointSetRandomization rand, int s) {
       // System.out.println("------------------------------------------------------- \n");
       // System.out.println("Speed test for n = " + p.getNumPoints() + ", s = " + p.getDimension()
       //         + ", and m = " + numReps + " replications.");
-      testSpeedRandomize(numReps, p, rand, s);
-      testSpeedGeneratePoints(numReps, p, rand, s);
-      testSpeedGenerateCoord(numReps, p, rand, s);
+      testSpeedRandomize(numReps, warmup, p, rand, s);
+      testSpeedGeneratePoints(numReps, warmup, p, rand, s);
+      testSpeedGenerateCoord(numReps, warmup, p, rand, s);
       System.out.println("------------------------------------------------------- \n");
    }
    
@@ -100,6 +119,7 @@ public class TestRQMCSpeed64 {
    public static void main(String[] args) {
       int s = 10;    // Dimension
       int m = 100;    // Number of QMC randomizations
+      int warmup = 10; // Set the untimed warmup replications per benchmark; 0 disables warmup.
       int k = 20;
       int n = (int) Num.TWOEXP[k];   // Number of points.
 
@@ -124,111 +144,112 @@ public class TestRQMCSpeed64 {
 
       // System.out.println("Sobol points with NUS, new HCK \n");
       // RQMCPointSet hck0 = new RQMCDigitalNet2HCK(p, cp, noise, 53);
-      // // testSpeedAll(m, p, hck0.getRandomization(), s);
-      // testSpeedAll(m, hck0.getPointSet(), hck0.getRandomization(), s);
+      // // testSpeedAll(m, warmup, p, hck0.getRandomization(), s);
+      // testSpeedAll(m, warmup, hck0.getPointSet(), hck0.getRandomization(), s);
       //  This one does not work .....
  
       // System.out.println("Korobov lattice with random shift, implemented as an LCG \n");
-      // testSpeedAll(m, lcg, rs, s);
+      // testSpeedAll(m, warmup, lcg, rs, s);
 
       // System.out.println("Rank-1 lattice with random shift \n");
-      // testSpeedAll(m, lat, rs, s);
+      // testSpeedAll(m, warmup, lat, rs, s);
 
       // System.out.println("Rank-1 lattice with random shift, cached \n");
-      // testSpeedAll(m, clat, rs, s);
+      // testSpeedAll(m, warmup, clat, rs, s);
       
       // System.out.println("Rank-1 lattice with random shift + tent transformation \n");
       // BakerTransformedPointSet lattent = new BakerTransformedPointSet(lat);
-      // testSpeedAll(m, lattent, rs, s);
+      // testSpeedAll(m, warmup, lattent, rs, s);
 
       // System.out.println("Sobol points with no randomization \n");
-      // testSpeedAll(m, p, new EmptyRandomization(), s);
+      // testSpeedAll(m, warmup, p, new EmptyRandomization(), s);
       
       // System.out.println("Sobol points with random digital shift only \n");
-      // testSpeedAll(m, p, rds, s);
+      // testSpeedAll(m, warmup, p, rds, s);
 
       // System.out.println("Sobol points with random digital shift + tent transformation \n");
       // BakerTransformedPointSet ptent = new BakerTransformedPointSet(p);
-      // testSpeedAll(m, ptent, rs, s);
+      // testSpeedAll(m, warmup, ptent, rs, s);
      
       // System.out.println("Sobol points with LMS + RDS \n");
-      // testSpeedAll(m, p, lmsrds, s);
+      // testSpeedAll(m, warmup, p, lmsrds, s);
       
       // System.out.println("Sobol points with LMS + RDS, cached \n");
-      // testSpeedAll(m, cp, lmsrds, s);
+      // testSpeedAll(m, warmup, cp, lmsrds, s);
   
       // System.out.println("Sobol points with LMS + RDS + indep random bits after k \n");
       // p.addIndepRandomBits(new LFSR258());
-      // testSpeedAll(m, p, lmsrds, s);
+      // testSpeedAll(m, warmup, p, lmsrds, s);
       p.clearIndepRandomBits();
  
       p.unrandomize();
 
       // System.out.println("Sobol points with NUS, new CachedNUSPointSet22 reorder indices \n");
       // CachedNUSPointSet22 cachedNUSPointSet22 = new CachedNUSPointSet22(p, noise);
-      // testSpeedAll(m, cachedNUSPointSet22, cachedNUSPointSet22.getRandomization(), s);
+      // testSpeedAll(m, warmup, cachedNUSPointSet22, cachedNUSPointSet22.getRandomization(), s);
 
 
-      System.out.println("Sobol points with NUS, new FK \n");
-      RQMCPointSet fk = new RQMCCachedNUS(p, cp, noise);
-      testSpeedAll(m, fk.getPointSet(), fk.getRandomization(), s);
+      // System.out.println("Sobol points with NUS, new FK \n");
+      // RQMCPointSet fk = new RQMCCachedNUS(p, cp, noise);
+      // testSpeedAll(m, warmup, fk.getPointSet(), fk.getRandomization(), s);
 
       // System.out.println("Sobol points with NUS, updated ssj nus \n");
       // RQMCDigitalNet2FK02 updated_nus = new RQMCDigitalNet2FK02(p, cp, noise, 53);
-      // testSpeedAll(m, updated_nus.getPointSet(), updated_nus.getRandomization(), s);
+      // testSpeedAll(m, warmup, updated_nus.getPointSet(), updated_nus.getRandomization(), s);
       
+      System.out.println("Sobol points with NUS, new NewCachedNUSPointSet \n");
+       NewCachedNusPointSet newCached = new NewCachedNusPointSet(p, noise);
+       testSpeedAll(m, warmup, newCached, newCached.getRandomization(), s);
 
       System.out.println("Sobol points with NUS, new CachedNUSPointSet \n");
       CachedNUSPointSet cachedNUSPointSet = new CachedNUSPointSet(p, noise);
-      testSpeedAll(m, cachedNUSPointSet, cachedNUSPointSet.getRandomization(), s);
+      testSpeedAll(m, warmup, cachedNUSPointSet, cachedNUSPointSet.getRandomization(), s);
 
-       System.out.println("Sobol points with NUS, new newCachedNUSPointSet \n");
-       NewCachedNusPointSet newCached = new NewCachedNusPointSet(p, noise);
-       testSpeedAll(m, newCached, newCached.getRandomization(), s);
+
 
       // System.out.println("Sobol points with NUS, new HCK \n");
       // RQMCPointSet hck = new RQMCDigitalNet2HCK(p, cp, noise, 53);
-      // testSpeedAll(m, hck.getPointSet(), hck.getRandomization(), s);
+      // testSpeedAll(m, warmup, hck.getPointSet(), hck.getRandomization(), s);
       
-      System.out.println("Sobol points with NUS, new HCKPointSet \n");
-      HCKPointSet hckPointSet = new HCKPointSet(p, noise, 53);
+      // System.out.println("Sobol points with NUS, new HCKPointSet \n");
+      // HCKPointSet hckPointSet = new HCKPointSet(p, noise, 53);
       
-      testSpeedAll(m, hckPointSet, hckPointSet.getRandomization(), s);
-      System.out.println("Sobol points with NUS, new HCKLong \n");
-      RQMCPointSet hckLong = new RQMCDigitalNet2HCKLong(p, noise, 53);
-      testSpeedAll(m, hckLong.getPointSet(), hckLong.getRandomization(), s);
+      // testSpeedAll(m, warmup, hckPointSet, hckPointSet.getRandomization(), s);
+      // System.out.println("Sobol points with NUS, new HCKLong \n");
+      // RQMCPointSet hckLong = new RQMCDigitalNet2HCKLong(p, noise, 53);
+      // testSpeedAll(m, warmup, hckLong.getPointSet(), hckLong.getRandomization(), s);
 
       // System.out.println("Sobol points with NUS, new HCKLong iterator \n");
       // RQMCPointSet hckLongIter = new RQMCDigNet2HCKlongIter(p, noise, 53);
-      // testSpeedAll(m, hckLongIter.getPointSet(), hckLongIter.getRandomization(), s);
+      // testSpeedAll(m, warmup, hckLongIter.getPointSet(), hckLongIter.getRandomization(), s);
       
       // System.out.println("Sobol points with NUS, old SSJ \n");
-      // testSpeedAll(m, cp, nus, s);
+      // testSpeedAll(m, warmup, cp, nus, s);
          
       // System.out.println("Independent random points cached \n");
       // IndependentPointsCached cip = new IndependentPointsCached (n, s);
-      // testSpeedAll(m, cip, rs, s);
+      // testSpeedAll(m, warmup, cip, rs, s);
 
       // Run the Burley cases after all the other methods.
       // System.out.println("Sobol points with Burley scrambling, reference matrices (32 output bits) \n");
       // BurleyPointSet burleyReference = new BurleyPointSet(k, s, noise);
-      // testSpeedAll(m, burleyReference, burleyReference.getRandomization(), s);
+      // testSpeedAll(m, warmup, burleyReference, burleyReference.getRandomization(), s);
 
       // System.out.println("Sobol points with Burley scrambling, direct reference (32 col) \n");
       // BurleyReferencePointSet burleyDirectReference = new BurleyReferencePointSet(k, s, noise);
-      // testSpeedAll(m, burleyDirectReference, burleyDirectReference.getRandomization(), s);
+      // testSpeedAll(m, warmup, burleyDirectReference, burleyDirectReference.getRandomization(), s);
 
       // System.out.println("Sobol points with Burley scrambling, QuantLib (32 output bits) \n");
       // BurleyQuantLibPointSet burleyQuant = new BurleyQuantLibPointSet(k, s, noise);
-      // testSpeedAll(m, burleyQuant, burleyQuant.getRandomization(), s);
+      // testSpeedAll(m, warmup, burleyQuant, burleyQuant.getRandomization(), s);
 
       // System.out.println("Sobol points with Burley scrambling, SSJ matrices ((32 output bits,32 columns) \n");
       // BurleyPointSet burleySSJ = new BurleyPointSet(k, s, noise, true);
-      // testSpeedAll(m, burleySSJ, burleySSJ.getRandomization(), s);
+      // testSpeedAll(m, warmup, burleySSJ, burleySSJ.getRandomization(), s);
 
-      System.out.println("Sobol points with Burley scrambling, SSJ matrices, shared index (30 col, 32 output bits) \n");
-      BurleySSJPointSet burleySSJ30 = new BurleySSJPointSet(k, s, noise);
-      testSpeedAll(m, burleySSJ30, burleySSJ30.getRandomization(), s);
+      // System.out.println("Sobol points with Burley scrambling, SSJ matrices, shared index (30 col, 32 output bits) \n");
+      // BurleySSJPointSet burleySSJ30 = new BurleySSJPointSet(k, s, noise);
+      // testSpeedAll(m, warmup, burleySSJ30, burleySSJ30.getRandomization(), s);
 
    }
 }

@@ -31,7 +31,7 @@ import umontreal.ssj.rng.RandomStream;
  * No columns are added. Storage is proportional to dimension and independent
  * of the number of points.
  *
- * <p>For point {@code i}, the matrix index is
+ * <p>For point {@code i},  the scrambled index used to compute its Sobol coordinates is
  * {@code nestedUniformScramble(i, indexSeed) & 0x3fffffff}. The scramble uses
  * the original 32-bit arithmetic and bit reversals before retaining its low
  * 30 bits. The mask is fixed at 30 bits even when {@code k < 30}, so columns
@@ -42,15 +42,17 @@ import umontreal.ssj.rng.RandomStream;
  * draws one fresh 32-bit {@code indexSeed} using
  * {@link RandomStream#nextBitsLong(int)}, then derives the seed of dimension
  * {@code j} as {@code hash_combine(indexSeed, j)}, using Burley's original
- * 32-bit hash and the global dimension number. All seed storage is reused.
+ * 32-bit hashCombine() and the global dimension number. All seed storage is reused.
  * Coordinate access consumes no randomness and is deterministic between
  * randomizations.
  *
  * <p>Coordinate scrambling uses all 32 bits. Its unsigned integer result
  * {@code z} is converted to {@code unsigned(z) * 2^-32 + 2^-55}, as in
- * {@link BurleyPointSet}. The lookup tables store reversed matrix contributions
- * to avoid a coordinate bit reversal; the first dimension uses the exact
- * radical-inverse shortcut. Each iterator caches only its current scrambled
+ * {@link BurleyPointSet}. The lookup tables speed up Sobol coordinate computation by storing
+ * precomputed combinations of matrix columns. This reduces each matrix
+ * calculation to four table lookups and XOR operations. The first dimension
+ * is computed directly from the scrambled index and needs no lookup table.
+ * Each iterator caches only its current scrambled
  * index, sharing it across coordinates and refreshing it after randomization.
  * Direct {@link #getCoordinate(int, int)} access recomputes that index.
  *
@@ -59,7 +61,6 @@ import umontreal.ssj.rng.RandomStream;
  * use {@code new RQMCPointSet(points, points.getRandomization())}.
  *
  * @see BurleyPointSet
- * @see BurleyQuantLibPointSet
  */
 public final class BurleySSJPointSet extends PointSet {
    private static final int NUM_COLUMNS = 30;
@@ -96,6 +97,22 @@ public final class BurleySSJPointSet extends PointSet {
       this.randomization = new SsjRandomization();
    }
 
+   /**
+    * Builds lookup tables for evaluating the Sobol generating matrices.
+    * A Sobol coordinate is the XOR of the matrix columns selected by the
+    * 1 bits of its index. We split the index into four groups of bits and
+    * precompute each group's contribution. XORing four table entries
+    * therefore gives the same result as XORing the selected columns.
+    *
+    * <p>Bit reversal also works group by group: the XOR of reversed columns
+    * equals the reversal of their XOR. The tables store reversed contributions
+    * in the order needed for coordinate scrambling. In the first dimension,
+    * that reversed result is simply the index, so no table is needed.
+    *
+    * @param columns packed Sobol matrix columns, with 30 columns per dimension
+    * @param dimension number of dimensions
+    * @return lookup tables indexed by dimension, with the first entry {@code null}
+    */
    private static int[][] createByteTables(long[] columns, int dimension) {
       int[][] tables = new int[dimension][];
       // Dimension zero is a radical inverse and needs no table.
